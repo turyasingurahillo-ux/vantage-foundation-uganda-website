@@ -143,7 +143,7 @@ export function GuideQuickStart({ items }: { items: string[] }) {
   return (
     <section
       id="start-here"
-      className="scroll-mt-36 border-y border-primary/20 bg-primary-light/60 px-4 py-8 sm:px-6 md:scroll-mt-28 md:py-10"
+      className="scroll-mt-40 border-y border-primary/20 bg-primary-light/60 px-4 py-8 sm:px-6 lg:scroll-mt-28 md:py-10"
       aria-labelledby="quick-start-title"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -257,7 +257,7 @@ export function ManifestoCallout({ children }: { children: React.ReactNode }) {
   return (
     <section
       id="the-white-coat-is-not-a-prison-uniform"
-      className="scroll-mt-36 border-y border-white/10 bg-navy px-5 py-14 text-white md:scroll-mt-28 md:px-10 md:py-20"
+      className="scroll-mt-40 border-y border-white/10 bg-navy px-5 py-14 text-white lg:scroll-mt-28 md:px-10 md:py-20"
     >
       <div className="mx-auto max-w-3xl">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-deep-teal">
@@ -301,23 +301,21 @@ export function FundingCheck() {
         Never publish tuition without the second number: the money required to
         live there and obtain the visa.
       </p>
-      <div className="mt-6 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <ol className="space-y-2">
-          {terms.map((term) => (
-            <li
-              key={term.label}
-              className="grid grid-cols-[1.5rem_1fr] items-center border-b border-primary/15 bg-white/70 px-3 py-2.5"
-            >
-              <span className="font-mono text-lg font-bold text-primary" aria-hidden="true">
-                {term.symbol}
-              </span>
-              <span className="font-semibold text-foreground">{term.label}</span>
-            </li>
-          ))}
-        </ol>
-        <ArrowDown className="mx-auto hidden h-6 w-6 text-primary sm:block" aria-hidden="true" />
-      </div>
-      <div className="mt-3 flex items-center gap-3 bg-navy px-4 py-4 text-white">
+      <ol className="mt-6 space-y-2">
+        {terms.map((term) => (
+          <li
+            key={term.label}
+            className="grid grid-cols-[1.5rem_1fr] items-center border-b border-primary/15 bg-white/70 px-3 py-2.5"
+          >
+            <span className="font-mono text-lg font-bold text-primary" aria-hidden="true">
+              {term.symbol}
+            </span>
+            <span className="font-semibold text-foreground">{term.label}</span>
+          </li>
+        ))}
+      </ol>
+      <ArrowDown className="mx-auto my-2.5 h-5 w-5 text-primary" aria-hidden="true" />
+      <div className="flex items-center gap-3 bg-navy px-4 py-4 text-white">
         <CircleCheck className="h-5 w-5 shrink-0 text-deep-teal" aria-hidden="true" />
         <p className="font-bold">Actual funding gap</p>
       </div>
@@ -332,7 +330,7 @@ export function FundingCheck() {
 export function CareerRoadmap({ roadmap }: { roadmap: GuideRoadmap }) {
   return (
     <section
-      className="scroll-mt-36 border-t-4 border-primary bg-white p-5 shadow-sm md:scroll-mt-28 md:p-6"
+      className="scroll-mt-40 border-t-4 border-primary bg-white p-5 lg:scroll-mt-28 md:p-6"
       aria-labelledby={roadmap.id}
     >
       <h3 id={roadmap.id} className="text-2xl font-bold tracking-tight">
@@ -369,7 +367,7 @@ export function VantageView({ children }: { children: React.ReactNode }) {
   return (
     <section
       id="the-vantage-position"
-      className="scroll-mt-36 border-l-4 border-primary bg-primary-light/45 px-5 py-9 sm:px-8 md:scroll-mt-28"
+      className="scroll-mt-40 border-l-4 border-primary bg-primary-light/45 px-5 py-9 sm:px-8 lg:scroll-mt-28"
       aria-labelledby="vantage-view-title"
     >
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
@@ -387,7 +385,7 @@ export function VerificationPanel({ children }: { children: React.ReactNode }) {
   return (
     <section
       id="verification-and-corrections"
-      className="scroll-mt-36 border border-border bg-white p-5 shadow-sm sm:p-7 md:scroll-mt-28"
+      className="scroll-mt-40 border border-border bg-white p-5 shadow-sm sm:p-7 lg:scroll-mt-28"
       aria-labelledby="verification-title"
     >
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">

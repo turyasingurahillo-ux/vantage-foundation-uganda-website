@@ -47,10 +47,16 @@ export function ActionStatusBadge({
 
 export type EvidenceStatus = "verified" | "corroborated" | "unconfirmed";
 
+/**
+ * Evidence badges describe how well a claim is sourced; action badges describe
+ * what the reader should do. They must not be confusable, so evidence reads as
+ * an outlined "stamp" (no fill, square corners, leading rule) while actions
+ * stay filled pills with a status dot.
+ */
 const evidenceStyles: Record<EvidenceStatus, string> = {
-  verified: "border-primary/25 bg-primary-light text-primary-dark",
-  corroborated: "border-slate-300 bg-slate-100 text-slate-700",
-  unconfirmed: "border-warning/30 bg-warning-bg text-warning-fg",
+  verified: "border-primary/50 text-primary-dark before:bg-primary",
+  corroborated: "border-slate-400 text-slate-600 before:bg-slate-400",
+  unconfirmed: "border-warning/60 text-warning-fg before:bg-warning",
 };
 
 const evidenceLabels: Record<EvidenceStatus, string> = {
@@ -63,7 +69,8 @@ export function EvidenceBadge({ status }: { status: EvidenceStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 align-middle text-[0.72rem] font-bold uppercase tracking-[0.08em]",
+        "inline-flex items-center gap-1.5 rounded-[0.1875rem] border bg-transparent px-1.5 py-0.5 align-middle text-[0.68rem] font-bold uppercase tracking-[0.1em]",
+        "before:block before:h-2.5 before:w-0.5 before:content-['']",
         evidenceStyles[status]
       )}
       aria-label={`Evidence status: ${evidenceLabels[status]}`}

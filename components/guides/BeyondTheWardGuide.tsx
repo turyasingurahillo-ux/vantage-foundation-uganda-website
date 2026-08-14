@@ -63,10 +63,18 @@ const navigationItems = [
   { id: "verification-and-corrections", label: "Verification & corrections" },
 ];
 
-function GuideArticleSection({ section }: { section: ReturnType<typeof splitGuideSections>["sections"][number] }) {
+function GuideArticleSection({
+  section,
+  idPrefix,
+}: {
+  section: ReturnType<typeof splitGuideSections>["sections"][number];
+  idPrefix?: string;
+}) {
   return (
     <section className="border-t border-border py-10 first:border-t-0 first:pt-0 md:py-14">
-      <Markdown variant="guide">{section.markdown}</Markdown>
+      <Markdown variant="guide" idPrefix={idPrefix}>
+        {section.markdown}
+      </Markdown>
     </section>
   );
 }
@@ -106,7 +114,7 @@ function RoadmapsSection({
   return (
     <section
       id={section.id}
-      className="scroll-mt-36 border-t border-border py-12 md:scroll-mt-28 md:py-16"
+      className="scroll-mt-40 border-t border-border py-12 lg:scroll-mt-28 md:py-16"
       aria-labelledby="roadmaps-heading"
     >
       <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
@@ -143,7 +151,7 @@ function OpportunitySection({
       status: opportunity.status,
       type: opportunity.type,
       funding: opportunity.funding,
-      content: <Markdown>{opportunity.markdown}</Markdown>,
+      content: <Markdown statusBadges>{opportunity.markdown}</Markdown>,
     })),
   }));
 
@@ -261,7 +269,15 @@ export function BeyondTheWardGuide({
                   );
                 }
 
-                return <GuideArticleSection key={section.id} section={section} />;
+                return (
+                  <GuideArticleSection
+                    key={section.id}
+                    section={section}
+                    idPrefix={
+                      section.id === "frequently-asked-questions" ? "faq" : undefined
+                    }
+                  />
+                );
               })}
 
               <CareerAlertsCta story={story} />

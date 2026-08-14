@@ -15,6 +15,18 @@ interface MarkdownProps {
   className?: string;
   variant?: "default" | "article" | "guide" | "compact";
   pullQuoteAttribution?: string;
+  /**
+   * Render VERIFIED / ACT NOW style markers as badges. Defaults to on for the
+   * guide variant; opt in elsewhere (opportunity cards) without inheriting
+   * article-scale typography.
+   */
+  statusBadges?: boolean;
+  /**
+   * Namespace generated sub-heading (h3/h4) ids so questions that appear both
+   * inline and in the FAQ do not emit duplicate ids. Section-level h2 anchors
+   * are left untouched because the guide navigation targets them.
+   */
+  idPrefix?: string;
 }
 
 function headingText(node: ReactNode): string {
@@ -54,10 +66,17 @@ export function Markdown({
   className,
   variant = "default",
   pullQuoteAttribution,
+  statusBadges,
+  idPrefix,
 }: MarkdownProps) {
   const isArticle = variant === "article" || variant === "guide";
   const isGuide = variant === "guide";
   const isCompact = variant === "compact";
+  const showStatusBadges = statusBadges ?? isGuide;
+  const anchorId = (children: ReactNode) => {
+    const id = headingId(children);
+    return idPrefix ? `${idPrefix}-${id}` : id;
+  };
 
   return (
     <div
@@ -97,7 +116,7 @@ export function Markdown({
                 id={headingId(children)}
                 className={
                   isArticle
-                    ? "mb-5 mt-12 scroll-mt-36 text-[1.625rem] font-bold leading-[1.2] tracking-[-0.015em] text-foreground first:mt-0 sm:text-[1.75rem] md:mt-16 md:scroll-mt-28 md:text-[2rem]"
+                    ? "mb-5 mt-12 scroll-mt-40 text-[1.625rem] font-bold leading-[1.2] tracking-[-0.015em] text-foreground first:mt-0 sm:text-[1.75rem] md:mt-16 lg:scroll-mt-28 md:text-[2rem]"
                     : "mt-8 text-2xl font-bold text-foreground first:mt-0"
                 }
               >
@@ -108,10 +127,10 @@ export function Markdown({
           h3({ children }) {
             return (
               <h3
-                id={headingId(children)}
+                id={anchorId(children)}
                 className={
                   isArticle
-                    ? "mb-4 mt-10 scroll-mt-36 text-[1.375rem] font-semibold leading-[1.3] text-foreground md:scroll-mt-28 md:text-2xl"
+                    ? "mb-4 mt-10 scroll-mt-40 text-[1.375rem] font-semibold leading-[1.3] text-foreground lg:scroll-mt-28 md:text-2xl"
                     : "mt-6 text-xl font-semibold text-foreground"
                 }
               >
@@ -122,10 +141,10 @@ export function Markdown({
           h4({ children }) {
             return (
               <h4
-                id={headingId(children)}
+                id={anchorId(children)}
                 className={
                   isArticle
-                    ? "mb-3 mt-8 scroll-mt-36 text-xl font-semibold leading-snug text-foreground md:scroll-mt-28"
+                    ? "mb-3 mt-8 scroll-mt-40 text-xl font-semibold leading-snug text-foreground lg:scroll-mt-28"
                     : "mt-5 text-lg font-semibold text-foreground"
                 }
               >
@@ -170,7 +189,7 @@ export function Markdown({
                   isArticle
                     ? ""
                     : isCompact
-                      ? "rounded-xl border border-border bg-white p-4 shadow-sm"
+                      ? "border-l-2 border-primary/40 bg-white/70 px-4 py-3"
                       : "text-muted-foreground"
                 }
               >
@@ -209,7 +228,7 @@ export function Markdown({
             );
           },
           strong({ children }) {
-            const badge = isGuide ? guideStatusBadge(children) : null;
+            const badge = showStatusBadges ? guideStatusBadge(children) : null;
             return badge ?? <strong className="font-bold text-foreground">{children}</strong>;
           },
           table({ children }) {

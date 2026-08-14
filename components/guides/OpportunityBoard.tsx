@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Filter } from "lucide-react";
 import {
   ActionStatusBadge,
@@ -65,6 +65,46 @@ export function OpportunityBoard({
     [groups]
   );
 
+  // Group headings double as guide-navigation targets. A filter that hides a
+  // group deletes the element those links point at, so clear the filters when a
+  // reader navigates to a hidden group and re-run the scroll once the heading is
+  // back in the DOM. Filters start at "all", so only later navigation matters.
+  useEffect(() => {
+    const isGroupHeading = (id: string) =>
+      (Object.keys(statusMeta) as OpportunityStatus[]).some(
+        (value) => statusMeta[value].headingId === id
+      );
+
+    const reveal = (id: string) => {
+      if (!isGroupHeading(id)) return;
+      setStatus("all");
+      setType("all");
+      window.requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView();
+      });
+    };
+
+    const onHashChange = () =>
+      reveal(decodeURIComponent(window.location.hash.slice(1)));
+
+    // Re-clicking the link for the hash already in the URL fires no hashchange.
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as HTMLElement | null)?.closest?.(
+        'a[href*="#"]'
+      );
+      const href = link?.getAttribute("href");
+      if (!href) return;
+      reveal(decodeURIComponent(href.slice(href.indexOf("#") + 1)));
+    };
+
+    window.addEventListener("hashchange", onHashChange);
+    document.addEventListener("click", onClick);
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+      document.removeEventListener("click", onClick);
+    };
+  }, []);
+
   const visibleGroups = groups
     .filter((group) => status === "all" || group.status === status)
     .map((group) => ({
@@ -80,7 +120,7 @@ export function OpportunityBoard({
   return (
     <section
       id="11-opportunity-board-14-august-2026"
-      className="scroll-mt-36 border-y border-border bg-surface px-4 py-10 sm:px-6 md:scroll-mt-28 md:py-12 lg:px-8"
+      className="scroll-mt-40 border-y border-border bg-surface px-4 py-10 sm:px-6 lg:scroll-mt-28 md:py-12 lg:px-8"
       aria-labelledby="opportunity-board-heading"
     >
       <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -194,7 +234,7 @@ export function OpportunityBoard({
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <h3
                 id={statusMeta[group.status].headingId}
-                className="scroll-mt-36 text-xl font-bold md:scroll-mt-28"
+                className="scroll-mt-40 text-xl font-bold lg:scroll-mt-28"
               >
                 {group.heading.replace(/^[^A-Za-z]+/, "")}
               </h3>
@@ -204,20 +244,23 @@ export function OpportunityBoard({
               {group.items.map((item) => (
                 <article
                   key={item.id}
-                  className="flex min-w-0 flex-col border-l-4 border-primary bg-white p-5 shadow-sm"
+                  className="flex min-w-0 flex-col border-l-2 border-primary/70 bg-white p-5"
                 >
-                  <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-3 text-xs">
-                    <span className="rounded-md bg-surface px-2 py-1 font-semibold text-slate-700">
-                      Type: {item.type}
+                  <div className="mb-3.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-border pb-2.5 text-xs text-slate-600">
+                    <span className="font-bold uppercase tracking-[0.07em] text-slate-700">
+                      {item.type}
                     </span>
-                    <span
-                      className={cn(
-                        "rounded-md px-2 py-1 font-semibold",
-                        item.funding === "Unconfirmed"
-                          ? "bg-warning-bg text-warning-fg"
-                          : "bg-success-bg text-success-fg"
-                      )}
-                    >
+                    <span aria-hidden="true" className="text-slate-300">
+                      /
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          item.funding === "Unconfirmed" ? "bg-warning" : "bg-success"
+                        )}
+                        aria-hidden="true"
+                      />
                       Funding: {item.funding.toLowerCase()}
                     </span>
                   </div>

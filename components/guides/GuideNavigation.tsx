@@ -133,7 +133,7 @@ export function GuideNavigation({
         />
       </div>
 
-      <div className="sticky top-[72px] z-30 -mx-4 border-y border-border bg-white/95 px-4 py-2 shadow-sm backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <div className="sticky top-[85px] z-30 -mx-4 border-b border-border bg-white/95 px-4 py-2 shadow-sm backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
@@ -175,9 +175,9 @@ export function GuideNavigation({
         )}
       </div>
 
-      <aside className="hidden lg:block">
+      <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
         <nav
-          className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto border-l border-border pl-4 pr-2"
+          className="max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain border-l border-border pl-4 pr-2"
           aria-label="On this page"
         >
           <p className="mb-3 px-2.5 text-xs font-bold uppercase tracking-[0.1em] text-primary">
