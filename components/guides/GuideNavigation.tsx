@@ -35,6 +35,20 @@ function useGuidePosition(items: GuideNavigationItem[], targetId: string) {
     return () => observer.disconnect();
   }, [ids]);
 
+  // A jump lands the heading above the observer's detection band, so nothing
+  // intersects and the highlight would stay behind. Readers with
+  // prefers-reduced-motion get instant jumps for every link, so trust the hash
+  // directly whenever it names a section.
+  useEffect(() => {
+    const syncToHash = () => {
+      const hash = decodeURIComponent(window.location.hash.slice(1));
+      if (hash && ids.includes(hash)) setActiveId(hash);
+    };
+
+    window.addEventListener("hashchange", syncToHash);
+    return () => window.removeEventListener("hashchange", syncToHash);
+  }, [ids]);
+
   useEffect(() => {
     let frame = 0;
 
