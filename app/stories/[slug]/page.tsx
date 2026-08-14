@@ -22,6 +22,7 @@ import { RelatedStories } from "@/components/shared/RelatedStories";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { formatContentDate } from "@/lib/content-date";
+import { BeyondTheWardGuide } from "@/components/guides/BeyondTheWardGuide";
 
 export async function generateStaticParams() {
   return (await getAllStorySlugsWithDb()).map((slug) => ({ slug }));
@@ -43,6 +44,7 @@ export async function generateMetadata({
     path: `/stories/${slug}`,
     type: "article",
     publishedTime: story.date,
+    modifiedTime: story.updatedAt,
     authors: story.author ? [story.author] : undefined,
     image: story.seo?.ogImage || story.heroImage,
   });
@@ -61,9 +63,21 @@ export default async function StoryPage({
     notFound();
   }
 
+  const storyTags = new Set(story.tags ?? []);
   const relatedStories = (await getPublishedStoriesWithDb())
-    .filter((s) => s.slug !== story.slug && s.category === story.category)
+    .filter((candidate) => candidate.slug !== story.slug)
+    .map((candidate) => ({
+      story: candidate,
+      score:
+        (candidate.category === story.category ? 10 : 0) +
+        (candidate.tags ?? []).filter((tag) => storyTags.has(tag)).length,
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ story: candidate }) => candidate)
     .slice(0, 3);
+
+  const contentType = story.contentType ?? "Story";
 
   return (
     <>
@@ -91,14 +105,22 @@ export default async function StoryPage({
           url: `/stories/${slug}`,
           baseUrl: site.url,
           datePublished: story.date,
+          dateModified: story.updatedAt,
           author: story.author,
+          authorType: story.authorType,
           image: story.heroImage,
         })}
       />
+      {story.slug === "beyond-the-ward" ? (
+        <BeyondTheWardGuide story={story} relatedStories={relatedStories} />
+      ) : (
+        <>
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <div className="max-w-3xl">
-            <Badge variant="accent">{story.category}</Badge>
+            <Badge variant="accent">
+              {contentType} · {story.category}
+            </Badge>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
               {story.title}
             </h1>
@@ -108,6 +130,12 @@ export default async function StoryPage({
               {story.role && <span>{story.role}</span>}
               {story.date && (
                 <time dateTime={story.date}>{formatContentDate(story.date)}</time>
+              )}
+              {story.updatedAt && story.updatedAt !== story.date && (
+                <span>Updated {formatContentDate(story.updatedAt)}</span>
+              )}
+              {story.readingTimeMinutes && (
+                <span>{story.readingTimeMinutes} min read</span>
               )}
               {story.location && <span>{story.location}</span>}
             </div>
@@ -127,7 +155,10 @@ export default async function StoryPage({
           />
           {story.heroImage && (
             <figure>
-              <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
+              <div
+                className="relative aspect-[16/9] overflow-hidden rounded-2xl"
+                data-testid="story-hero"
+              >
                 <ImageOrPlaceholder
                   src={story.heroImage}
                   alt={story.heroImageAlt || story.title}
@@ -160,6 +191,8 @@ export default async function StoryPage({
           <RelatedStories stories={relatedStories} />
         </Container>
       </section>
+        </>
+      )}
     </>
   );
 }

@@ -1,6 +1,119 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Story } from "@/types";
 
+const beyondTheWardBody = readFileSync(
+  join(process.cwd(), "content", "stories", "beyond-the-ward.md"),
+  "utf8"
+);
+
 export const stories: Story[] = [
+  {
+    id: "beyond-the-ward",
+    slug: "beyond-the-ward",
+    title: "Beyond the Ward",
+    excerpt:
+      "A practical, verified guide to research jobs, funded scholarships and careers beyond clinical practice for Uganda's medical graduates and health workers.",
+    contentType: "Insight",
+    author: "Vantage Foundation Uganda Research Team",
+    authorType: "Organization",
+    role: "Research and Learning",
+    date: "2026-08-14",
+    updatedAt: "2026-08-14",
+    readingTimeMinutes: 39,
+    location: "Uganda",
+    category: "Career guide",
+    heroImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
+    heroImageAlt:
+      "A young Ugandan health professional carrying a white coat at branching paths toward research, public health, health data and clinical care.",
+    heroImageCredit:
+      "AI-generated editorial illustration — not a photograph of the people or events described.",
+    consentClassification: "none",
+    relatedProjectSlugs: [
+      "rural-medical-camps",
+      "mental-health-financial-literacy-workshops",
+    ],
+    tags: [
+      "health workforce",
+      "medical graduates",
+      "career guidance",
+      "research jobs",
+      "scholarships",
+      "Uganda",
+    ],
+    seo: {
+      title: "Careers for Medical Graduates in Uganda",
+      description:
+        "Explore verified careers for medical graduates in Uganda: research jobs, funded scholarships, M&E, digital health, free skills and practical next steps.",
+      ogImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
+    },
+    faqs: [
+      {
+        question:
+          "What careers are available for medical graduates in Uganda besides clinical practice?",
+        answer:
+          "You can build a career in research, epidemiology, public health, M&E, health informatics, digital health, pharmacovigilance, regulatory affairs, medical writing, programme management, policy or health-tech product work. The degree gives you clinical context; employers will still want evidence of a practical skill, project, placement or relevant entry-level role.",
+      },
+      {
+        question: "Can a doctor work in research without a master's degree?",
+        answer:
+          "Yes. Entry roles can include Research Assistant, Study Clinician, Research Clinician, Data Officer, Field Officer or Study Coordinator. A master's may help with progression, but it is not a universal entry requirement. GCP, data skills, strong documentation and visible research interest can matter first.",
+      },
+      {
+        question: "Can an MBChB graduate work in monitoring and evaluation?",
+        answer:
+          "Yes. A medical degree can satisfy the health-background requirement for many M&E roles, but it does not replace practical experience. Build through Excel, KoboToolbox, DHIS2, data-quality checks, indicators and reporting, then target Data Assistant, Programme Assistant or M&E Assistant roles before M&E Officer positions.",
+      },
+      {
+        question: "Which funded scholarships suit a fresh Ugandan graduate?",
+        answer:
+          "Commonwealth Shared, Erasmus Mundus Joint Masters, Türkiye Scholarships and UGHE's Mastercard Foundation Scholars Program do not currently state a minimum work-experience requirement. Each has other eligibility rules, and none had a confirmed open call on 14 August 2026. Prepare documents now and wait for the official next call.",
+      },
+      {
+        question: "Can a 2025 or 2026 graduate apply for Chevening in 2026?",
+        answer:
+          "No. For the 2027/28 round, Chevening requires 2,800 hours of work after the undergraduate degree and excludes applicants who completed that degree after October 2024. A recent graduate should document paid and voluntary work and build toward a later round instead of spending time on an ineligible application.",
+      },
+      {
+        question: "Which two free certificates should I start first?",
+        answer:
+          "Start ICH Good Clinical Practice E6(R3) through The Global Health Network and an introductory DHIS2 course through the DHIS2 Online Academy. Then build evidence: clean a permitted dataset, create a KoboToolbox form or produce a small dashboard. A certificate becomes useful when you can demonstrate the skill.",
+      },
+      {
+        question: "Where should I look for medical research jobs in Uganda?",
+        answer:
+          "Monitor the official portals of MRC/UVRI & LSHTM, IDI, MU-JHU, RHSP, IDRC Uganda, UVRI, TASO, Baylor Uganda and Amref. Roles close quickly, so check weekly and search by job title, not only ‘doctor’: Research Assistant, Study Clinician, Data Officer, Field Officer and Study Coordinator.",
+      },
+      {
+        question: "Are research internships and volunteer placements paid?",
+        answer:
+          "Some are paid, some unpaid and some may involve costs. Never infer financial terms from the word ‘internship.’ Before accepting, ask in writing about allowance, transport, meals, accommodation, insurance, fees, working hours, supervision and the certificate or reference you will receive. Vantage's position is that productive work should be fairly compensated.",
+      },
+      {
+        question: "Does low European tuition mean a degree is affordable?",
+        answer:
+          "Not necessarily. For Austria in 2026, a student aged 24 or older generally needed base maintenance proof of €15,700.68 for 12 months, in addition to insurance, extra rent where applicable, tuition, travel and the €218 permit fee. Calculate the entire funding gap before applying.",
+      },
+      {
+        question: "What if I have no formal work experience?",
+        answer:
+          "Begin with a standing internship or volunteer route, community-health work, a data or programme assistant role, or a supervised project. Keep a log of dates, hours, responsibilities and supervisors. Chevening counts eligible post-degree voluntary and internship work; other programmes use different definitions, so always follow the scheme's own rules.",
+      },
+      {
+        question: "Is a delayed internship year a wasted year?",
+        answer:
+          "No—but it needs structure. Use the year to gain one practical data skill, complete GCP, build a small portfolio, enter a health or research organisation, document service and prepare scholarship materials. These steps do not resolve the injustice of delayed or unpaid internship; they protect your momentum while the system changes.",
+      },
+      {
+        question:
+          "Does this guide apply to nurses, pharmacists and other health workers?",
+        answer:
+          "Much of it does. Scholarships, research placements, M&E, digital health and public-health routes often accept several health disciplines. Pharmacists have a strong fit with pharmacovigilance; laboratory scientists may fit UNIPH's Laboratory Leadership track. Never infer eligibility from ‘health-related degree’—check the accepted qualifications in the current call.",
+      },
+    ],
+    body: beyondTheWardBody,
+    published: true,
+  },
   {
     id: "why-youth-spaces-matter-in-uganda",
     slug: "why-youth-spaces-matter-in-uganda",

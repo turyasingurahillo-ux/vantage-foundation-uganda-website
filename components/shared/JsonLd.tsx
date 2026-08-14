@@ -51,6 +51,7 @@ export function buildArticleJsonLd(args: {
   datePublished?: string;
   dateModified?: string;
   author?: string;
+  authorType?: "Person" | "Organization";
   image?: string;
   type?: "Article";
 }) {
@@ -68,7 +69,9 @@ export function buildArticleJsonLd(args: {
     },
     datePublished: args.datePublished,
     dateModified: args.dateModified ?? args.datePublished,
-    author: args.author ? { "@type": "Person", name: args.author } : undefined,
+    author: args.author
+      ? { "@type": args.authorType ?? "Person", name: args.author }
+      : undefined,
     image: args.image ? toAbsoluteUrl(args.baseUrl, args.image) : undefined,
     publisher: {
       "@type": "Organization",

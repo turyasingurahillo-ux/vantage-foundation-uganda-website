@@ -170,18 +170,32 @@ const storySchema = z.object({
   slug,
   title: nonEmpty,
   excerpt: nonEmpty,
+  contentType: z.enum(["Story", "Insight"]).optional(),
   author: z.string().optional(),
+  authorType: z.enum(["Person", "Organization"]).optional(),
   role: z.string().optional(),
   date: dateish,
+  updatedAt: dateish.optional(),
+  readingTimeMinutes: z.number().int().positive().optional(),
   location: z.string().optional(),
   category: nonEmpty,
   heroImage: z.string().optional(),
+  heroImageAlt: z.string().optional(),
+  heroImageCredit: z.string().optional(),
   relatedProjectSlugs: z.array(slug).optional(),
   body: nonEmpty,
   // Phase 4 extensions
   tags: z.array(nonEmpty).optional(),
   consentClassification,
   seo: seoMeta,
+  faqs: z
+    .array(
+      z.object({
+        question: nonEmpty,
+        answer: nonEmpty,
+      })
+    )
+    .optional(),
   published: z.boolean().optional(),
 });
 

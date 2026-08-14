@@ -16,20 +16,23 @@ function estimateReadingTime(body: string): number {
 }
 
 export function StoryCard({ story }: StoryCardProps) {
-  const readingTime = estimateReadingTime(story.body);
+  const readingTime = story.readingTimeMinutes ?? estimateReadingTime(story.body);
+  const contentType = story.contentType ?? "Story";
 
   return (
     <Card className="flex flex-col overflow-hidden">
       <div className="relative aspect-[16/10] overflow-hidden">
         <ImageOrPlaceholder
           src={story.heroImage}
-          alt={story.title}
+          alt={story.heroImageAlt || story.title}
           fill
           containerClassName="h-full w-full"
         />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <Badge variant="accent">{story.category}</Badge>
+        <Badge variant="accent">
+          {contentType} · {story.category}
+        </Badge>
         <h3 className="mt-3 text-lg font-semibold leading-snug">
           <Link href={`/stories/${story.slug}`} className="hover:text-primary">
             {story.title}
@@ -47,7 +50,7 @@ export function StoryCard({ story }: StoryCardProps) {
             href={`/stories/${story.slug}`}
             className="inline-flex text-sm font-semibold text-primary hover:underline"
           >
-            Read the story
+            Read the {contentType.toLowerCase()}
           </Link>
           <span className="text-xs text-muted-foreground">
             {readingTime} min read

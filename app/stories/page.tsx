@@ -46,7 +46,7 @@ export default async function StoriesPage() {
               <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
                 <ImageOrPlaceholder
                   src={featured.heroImage}
-                  alt={featured.title}
+                  alt={featured.heroImageAlt || featured.title}
                   fill
                   preset="half"
                   priority
@@ -55,10 +55,12 @@ export default async function StoriesPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-                  Featured story
+                  Featured {(featured.contentType ?? "Story").toLowerCase()}
                 </p>
                 <div className="mt-3">
-                  <Badge variant="accent">{featured.category}</Badge>
+                  <Badge variant="accent">
+                    {featured.contentType ?? "Story"} · {featured.category}
+                  </Badge>
                 </div>
                 <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
                   <Link
@@ -78,7 +80,7 @@ export default async function StoriesPage() {
                   href={`/stories/${featured.slug}`}
                   className="mt-6 inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline"
                 >
-                  Read the story &rarr;
+                  Read the {(featured.contentType ?? "Story").toLowerCase()} &rarr;
                 </Link>
               </div>
             </div>

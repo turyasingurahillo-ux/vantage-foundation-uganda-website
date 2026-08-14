@@ -233,9 +233,17 @@ export interface Story {
   slug: string;
   title: string;
   excerpt: string;
+  /** Editorial presentation used by story listings and guide-specific layouts. */
+  contentType?: "Story" | "Insight";
   author?: string;
+  /** Schema.org author type. Organisation-authored research should not be marked as a person. */
+  authorType?: "Person" | "Organization";
   role?: string;
   date: string;
+  /** ISO date string for substantive editorial updates. */
+  updatedAt?: string;
+  /** Editorially reviewed reading-time estimate. */
+  readingTimeMinutes?: number;
   location?: string;
   category: string;
   /** Numeric database id for DB-backed stories (analytics tracking). Null for static stories. */
@@ -261,6 +269,8 @@ export interface Story {
   consentClassification?: ConsentClassification;
   /** Per-item SEO overrides. */
   seo?: SeoMeta;
+  /** Visible FAQ content that may also be expressed as structured data. */
+  faqs?: FaqItem[];
   /**
    * Whether the story is published. Defaults to true when omitted.
    * Unpublished stories are filtered out of production routes but

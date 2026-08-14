@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 export function FeaturedImpactStory() {
   const [story] = getPublishedStories();
   if (!story) return null;
+  const contentType = story.contentType ?? "Story";
 
   return (
     <section className="bg-white py-16 md:py-24 lg:py-32">
@@ -29,7 +30,7 @@ export function FeaturedImpactStory() {
           <p className="mt-4 max-w-xl text-white/90">{story.excerpt}</p>
           <div className="mt-6 flex flex-wrap gap-4">
             <Button href={`/stories/${story.slug}`} variant="secondary">
-              Read the Story
+              Read the {contentType}
             </Button>
             <Button
               href="/donate"
