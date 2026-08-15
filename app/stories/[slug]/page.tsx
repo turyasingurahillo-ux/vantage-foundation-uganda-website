@@ -6,8 +6,6 @@ import {
   getStoryWithDb,
 } from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
-import { Badge } from "@/components/ui/Badge";
-import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import {
   JsonLd,
@@ -19,10 +17,26 @@ import { ArticleAnalytics } from "@/components/shared/ArticleAnalytics";
 import { ArticleShareButtons } from "@/components/shared/ArticleShareButtons";
 import { ArticleCtaBar } from "@/components/shared/ArticleCtaBar";
 import { RelatedStories } from "@/components/shared/RelatedStories";
+import { ReadingProgress } from "@/components/shared/ReadingProgress";
+import { StoryHero } from "@/components/stories/StoryHero";
+import { StoryContextRail, StoryShareRail } from "@/components/stories/StoryRails";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
-import { formatContentDate } from "@/lib/content-date";
+import { getLocalImageDimensions } from "@/lib/image-dimensions";
+import {
+  estimateReadingTime,
+  extractOutline,
+  extractPullQuote,
+  resolveHeroFraming,
+} from "@/lib/story-article";
 import { BeyondTheWardGuide } from "@/components/guides/BeyondTheWardGuide";
+import type { Story } from "@/types";
+
+/** Cards shown in the end-of-article carousel. */
+const RELATED_STORY_COUNT = 6;
+
+/** Anchor the reading-progress bar measures against. */
+const ARTICLE_ELEMENT_ID = "story-article";
 
 export async function generateStaticParams() {
   return (await getAllStorySlugsWithDb()).map((slug) => ({ slug }));
@@ -50,6 +64,37 @@ export async function generateMetadata({
   });
 }
 
+/**
+ * Further reading: stories sharing a category or tag first, then the most
+ * recent remaining stories so the carousel is never left with one lonely card.
+ */
+function selectRelatedStories(story: Story, published: Story[]): Story[] {
+  const storyTags = new Set(story.tags ?? []);
+  const candidates = published.filter((candidate) => candidate.slug !== story.slug);
+
+  const scored = candidates
+    .map((candidate) => ({
+      story: candidate,
+      score:
+        (candidate.category === story.category ? 10 : 0) +
+        (candidate.tags ?? []).filter((tag) => storyTags.has(tag)).length,
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ story: candidate }) => candidate);
+
+  const selected = [...scored];
+  const chosen = new Set(selected.map((candidate) => candidate.slug));
+  for (const candidate of candidates) {
+    if (selected.length >= RELATED_STORY_COUNT) break;
+    if (chosen.has(candidate.slug)) continue;
+    selected.push(candidate);
+    chosen.add(candidate.slug);
+  }
+
+  return selected.slice(0, RELATED_STORY_COUNT);
+}
+
 export default async function StoryPage({
   params,
 }: {
@@ -63,21 +108,16 @@ export default async function StoryPage({
     notFound();
   }
 
-  const storyTags = new Set(story.tags ?? []);
-  const relatedStories = (await getPublishedStoriesWithDb())
-    .filter((candidate) => candidate.slug !== story.slug)
-    .map((candidate) => ({
-      story: candidate,
-      score:
-        (candidate.category === story.category ? 10 : 0) +
-        (candidate.tags ?? []).filter((tag) => storyTags.has(tag)).length,
-    }))
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map(({ story: candidate }) => candidate)
-    .slice(0, 3);
+  const relatedStories = selectRelatedStories(story, await getPublishedStoriesWithDb());
 
-  const contentType = story.contentType ?? "Story";
+  const readingTime = story.readingTimeMinutes ?? estimateReadingTime(story.body);
+  const heroFraming = resolveHeroFraming({
+    src: story.heroImage,
+    dimensions: getLocalImageDimensions(story.heroImage),
+    focalPoint: story.heroImageFocalPoint,
+  });
+  const outline = extractOutline(story.body);
+  const pullQuote = extractPullQuote(story.body);
 
   return (
     <>
@@ -115,82 +155,66 @@ export default async function StoryPage({
         <BeyondTheWardGuide story={story} relatedStories={relatedStories} />
       ) : (
         <>
-      <section className="bg-primary py-16 text-white md:py-24">
-        <Container>
-          <div className="max-w-3xl">
-            <Badge variant="accent">
-              {contentType} · {story.category}
-            </Badge>
-            <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-              {story.title}
-            </h1>
-            <p className="mt-4 text-lg text-white/90">{story.excerpt}</p>
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/80">
-              {story.author && <span>By {story.author}</span>}
-              {story.role && <span>{story.role}</span>}
-              {story.date && (
-                <time dateTime={story.date}>{formatContentDate(story.date)}</time>
-              )}
-              {story.updatedAt && story.updatedAt !== story.date && (
-                <span>Updated {formatContentDate(story.updatedAt)}</span>
-              )}
-              {story.readingTimeMinutes && (
-                <span>{story.readingTimeMinutes} min read</span>
-              )}
-              {story.location && <span>{story.location}</span>}
-            </div>
-          </div>
-        </Container>
-      </section>
+          <ReadingProgress targetId={ARTICLE_ELEMENT_ID} />
 
-      <section className="py-12 md:py-16">
-        <Container>
-          <Breadcrumbs
-            className="mb-8"
-            items={[
-              { label: "Home", href: "/" },
-              { label: "Stories & Insights", href: "/stories" },
-              { label: story.title },
-            ]}
-          />
-          {story.heroImage && (
-            <figure>
-              <div
-                className="relative aspect-[16/9] overflow-hidden rounded-2xl"
-                data-testid="story-hero"
-              >
-                <ImageOrPlaceholder
-                  src={story.heroImage}
-                  alt={story.heroImageAlt || story.title}
-                  fill
-                  preload
-                  preset="detailHero"
-                  containerClassName="h-full w-full"
+          <StoryHero story={story} framing={heroFraming} readingTime={readingTime} />
+
+          <section className="py-10 md:py-14">
+            <Container width="wide">
+              <Breadcrumbs
+                className="mb-8"
+                items={[
+                  { label: "Home", href: "/" },
+                  { label: "Stories & Insights", href: "/stories" },
+                  { label: story.title },
+                ]}
+              />
+
+              {/*
+                Three columns from `lg` up: sticky share rail, reading column,
+                context rail. The reading column is capped for line length and
+                the surplus width goes to the rails, so a widescreen monitor
+                fills its margins instead of leaving them blank. Below `lg`
+                both rails drop out and this collapses to a single column.
+
+                The cap rises with each breakpoint — 576px, 640px, then 704px —
+                so a 1920px monitor is not handed the same column as a 1280px
+                laptop, while the line length stays inside a readable band.
+              */}
+              <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(8rem,0.75fr)_minmax(0,36rem)_minmax(10rem,0.9fr)] xl:gap-x-14 xl:grid-cols-[minmax(10rem,0.8fr)_minmax(0,40rem)_minmax(14rem,1fr)] 2xl:grid-cols-[minmax(12rem,0.8fr)_minmax(0,44rem)_minmax(16rem,1fr)]">
+                <StoryShareRail
+                  slug={story.slug}
+                  title={story.title}
+                  readingTime={readingTime}
                 />
+
+                <div className="min-w-0">
+                  <article id={ARTICLE_ELEMENT_ID}>
+                    <Markdown variant="article" resolveImageSize={getLocalImageDimensions}>
+                      {story.body}
+                    </Markdown>
+                  </article>
+
+                  {/* The desktop rail already carries these controls. */}
+                  <ArticleShareButtons
+                    slug={story.slug}
+                    title={story.title}
+                    className="mt-10 lg:hidden"
+                  />
+
+                  <ArticleCtaBar slug={story.slug} />
+                </div>
+
+                <StoryContextRail outline={outline} pullQuote={pullQuote} />
               </div>
-              {story.heroImageCredit && (
-                <figcaption className="mt-3 text-sm text-muted-foreground">
-                  {story.heroImageCredit}
-                </figcaption>
-              )}
-            </figure>
-          )}
+            </Container>
+          </section>
 
-          <article className="mx-auto mt-12 max-w-3xl">
-            <Markdown variant="article">{story.body}</Markdown>
-          </article>
-
-          <div className="mx-auto mt-8 max-w-3xl">
-            <ArticleShareButtons slug={story.slug} title={story.title} />
-          </div>
-
-          <div className="mx-auto mt-8 max-w-3xl">
-            <ArticleCtaBar slug={story.slug} />
-          </div>
-
-          <RelatedStories stories={relatedStories} />
-        </Container>
-      </section>
+          <section className="pb-16 md:pb-20">
+            <Container width="wide">
+              <RelatedStories stories={relatedStories} />
+            </Container>
+          </section>
         </>
       )}
     </>

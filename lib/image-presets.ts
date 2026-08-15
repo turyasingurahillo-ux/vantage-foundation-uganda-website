@@ -40,6 +40,13 @@ export const imagePresets = {
 
   /** Full-width banner/CTA images. */
   banner: "100vw",
+
+  /**
+   * Images inside an article's reading column. The column is full-bleed on
+   * mobile and capped between 40rem and 44rem once the side rails appear, so
+   * declaring 100vw at desktop would download a 1200w source for a 704px slot.
+   */
+  articleBody: "(max-width: 1023px) 100vw, 704px",
 } as const;
 
 export type ImagePreset = keyof typeof imagePresets;

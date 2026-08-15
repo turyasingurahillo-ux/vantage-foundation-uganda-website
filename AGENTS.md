@@ -43,6 +43,19 @@ actions: **[docs/email-privacy-and-contact.md](docs/email-privacy-and-contact.md
 ## Editing content
 All non-code content lives in the `content/` folder as TypeScript modules. To update a project, story, team member, partner or report, edit the relevant file. Placeholder data is marked with `[...]` or the `placeholder` boolean. Replace placeholder content with verified information before public launch.
 
+### Story hero images
+A story's hero image is reused at several crop shapes (page hero, cards, the
+related-stories carousel), so a photograph whose subject sits off-centre can
+lose their head in the shallowest of them. Set `heroImageFocalPoint` on the
+story — a CSS `object-position` value such as `"50% 12%"` — to hold the focus
+where the subject is. Omit it and the template biases slightly above centre,
+which suits most field photography.
+
+Portrait photographs do not need this to be safe: `app/stories/[slug]/page.tsx`
+reads the image's real dimensions (`lib/image-dimensions.ts`) and gives a tall
+source a portrait hero beside the headline instead of a cinematic band. The
+focal point still applies to its cards. See `lib/story-article.ts`.
+
 ## Environment variables
 Copy `.env.example` to `.env.local` and set:
 - `NEXT_PUBLIC_SITE_URL` — canonical site URL

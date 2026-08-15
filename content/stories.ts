@@ -425,6 +425,11 @@ That is a debt the nation cannot keep deferring.
     heroImage: "/images/photos/photo-058.webp",
     heroImageAlt:
       "A young woman in a \"Vantage Foundation, Write My Own Story\" t-shirt sits and smiles outdoors near a borehole pump.",
+    // A 3:4 portrait: her head occupies roughly the top third of the frame,
+    // so every crop shallower than the photograph has to hold its focus high.
+    // 12% keeps the crown of her head in view down to the shallowest frame
+    // this image appears in (the 16:10 card thumbnail).
+    heroImageFocalPoint: "50% 12%",
     consentClassification: "verified",
     relatedProjectSlugs: ["savegirl-uganda", "advantage-book-club"],
     body: `We come into this world and we are given many things. A name. A nationality. A tribe. A religion. A language. A family. A place to call home.

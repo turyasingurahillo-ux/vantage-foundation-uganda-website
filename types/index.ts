@@ -264,6 +264,14 @@ export interface Story {
    * photography (illustration, licensed stock, partner-supplied).
    */
   heroImageCredit?: string;
+  /**
+   * CSS `object-position` for the hero image wherever it is cropped (page
+   * hero, cards, carousel) — e.g. "50% 20%" to hold a subject's face in a
+   * wide frame. Omit to use the template default, which biases slightly above
+   * centre. Set this per photograph rather than changing the default: the
+   * right focus is a property of the image, not of the layout.
+   */
+  heroImageFocalPoint?: string;
   relatedProjectSlugs?: string[];
   body: string;
   // --- Phase 4 extensions (all optional for backward compatibility) ---
