@@ -13,7 +13,13 @@
 //   npx tsx lib/validate-content.ts
 //   # Exit code 0 = all valid, 1 = errors found
 
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { z } from "zod";
+import {
+  contentSocialImageCandidates,
+  resolveSocialImage,
+} from "./social-image";
 import { site } from "../content/site";
 import { projects } from "../content/projects";
 import { stories } from "../content/stories";
@@ -47,11 +53,23 @@ const dateish = z.string().min(1);
 /** URL or path. */
 const urlOrPath = z.string().trim().min(1);
 
+/** A described social card. See SocialImageSource in types/index.ts. */
+const socialImageSource = z.object({
+  url: z
+    .string()
+    .startsWith("/", "must be a site-relative path, not an external URL"),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  alt: z.string().optional(),
+  type: z.string().optional(),
+});
+
 const seoMeta = z
   .object({
     title: z.string().optional(),
     description: z.string().optional(),
     ogImage: z.string().optional(),
+    socialImage: socialImageSource.optional(),
   })
   .optional();
 
@@ -298,6 +316,41 @@ interface ValidationError {
   message: string;
 }
 
+/**
+ * Every published story and project must advertise a social card that exists.
+ *
+ * The card a page advertises is whatever `contentSocialImageCandidates` picks,
+ * so this resolves the real chain rather than guessing. A story added without
+ * running `npm run generate:social` fails here — at prebuild, before the
+ * deploy — instead of shipping an og:image that 404s and previews as the grey
+ * placeholder card.
+ */
+function checkSocialCards(errors: ValidationError[]) {
+  const items: Array<{ file: string; item: (typeof stories)[number] | (typeof projects)[number] }> = [
+    ...stories.map((item) => ({ file: "content/stories.ts", item })),
+    ...projects.map((item) => ({ file: "content/projects.ts", item })),
+  ];
+
+  for (const { file, item } of items) {
+    if (item.published === false) continue;
+
+    const resolved = resolveSocialImage(
+      contentSocialImageCandidates(item),
+      item.title
+    );
+    const cardPath = new URL(resolved.url).pathname;
+    const onDisk = join(process.cwd(), "public", cardPath);
+
+    if (!existsSync(onDisk)) {
+      errors.push({
+        file,
+        path: `${item.slug}.seo.socialImage`,
+        message: `social card "${cardPath}" does not exist — run \`npm run generate:social\``,
+      });
+    }
+  }
+}
+
 function checkCrossReferences(errors: ValidationError[]) {
   const projectSlugs = new Set(projects.map((p) => p.slug));
   const storySlugs = new Set(stories.map((s) => s.slug));
@@ -448,6 +501,7 @@ export function validateAllContent(): ValidationError[] {
   );
 
   checkCrossReferences(errors);
+  checkSocialCards(errors);
 
   return errors;
 }

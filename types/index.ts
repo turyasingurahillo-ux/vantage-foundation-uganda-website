@@ -111,14 +111,45 @@ export type ProjectTheme =
 export type ProjectStatus = "Active" | "Completed" | "Planned";
 
 /**
+ * A social-card image, described the way Open Graph and the Twitter card
+ * markup want it: an explicit size and MIME type alongside the URL, so a
+ * crawler never has to download and decode the file to size the card.
+ *
+ * `url` is a site-relative path (e.g. /images/social/my-story-og.jpg); it is
+ * made absolute at render time. See `lib/social-image.ts` for which formats
+ * are safe to hand to a crawler and why.
+ */
+export interface SocialImageSource {
+  url: string;
+  width?: number;
+  height?: number;
+  /** Falls back to the item's hero-image alt text, then its title. */
+  alt?: string;
+  /** e.g. "image/jpeg". Derived from the file extension when omitted. */
+  type?: string;
+}
+
+/**
  * SEO metadata for a content item. When omitted, the item's title and
  * summary/excerpt are used as fallbacks.
  */
 export interface SeoMeta {
   title?: string;
   description?: string;
-  /** Path to a custom OG image (e.g. /images/og/project-slug.png). */
+  /**
+   * Path to a custom OG image (e.g. /images/og/project-slug.png).
+   *
+   * Prefer `socialImage`, which also carries the dimensions and MIME type
+   * that link previews need. This remains for items whose card is a bare
+   * path and whose size is not known.
+   */
   ogImage?: string;
+  /**
+   * Dedicated social card for this item. Takes precedence over `ogImage`
+   * and the hero image. Build one with `socialCard()` from
+   * `lib/social-image.ts` after running `npm run generate:social`.
+   */
+  socialImage?: SocialImageSource;
 }
 
 /**

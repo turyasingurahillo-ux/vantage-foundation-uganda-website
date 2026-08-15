@@ -45,7 +45,9 @@ export const stories: Story[] = [
       title: "Careers for Medical Graduates in Uganda",
       description:
         "Explore verified careers for medical graduates in Uganda: research jobs, funded scholarships, M&E, digital health, free skills and practical next steps.",
-      ogImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
+      // No ogImage: the hero is WebP, which link-preview crawlers do not
+      // render. The generated 1200x630 JPEG card is used instead — see
+      // lib/social-image.ts.
     },
     faqs: [
       {
@@ -134,7 +136,7 @@ export const stories: Story[] = [
       title: "Why Youth Spaces Matter in Uganda | Vantage Foundation Uganda",
       description:
         "Uganda has one of the world’s youngest populations. Discover why safe, inclusive youth spaces support leadership, employment, wellbeing and innovation.",
-      ogImage: "/images/photos/photo-073.webp",
+      // No ogImage: see the note on Beyond the Ward above.
     },
     body: `Uganda is a young country—and that may be one of the most important facts about its future.
 
@@ -310,7 +312,13 @@ At Vantage Foundation Uganda, we believe that when young people are given the ri
       title: "Uganda's medical interns crisis",
       description:
         "From 3 August, 2,417 Ugandan medical interns start work with no answer on pay. Inside the NETH policy that defined their allowance out of existence.",
-      ogImage: "/images/og/healers-in-crisis-ugandas-medical-interns.png",
+      // Hand-made card, kept in preference to a generated crop of the hero.
+      socialImage: {
+        url: "/images/og/healers-in-crisis-ugandas-medical-interns.png",
+        width: 1200,
+        height: 630,
+        type: "image/png",
+      },
     },
     body: `*Healers in Crisis — a Vantage Foundation Uganda perspective on the human cost of an ailing health workforce.*
 

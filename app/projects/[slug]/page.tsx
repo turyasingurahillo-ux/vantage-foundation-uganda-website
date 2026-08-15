@@ -21,6 +21,7 @@ import { Markdown } from "@/components/shared/Markdown";
 import { site } from "@/content/site";
 import { programmeTokenForCategory, programmeIdForCategory, programmeLabel } from "@/lib/design-tokens";
 import { createPublicMetadata } from "@/lib/metadata";
+import { contentSocialImageCandidates } from "@/lib/social-image";
 
 export async function generateStaticParams() {
   return getProjectSlugs().map((slug) => ({ slug }));
@@ -38,7 +39,8 @@ export async function generateMetadata({
     title: project.seo?.title || project.title,
     description: project.seo?.description || project.summary,
     path: `/projects/${slug}`,
-    image: project.seo?.ogImage || project.heroImage,
+    image: contentSocialImageCandidates(project),
+    imageAlt: project.heroImageAlt || project.title,
   });
 }
 
