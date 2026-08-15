@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "check-placeholders": "node scripts/check-placeholders.mjs",
     "check-links": "node scripts/check-links.mjs",
-    "prebuild": "npm run validate-content"
+    "prebuild": "npm run validate-content && node scripts/migrate-on-build.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1069.0",
