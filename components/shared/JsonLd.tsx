@@ -51,6 +51,7 @@ export function buildArticleJsonLd(args: {
   datePublished?: string;
   dateModified?: string;
   author?: string;
+  authorType?: "Person" | "Organization";
   image?: string;
   type?: "Article" | "BlogPosting";
 }) {
@@ -68,7 +69,9 @@ export function buildArticleJsonLd(args: {
     },
     datePublished: args.datePublished,
     dateModified: args.dateModified ?? args.datePublished,
-    author: args.author ? { "@type": "Person", name: args.author } : undefined,
+    author: args.author
+      ? { "@type": args.authorType ?? "Person", name: args.author }
+      : undefined,
     image: args.image ? toAbsoluteUrl(args.baseUrl, args.image) : undefined,
     publisher: {
       "@type": "Organization",
@@ -129,7 +132,14 @@ export function buildNgoJsonLd(args: {
   name: string;
   legalName: string;
   url: string;
-  email: string;
+  /**
+   * Optional. Only pass a PUBLIC alias here, never Vantage's protected
+   * operational mailbox — structured data is the single easiest field for an
+   * address harvester to scrape. When omitted, a ContactPoint pointing at the
+   * contact page is emitted instead, so search engines still get a contact
+   * signal without an address being published.
+   */
+  email?: string;
   telephone: string;
   address: string;
   city: string;
@@ -155,6 +165,15 @@ export function buildNgoJsonLd(args: {
     image: args.logoUrl ? `${args.url}${args.logoUrl}` : undefined,
     email: args.email,
     telephone: args.telephone,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      telephone: args.telephone,
+      url: toAbsoluteUrl(args.url, "/contact"),
+      ...(args.email ? { email: args.email } : {}),
+      areaServed: args.country,
+      availableLanguage: "English",
+    },
     address: {
       "@type": "PostalAddress",
       streetAddress: args.address,

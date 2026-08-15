@@ -44,6 +44,6 @@ export const faq: FaqItem[] = [
   {
     question: "How do I contact Vantage Foundation Uganda?",
     answer:
-      "Email us at foundationvantage@gmail.com, call or WhatsApp +256 786 585 216, or use the contact form on this website.",
+      "Use the contact form at vantagefoundationuganda.com/contact, or call or WhatsApp +256 786 585 216. The form lets you pick the right team — partnerships, grants, programmes, volunteering, media or research — so your message reaches the people who can answer it.",
   },
 ];

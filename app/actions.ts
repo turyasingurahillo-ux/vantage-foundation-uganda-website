@@ -3,20 +3,73 @@
 import { z } from "zod";
 import nodemailer from "nodemailer";
 import { headers } from "next/headers";
+// `site` is used only for PUBLIC details (phone). Vantage's protected mailbox
+// is no longer part of the site config — it is server-only, in
+// lib/contact-inbox.ts — so it can never reach a client bundle from here.
 import { site } from "@/content/site";
 import { createDonation } from "@/lib/db";
+import {
+  createContactMessage,
+  isContactStoreConfigured,
+  markContactMessageEmailed,
+} from "@/lib/db/contact";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logInfo, logWarn, logError } from "@/lib/logger";
+import {
+  CONTACT_CATEGORY_VALUES,
+  buildSubjectPrefix,
+  getCategoryLabel,
+} from "@/lib/contact-categories";
+import {
+  getDefaultInbox,
+  getFromAddress,
+  resolveInboxFor,
+} from "@/lib/contact-inbox";
+import { verifyTurnstile } from "@/lib/turnstile";
+
+// Field limits. These are generous enough for a detailed grant or partnership
+// inquiry but bounded so a bot cannot post megabytes through the endpoint.
+const MAX_NAME = 100;
+const MAX_ORGANISATION = 150;
+const MAX_PHONE = 40;
+const MAX_EMAIL = 254;
+const MAX_MESSAGE = 5000;
 
 const contactSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-  subject: z.string().min(1, "Please select a subject"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Please enter your full name")
+    .max(MAX_NAME, `Name must be ${MAX_NAME} characters or fewer`),
+  email: z
+    .string()
+    .trim()
+    .max(MAX_EMAIL, "Email address is too long")
+    .email("Please enter a valid email address"),
+  phone: z
+    .string()
+    .trim()
+    .max(MAX_PHONE, "Phone number is too long")
+    .optional(),
+  organisation: z
+    .string()
+    .trim()
+    .max(MAX_ORGANISATION, `Organisation must be ${MAX_ORGANISATION} characters or fewer`)
+    .optional(),
+  // Fixed enum: the category selects the destination mailbox server-side, so
+  // it must never be free text from the request.
+  subject: z.enum(CONTACT_CATEGORY_VALUES, {
+    message: "Please choose what your message is about",
+  }),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Please give us at least a sentence so we can help")
+    .max(MAX_MESSAGE, `Message must be ${MAX_MESSAGE} characters or fewer`),
   website: z.string().optional(), // honeypot 1
   company_url: z.string().optional(), // honeypot 2 (realistic name)
   form_loaded_at: z.string().optional(), // time-trap
+  "cf-turnstile-response": z.string().optional(), // bot challenge token
 });
 
 const newsletterSchema = z.object({
@@ -48,8 +101,17 @@ export type FormState = {
   fieldErrors?: Record<string, string>;
 };
 
-// Rate limit for public form submissions: 3 per minute per IP.
-const FORM_RATE_LIMIT = 3;
+// Rate limit for public form submissions: 3 per minute per IP by default.
+//
+// Conservative enough to stop automated abuse while leaving room for a genuine
+// visitor who mistypes a field and resubmits. Configurable via
+// FORM_RATE_LIMIT so operators can tune it — and so end-to-end tests, which
+// drive many submissions from one IP, can raise it without weakening the
+// production default.
+const FORM_RATE_LIMIT = (() => {
+  const parsed = Number(process.env.FORM_RATE_LIMIT);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 3;
+})();
 const FORM_RATE_WINDOW_MS = 60_000;
 
 async function checkFormRateLimit(action: string): Promise<boolean> {
@@ -61,6 +123,18 @@ async function checkFormRateLimit(action: string): Promise<boolean> {
     windowMs: FORM_RATE_WINDOW_MS,
   });
 }
+
+async function getRequestIp(): Promise<string> {
+  return getClientIp(await headers());
+}
+
+/**
+ * The single confirmation shown for every accepted contact submission —
+ * including honeypot-rejected ones, so bots cannot distinguish acceptance from
+ * rejection. It deliberately names no mailbox.
+ */
+const CONTACT_SUCCESS_MESSAGE =
+  "Thank you for contacting Vantage Foundation Uganda. Your message has been received and will be directed to the appropriate team.";
 
 const RATE_LIMITED_MESSAGE =
   "Too many submissions from your location. Please wait a minute and try again.";
@@ -104,32 +178,45 @@ function isBotSubmission(raw: Record<string, unknown>): boolean {
   return false;
 }
 
-// --- SMTP_FROM validation ---
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function getValidatedFromAddress(): string {
-  const from = process.env.SMTP_FROM || site.contact.email;
-  if (!EMAIL_REGEX.test(from)) {
-    logWarn("smtp_from_invalid", { from: from.substring(0, 50) });
-    return site.contact.email;
-  }
-  return from;
-}
-
 // --- Email sanitization ---
-// Strip control characters and limit length to prevent email header injection.
+// Strip CR/LF and control characters to prevent email header injection, and
+// bound the length. Applied to every value before it reaches a mail header or
+// an HTML body.
 function sanitiseValue(value: unknown): string {
   if (value == null) return "";
   return String(value)
-    .replace(/[\r\n\t]/g, " ") // strip line breaks and tabs
-    .replace(/\x00-\x1f/g, " ") // strip control chars
-    .substring(0, 1000); // limit length
+    .replace(/[\r\n\t]/g, " ") // strip line breaks and tabs (header injection)
+    .replace(/[\p{Cc}\p{Cf}]/gu, " ") // strip remaining control/format chars
+    .substring(0, MAX_MESSAGE);
 }
 
+/**
+ * Escapes user-supplied text for interpolation into the HTML email body.
+ * Without this, a submitted `<script>` or `<img onerror=…>` would be rendered
+ * as live markup in the reader's mail client.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Sends an internal notification.
+ *
+ * `to` is always resolved server-side from env + a fixed category enum
+ * (lib/contact-inbox.ts). Nothing in the visitor's request can influence the
+ * recipient, so this cannot be used as an open relay.
+ */
 async function sendEmail(
   subject: string,
   body: string,
-  html?: string
+  html: string | undefined,
+  to: string,
+  replyTo?: string
 ): Promise<boolean> {
   const smtpHost = process.env.SMTP_HOST;
   if (!smtpHost) return false;
@@ -145,12 +232,18 @@ async function sendEmail(
       },
     });
 
-    const from = getValidatedFromAddress();
+    // Fall back to the destination itself so the message still sends when no
+    // SMTP_FROM/SMTP_USER is configured. Both are server-side values.
+    const from = getFromAddress() ?? to;
+
     await transporter.sendMail({
       from,
-      to: site.contact.email,
-      subject,
+      to,
+      subject: sanitiseValue(subject).substring(0, 200),
       text: body,
+      // Lets the team reply straight to the enquirer. Sanitised and validated
+      // as an email address by Zod before reaching here.
+      ...(replyTo ? { replyTo: sanitiseValue(replyTo).substring(0, MAX_EMAIL) } : {}),
       ...(html ? { html } : {}),
     });
     return true;
@@ -158,31 +251,47 @@ async function sendEmail(
     const errMsg = err instanceof Error ? err.message : String(err);
     logError("email_send_failed", {
       smtp_host: smtpHost,
-      subject,
+      // Never log the subject verbatim — it can contain visitor-supplied text.
       error: errMsg.substring(0, 200),
     });
     return false;
   }
 }
 
+// Internal-only fields that must never appear in the notification email.
+const INTERNAL_FIELDS = [
+  "website",
+  "company_url",
+  "form_loaded_at",
+  "submissionId",
+  "cf-turnstile-response",
+];
+
 function formatBody(data: Record<string, unknown>): string {
   return Object.entries(data)
-    .filter(([key]) => !["website", "company_url", "form_loaded_at", "submissionId"].includes(key))
+    .filter(([key]) => !INTERNAL_FIELDS.includes(key))
     .map(([key, value]) => `${key}: ${sanitiseValue(value)}`)
     .join("\n");
 }
 
 // --- HTML email template ---
 function emailTemplate(title: string, rows: { label: string; value: string }[]): string {
+  // Every interpolated value is HTML-escaped: submissions are untrusted input
+  // and must never render as live markup in the reader's mail client.
   const tableRows = rows
     .map(
       (r) =>
-        `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#050708;vertical-align:top;">${r.label}</td><td style="padding:4px 0;color:#475569;">${r.value}</td></tr>`
+        `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#050708;vertical-align:top;">${escapeHtml(
+          r.label
+        )}</td><td style="padding:4px 0;color:#475569;white-space:pre-wrap;">${escapeHtml(
+          r.value
+        )}</td></tr>`
     )
     .join("");
+  const safeTitle = escapeHtml(title);
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>${title}</title></head>
+<head><meta charset="utf-8"><title>${safeTitle}</title></head>
 <body style="margin:0;padding:0;background:#f7fafa;font-family:Arial,Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 0;">
     <tr><td align="center">
@@ -194,7 +303,7 @@ function emailTemplate(title: string, rows: { label: string; value: string }[]):
           <p style="margin:0 0 16px;color:#475569;">A new submission was received on the Vantage Foundation Uganda website.</p>
           <table cellpadding="0" cellspacing="0">${tableRows}</table>
           <p style="margin:24px 0 0;color:#475569;font-size:12px;border-top:1px solid #dce5e5;padding-top:16px;">
-            This is an automated notification from vantagefoundationuganda.org
+            This is an automated notification from vantagefoundationuganda.com
           </p>
         </td></tr>
       </table>
@@ -209,7 +318,8 @@ function buildEmailRows(data: Record<string, unknown>): { label: string; value: 
     name: "Name",
     email: "Email",
     phone: "Phone",
-    subject: "Subject",
+    organisation: "Organisation",
+    subject: "Category",
     message: "Message",
     amount: "Amount",
     frequency: "Frequency",
@@ -218,7 +328,7 @@ function buildEmailRows(data: Record<string, unknown>): { label: string; value: 
     consent: "Consent",
   };
   return Object.entries(data)
-    .filter(([key]) => !["website", "company_url", "form_loaded_at", "submissionId"].includes(key))
+    .filter(([key]) => !INTERNAL_FIELDS.includes(key))
     .map(([key, value]) => ({
       label: labelMap[key] || key,
       value: sanitiseValue(value),
@@ -238,8 +348,10 @@ export async function submitContact(
   const raw = Object.fromEntries(formData);
 
   if (isBotSubmission(raw)) {
+    // Silently discard: return the same message a real submission gets so the
+    // bot learns nothing about why it was rejected. Nothing is forwarded.
     logWarn("contact_honeypot", {});
-    return { success: true, message: "Thank you. We will be in touch soon." };
+    return { success: true, message: CONTACT_SUCCESS_MESSAGE };
   }
 
   const parsed = contactSchema.safeParse(raw);
@@ -261,22 +373,88 @@ export async function submitContact(
     };
   }
 
+  // Bot challenge, only enforced when Turnstile is configured. Verified after
+  // validation so a malformed submission never costs an API round-trip.
+  const turnstileOk = await verifyTurnstile(
+    raw["cf-turnstile-response"],
+    await getRequestIp()
+  );
+  if (!turnstileOk) {
+    logWarn("contact_turnstile_failed", {});
+    return {
+      success: false,
+      message:
+        "We could not confirm you are human. Please refresh the page and try again.",
+    };
+  }
+
+  const category = parsed.data.subject;
+
+  // Persist first, so a transient SMTP outage cannot lose the message.
+  let messageId: number | null = null;
+  if (isContactStoreConfigured()) {
+    try {
+      messageId = await createContactMessage({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        organisation: parsed.data.organisation,
+        category,
+        message: parsed.data.message,
+      });
+    } catch (err) {
+      // Non-fatal: fall through to email-only delivery.
+      logError("contact_store_failed", {
+        error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
+        category,
+      });
+    }
+  }
+
+  // Destination is resolved server-side from env + the validated category.
+  const to = resolveInboxFor(category);
+  const subjectLine = `${buildSubjectPrefix(category)} ${getCategoryLabel(
+    category
+  )} from ${sanitiseValue(parsed.data.name).substring(0, 80)}`;
+
   const rows = buildEmailRows(parsed.data);
   const body = formatBody(parsed.data);
-  const html = emailTemplate(`Contact form: ${parsed.data.subject}`, rows);
-  const emailSent = await sendEmail(`Contact form: ${parsed.data.subject}`, body, html);
+  const html = emailTemplate(subjectLine, rows);
+  const emailSent = await sendEmail(
+    subjectLine,
+    body,
+    html,
+    to,
+    parsed.data.email
+  );
+
+  if (messageId !== null) {
+    try {
+      await markContactMessageEmailed(messageId, emailSent);
+    } catch {
+      // Bookkeeping only — the message itself is already stored.
+    }
+  }
 
   logInfo("contact_submitted", {
     email_sent: emailSent,
-    subject: parsed.data.subject,
+    stored: messageId !== null,
+    category,
   });
 
-  return {
-    success: true,
-    message: emailSent
-      ? "Thank you. Your message has been sent and we will reply soon."
-      : `Thank you. Please also email us directly at ${site.contact.email}.`,
-  };
+  // The visitor sees one confirmation regardless of which mailbox the message
+  // was routed to, and regardless of whether SMTP or the database was the
+  // delivery path. Internal routing is never disclosed.
+  if (!emailSent && messageId === null) {
+    return {
+      success: false,
+      message:
+        "We could not send your message just now. Please try again shortly, or call or WhatsApp us on " +
+        `${site.contact.phone}.`,
+    };
+  }
+
+  return { success: true, message: CONTACT_SUCCESS_MESSAGE };
 }
 
 export async function submitNewsletter(
@@ -317,16 +495,23 @@ export async function submitNewsletter(
 
   const rows = buildEmailRows(parsed.data);
   const body = formatBody(parsed.data);
-  const html = emailTemplate("Newsletter signup", rows);
-  const emailSent = await sendEmail("Newsletter signup", body, html);
+  const subjectLine = "[VANTAGE CONTACT — NEWSLETTER] New subscriber";
+  const html = emailTemplate(subjectLine, rows);
+  const emailSent = await sendEmail(
+    subjectLine,
+    body,
+    html,
+    getDefaultInbox(),
+    parsed.data.email
+  );
 
   logInfo("newsletter_submitted", { email_sent: emailSent });
 
   return {
-    success: true,
+    success: emailSent,
     message: emailSent
       ? "Thank you for subscribing."
-      : `Thank you. To confirm, please email ${site.contact.email} with subject 'Subscribe'.`,
+      : "We could not complete your subscription just now. Please try again shortly.",
   };
 }
 
@@ -398,8 +583,15 @@ export async function submitDonor(
 
     const rows = buildEmailRows(parsed.data);
     const body = formatBody(parsed.data);
-    const html = emailTemplate("Donation intent received", rows);
-    await sendEmail("Donation intent received", body, html);
+    const subjectLine = "[VANTAGE CONTACT — DONATION] Donation intent received";
+    const html = emailTemplate(subjectLine, rows);
+    await sendEmail(
+      subjectLine,
+      body,
+      html,
+      resolveInboxFor("donation"),
+      parsed.data.email
+    );
 
     return {
       success: true,
@@ -416,8 +608,15 @@ export async function submitDonor(
 
     const rows = buildEmailRows(parsed.data);
     const body = formatBody(parsed.data);
-    const html = emailTemplate("Donation intent", rows);
-    const emailSent = await sendEmail("Donation intent", body, html);
+    const subjectLine = "[VANTAGE CONTACT — DONATION] Donation intent";
+    const html = emailTemplate(subjectLine, rows);
+    const emailSent = await sendEmail(
+      subjectLine,
+      body,
+      html,
+      resolveInboxFor("donation"),
+      parsed.data.email
+    );
 
     logInfo("donation_fallback_email", { email_sent: emailSent });
 

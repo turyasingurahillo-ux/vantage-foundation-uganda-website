@@ -29,5 +29,14 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      // Every test drives the forms from the same (localhost) IP, so the
+      // production default of 3 submissions/minute throttles the suite itself.
+      // The limiter's own behaviour is covered deterministically in
+      // tests/unit/rate-limit.test.ts; here we raise it so the functional and
+      // accessibility assertions can run. This does NOT change the deployed
+      // default — see FORM_RATE_LIMIT in app/actions.ts.
+      FORM_RATE_LIMIT: "500",
+    },
   },
 });

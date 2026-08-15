@@ -1,5 +1,6 @@
 import { SiteConfig } from "@/types";
 import { resolveSiteUrl } from "@/lib/site-url";
+import { resolvePublicContactEmail } from "@/lib/public-contact";
 
 export const site: SiteConfig = {
   name: "Vantage Foundation Uganda",
@@ -12,7 +13,14 @@ export const site: SiteConfig = {
   values: ["Growth", "Sustainability", "Safety", "Inclusivity"],
   founded: "December 2020",
   contact: {
-    email: "foundationvantage@gmail.com",
+    // Vantage's operational mailbox is deliberately NOT published here. It is
+    // server-only (lib/contact-inbox.ts) so it is never shipped to the browser
+    // or embedded in structured data, where address harvesters find it.
+    // Visitors reach us through /contact. Once a domain alias such as
+    // contact@vantagefoundationuganda.com is created and verified in
+    // Cloudflare Email Routing, set NEXT_PUBLIC_CONTACT_EMAIL and it will be
+    // displayed automatically.
+    publicEmail: resolvePublicContactEmail(),
     phone: "+256 786 585 216",
     address: "Jinja, Uganda",
     city: "Jinja",
@@ -66,7 +74,7 @@ export const site: SiteConfig = {
       ],
     },
     {
-      label: "Stories",
+      label: "Stories & Insights",
       href: "/stories",
     },
     {

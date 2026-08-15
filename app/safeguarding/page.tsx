@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { ContactChannelListItem } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 
@@ -202,15 +203,7 @@ export default function SafeguardingPage() {
                 take appropriate action.
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <li>
-                  Email:{" "}
-                  <a
-                    href={`mailto:${site.contact.email}`}
-                    className="text-primary underline"
-                  >
-                    {site.contact.email}
-                  </a>
-                </li>
+                <ContactChannelListItem category="safeguarding" />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a

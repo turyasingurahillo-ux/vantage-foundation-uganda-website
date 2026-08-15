@@ -26,6 +26,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `public/images/` — real images go here; placeholder filenames are handled by `ImageOrPlaceholder`
 - `types/` — shared TypeScript interfaces
 
+## Email privacy (important)
+`foundationvantage@gmail.com` is a **protected operational mailbox** and must
+never be published on the public site — not in `content/site.ts`, not in a
+`mailto:` link, not in JSON-LD or metadata, and not in any `NEXT_PUBLIC_*`
+variable. It lives only in `lib/contact-inbox.ts`, which imports `server-only`
+so it cannot reach a client bundle.
+
+Visitors contact Vantage through `/contact`. A public alias is displayed only
+when `NEXT_PUBLIC_CONTACT_EMAIL` is set to a **verified** domain alias;
+otherwise the site shows a "Contact Vantage" link instead of an address.
+
+Full architecture, the anti-spam layers, and the outstanding Cloudflare/DNS/Gmail
+actions: **[docs/email-privacy-and-contact.md](docs/email-privacy-and-contact.md)**.
+
 ## Editing content
 All non-code content lives in the `content/` folder as TypeScript modules. To update a project, story, team member, partner or report, edit the relevant file. Placeholder data is marked with `[...]` or the `placeholder` boolean. Replace placeholder content with verified information before public launch.
 
@@ -46,6 +60,10 @@ Copy `.env.example` to `.env.local` and set:
 - `/admin/login` — sign in with `ADMIN_SECRET`.
 - `/admin/donations` — view and verify/reject donor submissions. Donations are stored with status `pending` and are only marked `verified` after an administrator confirms the transfer against the official bank statement.
 - `/admin/media` — upload and manage photos, documents, and logos stored in Cloudflare R2. New uploads default to `pending` consent and `unpublished`; set both before publishing. The browser uploads directly to R2 via a presigned PUT URL (issued by `/api/admin/media/presign`), then the server confirms the object via HEAD and records it in the `media_objects` table. R2 object keys are stored (never signed URLs) so the DB stays stable; presigned GET URLs are minted at render time.
+- `/admin/messages` — read contact-form submissions. Every message is stored in
+  `contact_messages` before the notification email is attempted, so an SMTP
+  outage cannot lose an inquiry. Anything badged "Email failed" needs a manual
+  reply and means SMTP needs attention.
 - `/admin/blog` — write, edit and publish blog posts (stored in `blog_posts`), each optionally with a hero image uploaded the same way media is (folder `blog`, presigned PUT, HEAD-confirmed before saving). New posts default to a draft; publishing is a separate explicit toggle. `/blog` and `/blog/[slug]` merge published rows here with the (normally empty) static `content/blog.ts` manifest.
 
 ## Deployment

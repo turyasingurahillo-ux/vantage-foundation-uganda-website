@@ -70,7 +70,19 @@ const navItem = z.object({
 });
 
 const contactInfo = z.object({
-  email: nonEmpty.email("must be a valid email"),
+  // Optional by design: the site publishes an address only once a verified
+  // domain alias is configured via NEXT_PUBLIC_CONTACT_EMAIL. When unset,
+  // visitors are routed to the contact form instead. A consumer-provider
+  // address here would mean the protected operational mailbox had been
+  // re-published, so reject those outright.
+  publicEmail: z
+    .string()
+    .email("must be a valid email")
+    .refine(
+      (value) => !/@(gmail|googlemail|yahoo|hotmail|outlook|live|aol|icloud)\./i.test(value),
+      "must be a domain alias, not a personal mailbox",
+    )
+    .optional(),
   phone: nonEmpty,
   address: nonEmpty,
   city: nonEmpty,
@@ -164,18 +176,27 @@ const storySchema = z.object({
   slug,
   title: nonEmpty,
   excerpt: nonEmpty,
+  contentType: z.enum(["Story", "Insight"]).optional(),
   author: z.string().optional(),
+  authorType: z.enum(["Person", "Organization"]).optional(),
   role: z.string().optional(),
   date: dateish,
+  updatedAt: dateish.optional(),
+  readingTimeMinutes: z.number().int().positive().optional(),
   location: z.string().optional(),
   category: nonEmpty,
   heroImage: z.string().optional(),
+  heroImageAlt: z.string().optional(),
+  heroImageCredit: z.string().optional(),
   relatedProjectSlugs: z.array(slug).optional(),
   body: nonEmpty,
   // Phase 4 extensions
   tags: z.array(nonEmpty).optional(),
   consentClassification,
   seo: seoMeta,
+  faqs: z
+    .array(z.object({ question: nonEmpty, answer: nonEmpty }))
+    .optional(),
   published: z.boolean().optional(),
 });
 

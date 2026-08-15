@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { ContactChannelListItem } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 
@@ -179,15 +180,7 @@ export default function AccessibilityPage() {
                 have a suggestion for improvement, please contact us:
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <li>
-                  Email:{" "}
-                  <a
-                    href={`mailto:${site.contact.email}`}
-                    className="text-primary underline"
-                  >
-                    {site.contact.email}
-                  </a>
-                </li>
+                <ContactChannelListItem />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a

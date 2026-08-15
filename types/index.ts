@@ -22,7 +22,14 @@ export interface OfficeLocation {
 }
 
 export interface ContactInfo {
-  email: string;
+  /**
+   * Public-facing contact alias, shown only when an administrator has actually
+   * created and verified a domain alias (set via NEXT_PUBLIC_CONTACT_EMAIL).
+   * Undefined by default so the site publishes no address rather than a
+   * fictional one. Vantage's protected operational mailbox is NEVER stored
+   * here — it is server-only, in lib/contact-inbox.ts.
+   */
+  publicEmail?: string;
   phone: string;
   address: string;
   city: string;
@@ -167,9 +174,17 @@ export interface Story {
   slug: string;
   title: string;
   excerpt: string;
+  /** Public editorial format within the Stories & Insights collection. */
+  contentType?: "Story" | "Insight";
   author?: string;
+  /** Schema.org author type. Defaults to Person when omitted. */
+  authorType?: "Person" | "Organization";
   role?: string;
   date: string;
+  /** ISO date for material revisions or fact-check updates. */
+  updatedAt?: string;
+  /** Estimated time to read the full article. */
+  readingTimeMinutes?: number;
   location?: string;
   category: string;
   heroImage?: string;
@@ -193,6 +208,8 @@ export interface Story {
   consentClassification?: ConsentClassification;
   /** Per-item SEO overrides. */
   seo?: SeoMeta;
+  /** Visible FAQ entries that may also be emitted as FAQPage structured data. */
+  faqs?: FaqItem[];
   /**
    * Whether the story is published. Defaults to true when omitted.
    * Unpublished stories are filtered out of production routes but
