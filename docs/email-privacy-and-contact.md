@@ -90,32 +90,55 @@ Checked against public DNS on 2026-08-15:
 - **DMARC is absent** — `_dmarc.vantagefoundationuganda.com` does not resolve.
 
 This means **Cloudflare Email Routing is already set up on the domain**. Creating
-`contact@`, `partnerships@`, `grants@`, `media@` and `research@` is a dashboard
-task, not a DNS migration.
+the remaining aliases is a dashboard task, not a DNS migration.
 
-> Which specific aliases already exist could not be verified from this
-> environment — that requires signing in to the Cloudflare dashboard. Treat
-> section 4 as the checklist to confirm and complete.
+### Which aliases actually exist
+
+Determined by a non-destructive SMTP probe against the domain's own MX: connect,
+`MAIL FROM`, `RCPT TO`, read the response code, `QUIT`. **No `DATA` is sent, so
+no mail is delivered.** A deliberately fake address is included as a control —
+it is rejected, which proves the server is not accept-all and the results mean
+something.
+
+| Address | SMTP response | Status |
+|---|---|---|
+| `contact@` | `250 2.1.0 Ok` | **exists** |
+| `partnerships@` | `550 5.1.1 Address does not exist` | missing |
+| `grants@` | `550 5.1.1 Address does not exist` | missing |
+| `media@` | `550 5.1.1 Address does not exist` | missing |
+| `research@` | `550 5.1.1 Address does not exist` | missing |
+| *(control: a fake address)* | `550 5.1.1 Address does not exist` | correctly rejected |
+
+Cloudflare only accepts mail for an address that has an **enabled** routing rule,
+and a rule can only be enabled once its destination has been verified — so the
+`250` is strong evidence that `contact@` forwards to a verified destination.
+
+> **What this does not prove:** that mail actually lands in the Vantage inbox.
+> SMTP acceptance happens at the edge, before forwarding. Confirm end-to-end
+> delivery by sending a real test message to `contact@` from an outside account
+> and checking it arrives, then enable it on the site per §4b.
 
 ---
 
 ## 4. Administrator actions still required
 
-These need human access. **None of them are done yet.**
+These need human access to Cloudflare, DNS, an email provider or Gmail. **None of
+them can be done from the repository.**
 
-### 4a. Create the public aliases (Cloudflare dashboard)
+### 4a. Create the four missing aliases (Cloudflare dashboard)
 
 Cloudflare → your domain → **Email** → **Email Routing** → **Routing rules**.
 
-Create each as a *custom address* forwarding to the protected mailbox:
+`contact@` already exists (see §3) — leave it alone. Create the rest as *custom
+addresses* forwarding to the protected mailbox:
 
-| Alias | Forwards to |
-|---|---|
-| `contact@vantagefoundationuganda.com` | `foundationvantage@gmail.com` |
-| `partnerships@vantagefoundationuganda.com` | `foundationvantage@gmail.com` |
-| `grants@vantagefoundationuganda.com` | `foundationvantage@gmail.com` |
-| `media@vantagefoundationuganda.com` | `foundationvantage@gmail.com` |
-| `research@vantagefoundationuganda.com` | `foundationvantage@gmail.com` |
+| Alias | Forwards to | Status |
+|---|---|---|
+| `contact@vantagefoundationuganda.com` | `foundationvantage@gmail.com` | **already exists** |
+| `partnerships@vantagefoundationuganda.com` | `foundationvantage@gmail.com` | create |
+| `grants@vantagefoundationuganda.com` | `foundationvantage@gmail.com` | create |
+| `media@vantagefoundationuganda.com` | `foundationvantage@gmail.com` | create |
+| `research@vantagefoundationuganda.com` | `foundationvantage@gmail.com` | create |
 
 Cloudflare sends a verification email to the destination — **the forward does not
 work until that link is clicked.**
@@ -187,15 +210,22 @@ SMTP_FROM = notifications@vantagefoundationuganda.com
 `SMTP_FROM` must be an address the provider has authorised, or SPF/DMARC will
 reject it. It deliberately does **not** fall back to the protected mailbox.
 
-### 4f. Create the database table
+### 4f. Database table — handled automatically
 
-Run once (idempotent):
+`contact_messages` is created by the idempotent schema in `lib/db/schema.sql`,
+which now runs during `prebuild` (`scripts/migrate-on-build.mjs`). Every
+deployment applies it to whatever database that environment is configured for,
+so no manual step is needed.
+
+To run it by hand anyway:
 
 ```bash
 node --env-file=.env.local scripts/setup-db.mjs
 ```
 
-This creates `contact_messages`. **Already run against the current database.**
+The migration is deliberately **non-fatal**: if the database is unreachable at
+build time the deploy still succeeds and the failure is logged, because the app
+already degrades gracefully without a database.
 
 ### 4g. Turnstile (optional)
 
@@ -234,14 +264,31 @@ Put these in **Has the words**, joined with `OR`:
 "rank higher on Google" OR "redesign your website"
 ```
 
-**Recommended action: apply the label `Cold outreach` and *Skip the Inbox*.**
+**Recommended action: tick "Skip the Inbox (Archive it)" and "Apply the label:
+`Cold outreach`". Nothing else.**
 
-> **Do not choose "Delete it".** Wording like "we took a look at your website"
-> also appears in genuine partner, donor and grantmaker mail. A label keeps the
-> message recoverable; deletion does not. Review the label weekly at first.
+> **Do not tick "Delete it".** No single phrase here is proof of spam. "I took a
+> look at your website" is exactly how a genuine partner, journalist or
+> grantmaker opens an email too. Archiving is reversible and searchable;
+> deletion is not. Review the label weekly for the first month — if legitimate
+> mail is landing there, narrow the phrase list rather than widening the action.
 
-Add an exception filter *above* it so known-good senders are never caught:
-`from:(*.org OR *.ac.ug OR *.go.ug OR *.edu)` → **Never send it to Spam**.
+**Build the safety net first.** Create this filter *before* the one above, so
+known-good senders are never archived:
+
+- **From:** `*.org OR *.ac.ug OR *.go.ug OR *.edu OR *.int OR *.gov`
+- **Action:** *Never send it to Spam* and *Always mark it as important*
+
+Then add a second exception for anything that arrives through the site, so
+genuine inquiries are never caught by the cold-outreach filter:
+
+- **Subject:** `[VANTAGE CONTACT`
+- **Action:** *Never send it to Spam*, *Apply the label:* `Website enquiry`
+
+That second one is worth doing regardless — every notification from the contact
+form carries a `[VANTAGE CONTACT — CATEGORY]` prefix, so you can also create a
+per-team label (`[VANTAGE CONTACT — GRANTS]` → label `Grants`) and get
+category routing inside a single mailbox without waiting for the aliases.
 
 ### Handling rules
 
@@ -296,9 +343,25 @@ signals that SMTP needs attention.
 - **The phone number is still published** (`+256 786 585 216`) and can attract
   SMS/WhatsApp spam. Left in place deliberately — it is a genuine contact route
   for Ugandan beneficiaries, many of whom will not use a web form.
-- **Rate limiting is per-instance and in-memory.** On serverless, several warm
-  instances each hold their own window, so the effective limit is higher than
-  3/min. Move to Upstash Redis or Vercel KV if abuse becomes a problem.
+- **Rate limiting is per-instance and in-memory — accepted, not overlooked.**
+  On serverless each warm instance holds its own window, so a distributed
+  attacker spread across instances gets more than 3/min in aggregate. This is a
+  deliberate decision, not an oversight:
+
+  - The observed problem is *cold outreach to a scraped address*, not form
+    flooding. `contact_messages` currently holds zero spam submissions.
+  - A low-traffic nonprofit site keeps few instances warm, so the real-world
+    multiplier is small.
+  - Redis/KV would add a paid dependency, a new failure mode in the submit path,
+    and a secret to rotate — real cost against a threat with no evidence behind
+    it yet.
+
+  **Revisit if** `/admin/messages` starts showing junk, or the logs show
+  sustained `contact_rate_limited` warnings from many distinct IPs. The smallest
+  appropriate fix at that point is Vercel KV behind the existing `rateLimit()`
+  signature in `lib/rate-limit.ts` — the call sites do not need to change.
+  `FORM_RATE_LIMIT` also lets you tighten the per-instance limit immediately,
+  without a code change, as a first response.
 - **Without Turnstile configured**, a determined bot that respects the 2s
   time-trap and leaves honeypots empty can still submit. The honeypots stop
   commodity spam; Turnstile is the answer to targeted abuse.
