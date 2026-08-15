@@ -1,7 +1,10 @@
 import { Children, isValidElement, type ReactNode } from "react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
+import { imagePresets } from "@/lib/image-presets";
+import { BLUR_DATA_URL } from "@/lib/blur-placeholder";
 import {
   ActionStatusBadge,
   EvidenceBadge,
@@ -27,6 +30,13 @@ interface MarkdownProps {
    * are left untouched because the guide navigation targets them.
    */
   idPrefix?: string;
+  /**
+   * Supplies intrinsic dimensions for an inline image so it can go through
+   * next/image with its layout space reserved. Markdown only carries a URL,
+   * and only the caller knows how to resolve one — the story template reads
+   * local files under `public/`. Returning null falls back to a plain `<img>`.
+   */
+  resolveImageSize?: (src: string) => { width: number; height: number } | null;
 }
 
 function headingText(node: ReactNode): string {
@@ -39,6 +49,32 @@ function headingText(node: ReactNode): string {
 
 export function headingId(children: ReactNode): string {
   return slugifyHeading(headingText(children));
+}
+
+/** Hast node shape react-markdown hands to a component, narrowed to what we read. */
+type HastNode = {
+  type?: string;
+  tagName?: string;
+  value?: string;
+  children?: HastNode[];
+};
+
+function isImageOnlyParagraph(node?: HastNode): boolean {
+  const children = node?.children;
+  if (!children || children.length === 0) return false;
+
+  let sawImage = false;
+  for (const child of children) {
+    if (child.type === "element" && child.tagName === "img") {
+      sawImage = true;
+      continue;
+    }
+    // Whitespace between images is layout, not content.
+    if (child.type === "text" && (child.value ?? "").trim() === "") continue;
+    return false;
+  }
+
+  return sawImage;
 }
 
 function guideStatusBadge(children: ReactNode) {
@@ -68,6 +104,7 @@ export function Markdown({
   pullQuoteAttribution,
   statusBadges,
   idPrefix,
+  resolveImageSize,
 }: MarkdownProps) {
   const isArticle = variant === "article" || variant === "guide";
   const isGuide = variant === "guide";
@@ -95,7 +132,12 @@ export function Markdown({
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         components={{
-          p({ children }) {
+          p({ children, node }) {
+            // Markdown wraps a standalone image in a paragraph, but the image
+            // renders as a <figure> — which is not valid inside <p>, and the
+            // browser's repair of that nesting breaks hydration. Drop the
+            // paragraph when it holds nothing but the image.
+            if (isImageOnlyParagraph(node)) return <>{children}</>;
             return (
               <p
                 className={
@@ -265,6 +307,48 @@ export function Markdown({
               <td className="border-b border-border px-4 py-3 align-top">
                 {children}
               </td>
+            );
+          },
+          img({ src, alt }) {
+            if (typeof src !== "string" || !src) return null;
+            const dimensions = resolveImageSize?.(src) ?? null;
+            return (
+              <figure className="my-10 sm:my-12">
+                {/*
+                  Inline photographs keep their own proportions. Forcing them
+                  into a fixed frame is what crops a portrait through its
+                  subject, and Markdown carries no focal point to correct such
+                  a crop — so nothing is cropped and the real aspect ratio is
+                  reserved up front, which also keeps the image from shifting
+                  the text as it loads.
+                */}
+                {dimensions ? (
+                  <Image
+                    src={src}
+                    alt={alt ?? ""}
+                    width={dimensions.width}
+                    height={dimensions.height}
+                    sizes={imagePresets.articleBody}
+                    className="h-auto w-full rounded-2xl bg-surface-strong"
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- next/image requires dimensions this source could not supply.
+                  <img
+                    src={src}
+                    alt={alt ?? ""}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-auto w-full rounded-2xl bg-surface-strong"
+                  />
+                )}
+                {alt && (
+                  <figcaption className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    {alt}
+                  </figcaption>
+                )}
+              </figure>
             );
           },
           hr() {
