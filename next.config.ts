@@ -12,10 +12,18 @@ import type { NextConfig } from "next";
 //
 // Future enhancement: move to nonce-based CSP via proxy.ts once the site
 // moves to full dynamic rendering or edge caching makes the cost negligible.
+// Cloudflare Turnstile, when configured, needs its script and its challenge
+// iframe allowed. This is gated on the site key being present so the default
+// CSP stays exactly as strict as before on deployments without Turnstile —
+// enabling the bot challenge is the only thing that widens it, and only to one
+// named Cloudflare origin.
+const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
 const csp = [
   "default-src 'self'",
   // Next.js injects inline runtime scripts; without nonces we must allow them.
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""}`,
   // Next.js injects inline styles (e.g. for next/font CSS variables).
   "style-src 'self' 'unsafe-inline'",
   // next/image serves optimized images from self; data: for placeholder SVGs;
@@ -28,8 +36,9 @@ const csp = [
   "font-src 'self'",
   // No plugins (Flash, Java, PDF embeds).
   "object-src 'none'",
-  // No nested browsing contexts.
-  "frame-src 'none'",
+  // No nested browsing contexts, except the Turnstile challenge iframe when
+  // Turnstile is configured.
+  turnstileEnabled ? `frame-src ${TURNSTILE_ORIGIN}` : "frame-src 'none'",
   // Forms submit to same origin (server actions are same-origin POSTs).
   "form-action 'self'",
   // Clickjacking: deny all framers (reinforces X-Frame-Options: DENY).
@@ -38,8 +47,9 @@ const csp = [
   "base-uri 'self'",
   // Upgrade http: to https: on same-origin requests.
   "upgrade-insecure-requests",
-  // Restrict fetch/XHR/WebSocket to same origin.
-  "connect-src 'self'",
+  // Restrict fetch/XHR/WebSocket to same origin (plus Turnstile's own
+  // telemetry endpoint when the challenge is enabled).
+  `connect-src 'self'${turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""}`,
 ].join("; ");
 
 const securityHeaders = [

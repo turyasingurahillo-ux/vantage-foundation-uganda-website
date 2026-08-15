@@ -132,13 +132,23 @@ export function Footer() {
             </h2>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
               <li>
-                <a
-                  href={`mailto:${site.contact.email}`}
-                  className="inline-flex items-center gap-2 transition-colors hover:text-deep-teal"
-                >
-                  <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  {site.contact.email}
-                </a>
+                {site.contact.publicEmail ? (
+                  <a
+                    href={`mailto:${site.contact.publicEmail}`}
+                    className="inline-flex items-center gap-2 transition-colors hover:text-deep-teal"
+                  >
+                    <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {site.contact.publicEmail}
+                  </a>
+                ) : (
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-2 transition-colors hover:text-deep-teal"
+                  >
+                    <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Contact Vantage
+                  </Link>
+                )}
               </li>
               <li>
                 <a

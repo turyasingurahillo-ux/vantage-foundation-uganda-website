@@ -39,7 +39,9 @@ This document covers everything you need to deploy the Vantage Foundation Uganda
 | `SMTP_PORT` | No | SMTP port (default: 587) |
 | `SMTP_USER` | No | SMTP username |
 | `SMTP_PASS` | No | SMTP password |
-| `SMTP_FROM` | No | From email address (defaults to `site.contact.email`) |
+| `SMTP_FROM` | No | From address. Must be authorised by your SMTP provider; falls back to `SMTP_USER`. Never falls back to the protected mailbox. |
+| `CONTACT_INBOX` | No | Where contact-form notifications are delivered (server-only). See [email-privacy-and-contact.md](email-privacy-and-contact.md). |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | No | Public alias to display on the site. Leave blank until a domain alias is created **and verified**. |
 
 5. Click "Deploy" and wait 2-3 minutes
 
@@ -49,11 +51,11 @@ By default, the website works without email — form submissions are stored in t
 
 ### When email is enabled
 
-The following events trigger an email notification to `site.contact.email`:
+The following events trigger an email notification to the mailbox resolved by `lib/contact-inbox.ts` (`CONTACT_INBOX`, or a per-category alias, falling back to Vantage's protected mailbox):
 
 | Event | Subject line |
 |-------|-------------|
-| Contact form submission | `Contact form: {subject}` |
+| Contact form submission | `[VANTAGE CONTACT — {CATEGORY}] {Category} from {name}` |
 | Newsletter subscription | `Newsletter signup` |
 | Donation intent submitted | `Donation intent received` |
 
@@ -104,25 +106,26 @@ Any SMTP provider works. Common choices:
 ### SMTP_FROM validation
 
 The `SMTP_FROM` environment variable is validated at runtime:
-- Must be a valid email address format (`name@domain.tld`)
-- If invalid, the system falls back to `site.contact.email` from the content config
-- A warning is logged when the fallback is used
+- Must be a valid email address format (`name@domain.tld`), a single address with no commas or CR/LF
+- If invalid or unset, the system falls back to `SMTP_USER`
+- A warning is logged when an invalid value is ignored
+- It deliberately does **not** fall back to Vantage's protected mailbox — an unauthorised From address is rejected by SPF/DMARC anyway
 
 ### Email content
 
 All emails are sent as both plain text and HTML:
 - **Plain text**: key-value pairs of form data
 - **HTML**: branded template with Vantage Foundation header, data table, and footer
-- All user-controlled content is sanitised (control characters stripped, length capped at 1000 chars) to prevent email header injection
+- All user-controlled content is sanitised (CR/LF and control characters stripped, length capped) to prevent email header injection, and HTML-escaped before it is placed in the HTML body
 
 ### Testing email locally
 
 1. Set SMTP variables in `.env.local`
 2. Run `npm run dev`
 3. Submit a contact form, newsletter signup, or donation
-4. Check the inbox of `site.contact.email`
+4. Check the inbox configured by `CONTACT_INBOX`
 
-If SMTP is not configured, form submissions still succeed — the user sees a fallback message asking them to email directly.
+If SMTP is not configured, contact submissions are still stored in the `contact_messages` table and readable at `/admin/messages`, so nothing is lost. No mailbox address is ever shown to the visitor.
 
 ## Step 4: Custom Domain (Optional)
 

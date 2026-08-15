@@ -69,7 +69,19 @@ const navItem = z.object({
 });
 
 const contactInfo = z.object({
-  email: nonEmpty.email("must be a valid email"),
+  // Optional by design: the site publishes an address only once a verified
+  // domain alias is configured via NEXT_PUBLIC_CONTACT_EMAIL. When unset,
+  // visitors are routed to the contact form instead. A consumer-provider
+  // address here would mean the protected operational mailbox had been
+  // re-published, so reject those outright.
+  publicEmail: z
+    .string()
+    .email("must be a valid email")
+    .refine(
+      (value) => !/@(gmail|googlemail|yahoo|hotmail|outlook|live|aol|icloud)\./i.test(value),
+      "must be a domain alias, not a personal mailbox",
+    )
+    .optional(),
   phone: nonEmpty,
   address: nonEmpty,
   city: nonEmpty,
