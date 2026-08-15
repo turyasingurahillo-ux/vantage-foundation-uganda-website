@@ -22,7 +22,14 @@ export interface OfficeLocation {
 }
 
 export interface ContactInfo {
-  email: string;
+  /**
+   * Public-facing contact alias, shown only when an administrator has actually
+   * created and verified a domain alias (set via NEXT_PUBLIC_CONTACT_EMAIL).
+   * Undefined by default so the site publishes no address rather than a
+   * fictional one. Vantage's protected operational mailbox is NEVER stored
+   * here — it is server-only, in lib/contact-inbox.ts.
+   */
+  publicEmail?: string;
   phone: string;
   address: string;
   city: string;

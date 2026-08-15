@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import {
+  ContactChannelLink,
+  ContactChannelListItem,
+} from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 
@@ -187,14 +191,8 @@ export default function PrivacyPage() {
                 </li>
               </ul>
               <p className="mt-3">
-                To exercise any of these rights, email us at{" "}
-                <a
-                  href={`mailto:${site.contact.email}`}
-                  className="text-primary underline"
-                >
-                  {site.contact.email}
-                </a>
-                .
+                To exercise any of these rights, contact us through{" "}
+                <ContactChannelLink formLabel="our contact form" />.
               </p>
             </div>
 
@@ -252,15 +250,7 @@ export default function PrivacyPage() {
                 handle your personal data, please contact us:
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <li>
-                  Email:{" "}
-                  <a
-                    href={`mailto:${site.contact.email}`}
-                    className="text-primary underline"
-                  >
-                    {site.contact.email}
-                  </a>
-                </li>
+                <ContactChannelListItem />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a

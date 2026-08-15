@@ -324,3 +324,38 @@ CREATE TABLE IF NOT EXISTS search_console_config (
 
 INSERT INTO search_console_config (id, connected) VALUES (1, false)
   ON CONFLICT (id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- contact_messages: submissions from the public contact form.
+--
+-- Persisted BEFORE the notification email is attempted so that a transient
+-- SMTP/provider outage never loses a message from a donor, grantmaker,
+-- researcher or partner. The email_sent column records whether the
+-- notification was delivered, so the team can follow up on anything that
+-- failed to send.
+--
+-- Only fields the visitor chose to provide are stored. The category column is one of
+-- the fixed values in lib/contact-categories.ts (validated server-side), never
+-- free text from the request.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  organisation TEXT,
+  category TEXT NOT NULL,
+  message TEXT NOT NULL,
+  -- Whether the internal notification email was successfully handed to SMTP.
+  email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Set once a team member has actioned the message.
+  handled_at TIMESTAMP WITH TIME ZONE,
+  deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_category ON contact_messages(category);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_email_sent ON contact_messages(email_sent);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_deleted_at ON contact_messages(deleted_at);

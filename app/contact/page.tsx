@@ -6,6 +6,7 @@ import { ContactForm } from "@/components/shared/ContactForm";
 import { Card } from "@/components/ui/Card";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { createPublicMetadata } from "@/lib/metadata";
+import { resolveCategoryFromQuery } from "@/lib/contact-categories";
 
 export const metadata: Metadata = createPublicMetadata({
   title: "Contact",
@@ -19,8 +20,9 @@ export default async function ContactPage({
   searchParams: Promise<{ subject?: string }>;
 }) {
   const { subject } = await searchParams;
-  const validSubjects = ["general", "volunteer", "partner", "sponsor", "donation", "media"];
-  const defaultSubject = subject && validSubjects.includes(subject) ? subject : "";
+  // Accepts current category values and the legacy ?subject= values still used
+  // by older CTAs elsewhere on the site.
+  const defaultSubject = resolveCategoryFromQuery(subject);
 
   return (
     <>
@@ -46,12 +48,19 @@ export default async function ContactPage({
                   </div>
                   <div>
                     <h3 className="font-semibold">Email</h3>
-                    <a
-                      href={`mailto:${site.contact.email}`}
-                      className="text-sm text-muted-foreground hover:text-primary"
-                    >
-                      {site.contact.email}
-                    </a>
+                    {site.contact.publicEmail ? (
+                      <a
+                        href={`mailto:${site.contact.publicEmail}`}
+                        className="text-sm text-muted-foreground hover:text-primary"
+                      >
+                        {site.contact.publicEmail}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Use the form on this page — choose a category and your
+                        message goes straight to the right team.
+                      </p>
+                    )}
                   </div>
                 </div>
               </Card>

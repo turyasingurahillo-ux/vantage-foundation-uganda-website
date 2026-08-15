@@ -64,7 +64,10 @@ export const metadata: Metadata = {
     canonical: "/",
     types: {
       "application/rss+xml": [
-        { url: "/stories/rss.xml", title: `${site.name} — Stories` },
+        {
+          url: "/stories/rss.xml",
+          title: `${site.name} — Stories & Insights`,
+        },
       ],
     },
   },
@@ -74,7 +77,9 @@ const ngoJsonLd = buildNgoJsonLd({
   name: site.name,
   legalName: site.legalName,
   url: site.url,
-  email: site.contact.email,
+  // Undefined unless a verified public alias is configured, so the protected
+  // mailbox is never emitted into structured data.
+  email: site.contact.publicEmail,
   telephone: site.contact.phone,
   address: site.contact.address,
   city: site.contact.city,
