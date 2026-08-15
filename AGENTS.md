@@ -12,6 +12,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `npm run start` — start production server
 - `npm run lint` — ESLint
 - `npm run type-check` — TypeScript check
+- `npm run generate:social` — rebuild social-card images (see "Social previews")
 
 ## Project structure
 - `app/` — Next.js App Router pages and special files (`sitemap.ts`, `robots.ts`, `actions.ts`)
@@ -24,7 +25,26 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `lib/storage/` — Cloudflare R2 client and object-key conventions (server-only)
 - `lib/db/` — Neon PostgreSQL queries (`index.ts` = donations, `media.ts` = media objects, `admins.ts` = named admin accounts, `audit.ts` = immutable audit log, `schema.sql` = table definitions)
 - `public/images/` — real images go here; placeholder filenames are handled by `ImageOrPlaceholder`
+- `public/images/social/` — **generated**; do not hand-edit. Run `npm run generate:social`.
 - `types/` — shared TypeScript interfaces
+
+## Social previews (important)
+Link-preview crawlers (X, LinkedIn, Facebook, WhatsApp) do **not** render the
+WebP and AVIF heroes the site serves to browsers. Advertising one as `og:image`
+is what makes X show a grey generic-document card instead of the article
+artwork.
+
+So the social card is resolved separately from the hero, by
+`lib/social-image.ts`, which refuses any format or off-origin URL a crawler
+cannot be trusted with and falls back to the branded site card rather than
+emitting something broken. Cards are pre-rendered to 1200×630 JPEG in
+`public/images/social/`.
+
+**When you add or re-image a story or project:** run `npm run generate:social`
+and commit the new card. `npm run validate-content` (which `prebuild` runs)
+fails the build if a published item's card is missing, so this cannot ship
+half-done. A hand-made card wins over a generated one — set `seo.socialImage`
+with its real width, height and MIME type.
 
 ## Editing content
 All non-code content lives in the `content/` folder as TypeScript modules. To update a project, story, team member, partner or report, edit the relevant file. Placeholder data is marked with `[...]` or the `placeholder` boolean. Replace placeholder content with verified information before public launch.

@@ -101,6 +101,62 @@ test.describe("SEO — page metadata", () => {
     }
   });
 
+  // Regression guard for the grey generic-document card X showed for
+  // /stories/beyond-the-ward: the page advertised a WebP og:image with no
+  // declared dimensions, which link-preview crawlers cannot render.
+  test("article and project pages advertise a crawler-renderable social card", async ({
+    page,
+    request,
+  }) => {
+    test.setTimeout(120_000);
+
+    const routes = [
+      "/stories/beyond-the-ward",
+      "/stories/healers-in-crisis-ugandas-medical-interns",
+      "/stories/what-are-we-without-our-dreams",
+      "/stories/the-meaning-of-advantage",
+      "/projects/kasaale-deep-borehole",
+    ];
+
+    for (const path of routes) {
+      await page.goto(path);
+
+      const attribute = (selector: string) =>
+        page.locator(selector).first().getAttribute("content");
+
+      const ogImage = await attribute('meta[property="og:image"]');
+      const ogType = await attribute('meta[property="og:image:type"]');
+      const ogWidth = await attribute('meta[property="og:image:width"]');
+      const ogHeight = await attribute('meta[property="og:image:height"]');
+      const ogAlt = await attribute('meta[property="og:image:alt"]');
+      const twitterCard = await attribute('meta[name="twitter:card"]');
+      const twitterImage = await attribute('meta[name="twitter:image"]');
+
+      expect(ogImage, path).toMatch(
+        new RegExp(`^${canonicalOrigin}/.+\\.(jpg|jpeg|png)$`),
+      );
+      // WebP and AVIF are what broke the preview in the first place.
+      expect(ogImage, path).not.toMatch(/\.(webp|avif)$/);
+      expect(ogType, path).toMatch(/^image\/(jpeg|png)$/);
+      expect(Number(ogWidth), path).toBeGreaterThanOrEqual(600);
+      expect(Number(ogHeight), path).toBeGreaterThanOrEqual(315);
+      expect(ogAlt?.length, path).toBeGreaterThan(0);
+
+      // X renders a generic card, not the artwork, without both of these.
+      expect(twitterCard, path).toBe("summary_large_image");
+      expect(twitterImage, path).toBe(ogImage);
+
+      // og:image is an absolute production URL by design, so fetch it by path
+      // against the build under test rather than against the live site.
+      const asset = await request.get(new URL(ogImage!).pathname);
+      expect(asset.status(), `${path} social image`).toBe(200);
+      expect(
+        asset.headers()["content-type"],
+        `${path} social image`,
+      ).toMatch(/^image\/(jpeg|png)/);
+    }
+  });
+
   test("admin pages have noindex", async ({ page }) => {
     await page.goto("/admin/login");
     const metaRobots = await page

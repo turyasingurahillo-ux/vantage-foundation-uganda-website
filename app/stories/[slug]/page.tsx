@@ -21,6 +21,7 @@ import { ArticleCtaBar } from "@/components/shared/ArticleCtaBar";
 import { RelatedStories } from "@/components/shared/RelatedStories";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
+import { contentSocialImageCandidates } from "@/lib/social-image";
 import { formatContentDate } from "@/lib/content-date";
 import { BeyondTheWardGuide } from "@/components/guides/BeyondTheWardGuide";
 
@@ -46,7 +47,8 @@ export async function generateMetadata({
     publishedTime: story.date,
     modifiedTime: story.updatedAt,
     authors: story.author ? [story.author] : undefined,
-    image: story.seo?.ogImage || story.heroImage,
+    image: contentSocialImageCandidates(story),
+    imageAlt: story.heroImageAlt || story.title,
   });
 }
 

@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "check-placeholders": "node scripts/check-placeholders.mjs",
     "check-links": "node scripts/check-links.mjs",
+    "generate:social": "tsx scripts/generate-social-cards.mjs",
     "prebuild": "npm run validate-content"
   },
   "dependencies": {
