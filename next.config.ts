@@ -90,20 +90,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async redirects() {
-    return [
-      {
-        source: "/blog",
-        destination: "/stories",
-        permanent: true,
-      },
-      {
-        source: "/blog/:slug",
-        destination: "/stories/:slug",
-        permanent: true,
-      },
-    ];
-  },
   images: {
     formats: ["image/webp", "image/avif"],
     // Allow our own brand SVG logos to be served via next/image. These are
@@ -117,6 +103,14 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
     ],
+  },
+  // Keep legacy blog URLs discoverable after consolidating editorial content
+  // into the Stories & Insights hub.
+  async redirects() {
+    return [
+      { source: "/blog", destination: "/stories", permanent: true },
+      { source: "/blog/:path*", destination: "/stories/:path*", permanent: true },
+    ];
   },
   // Disabling the X-Powered-By header avoids advertising the framework.
   poweredByHeader: false,

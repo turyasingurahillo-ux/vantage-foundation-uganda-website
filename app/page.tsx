@@ -3,7 +3,7 @@ import { Hero } from "@/components/sections/Hero";
 import { TrustStrip } from "@/components/sections/TrustStrip";
 import { ImpactSection } from "@/components/sections/ImpactSection";
 import { AreasOfWork } from "@/components/sections/AreasOfWork";
-import { FeaturedProjects } from "@/components/sections/FeaturedProjects";
+import { FlagshipProjectSection } from "@/components/sections/FlagshipProjectSection";
 import { FeaturedImpactStory } from "@/components/sections/FeaturedImpactStory";
 import { UgandaReachMap } from "@/components/sections/UgandaReachMap";
 import { InstagramSection } from "@/components/sections/InstagramSection";
@@ -13,6 +13,7 @@ import { FinalCta } from "@/components/sections/FinalCta";
 import { AboutTeaser } from "@/components/sections/AboutTeaser";
 import { StoriesSection } from "@/components/sections/StoriesSection";
 import { GetInvolvedSection } from "@/components/sections/GetInvolvedSection";
+import { LazySection } from "@/components/shared/LazySection";
 import { createPublicMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createPublicMetadata({
@@ -29,12 +30,18 @@ export default function Home() {
     <>
       <Hero />
       <TrustStrip />
-      <AboutTeaser />
       <ImpactSection />
       <AreasOfWork />
-      <FeaturedProjects />
+      <FlagshipProjectSection />
+      <AboutTeaser />
+      <LazySection
+        placeholderHeight="600px"
+        rootMargin="300px"
+        className="bg-white"
+      >
+        <UgandaReachMap />
+      </LazySection>
       <FeaturedImpactStory />
-      <UgandaReachMap />
       <StoriesSection />
       <InstagramSection />
       <PartnersSection />

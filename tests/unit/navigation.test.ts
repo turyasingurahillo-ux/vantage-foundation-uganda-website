@@ -6,12 +6,12 @@ describe("Navigation structure", () => {
     expect(site.nav).toHaveLength(6);
   });
 
-  it("includes About, Programmes, Impact, Stories, Get Involved, and Donate", () => {
+  it("includes About, Programmes, Impact, Stories & Insights, Get Involved, and Donate", () => {
     const labels = site.nav.map((n) => n.label);
     expect(labels).toContain("About");
     expect(labels).toContain("Programmes");
     expect(labels).toContain("Impact");
-    expect(labels).toContain("Stories");
+    expect(labels).toContain("Stories & Insights");
     expect(labels).toContain("Get Involved");
     expect(labels).toContain("Donate");
   });
@@ -60,10 +60,9 @@ describe("Navigation structure", () => {
     expect(site.nav[site.nav.length - 1].label).toBe("Donate");
   });
 
-  it("does not include old nav items (Home, Blog, Gallery, Donors & Sponsors)", () => {
+  it("does not include old nav items (Home, Gallery, Donors & Sponsors)", () => {
     const labels = site.nav.map((n) => n.label);
     expect(labels).not.toContain("Home");
-    expect(labels).not.toContain("Blog");
     expect(labels).not.toContain("Gallery");
     expect(labels).not.toContain("Donors & Sponsors");
   });

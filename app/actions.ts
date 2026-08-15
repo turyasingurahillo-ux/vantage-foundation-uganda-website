@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/contact";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logInfo, logWarn, logError } from "@/lib/logger";
+import { sanitiseValue, escapeHtml } from "@/lib/sanitise";
 import {
   CONTACT_CATEGORY_VALUES,
   buildSubjectPrefix,
@@ -84,7 +85,10 @@ const donorSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
-  amount: z.coerce.number().positive("Please select or enter a valid amount"),
+  amount: z.coerce
+    .number()
+    .positive("Please select or enter a valid amount")
+    .max(1_000_000_000, "Amount is too large"),
   frequency: z.enum(["one-time", "monthly"]),
   campaign: z.string().min(1, "Please select a campaign"),
   transactionReference: z.string().optional(),
@@ -178,31 +182,13 @@ function isBotSubmission(raw: Record<string, unknown>): boolean {
   return false;
 }
 
-// --- Email sanitization ---
-// Strip CR/LF and control characters to prevent email header injection, and
-// bound the length. Applied to every value before it reaches a mail header or
-// an HTML body.
-function sanitiseValue(value: unknown): string {
-  if (value == null) return "";
-  return String(value)
-    .replace(/[\r\n\t]/g, " ") // strip line breaks and tabs (header injection)
-    .replace(/[\p{Cc}\p{Cf}]/gu, " ") // strip remaining control/format chars
-    .substring(0, MAX_MESSAGE);
-}
-
-/**
- * Escapes user-supplied text for interpolation into the HTML email body.
- * Without this, a submitted `<script>` or `<img onerror=…>` would be rendered
- * as live markup in the reader's mail client.
- */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+// sanitiseValue and escapeHtml are imported from @/lib/sanitise (tested).
+//
+// The previous getValidatedFromAddress() helper is gone: it fell back to
+// site.contact.email, which no longer exists now that the operational mailbox
+// is server-only. getFromAddress() in lib/contact-inbox.ts replaces it and
+// deliberately never falls back to the protected mailbox — an unauthorised
+// From address is rejected by SPF/DMARC anyway.
 
 /**
  * Sends an internal notification.
@@ -270,7 +256,7 @@ const INTERNAL_FIELDS = [
 function formatBody(data: Record<string, unknown>): string {
   return Object.entries(data)
     .filter(([key]) => !INTERNAL_FIELDS.includes(key))
-    .map(([key, value]) => `${key}: ${sanitiseValue(value)}`)
+    .map(([key, value]) => `${key}: ${sanitiseValue(value, MAX_MESSAGE)}`)
     .join("\n");
 }
 
@@ -278,6 +264,7 @@ function formatBody(data: Record<string, unknown>): string {
 function emailTemplate(title: string, rows: { label: string; value: string }[]): string {
   // Every interpolated value is HTML-escaped: submissions are untrusted input
   // and must never render as live markup in the reader's mail client.
+  const safeTitle = escapeHtml(title);
   const tableRows = rows
     .map(
       (r) =>
@@ -288,7 +275,6 @@ function emailTemplate(title: string, rows: { label: string; value: string }[]):
         )}</td></tr>`
     )
     .join("");
-  const safeTitle = escapeHtml(title);
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><title>${safeTitle}</title></head>
@@ -297,7 +283,7 @@ function emailTemplate(title: string, rows: { label: string; value: string }[]):
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #dce5e5;">
         <tr><td style="background:#008f95;padding:20px 24px;">
-          <h1 style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">${title}</h1>
+          <h1 style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">${safeTitle}</h1>
         </td></tr>
         <tr><td style="padding:24px;">
           <p style="margin:0 0 16px;color:#475569;">A new submission was received on the Vantage Foundation Uganda website.</p>
@@ -327,11 +313,14 @@ function buildEmailRows(data: Record<string, unknown>): { label: string; value: 
     transactionReference: "Transaction Reference",
     consent: "Consent",
   };
+  // Values are sanitised here but NOT escaped: emailTemplate() escapes every
+  // field as it builds the HTML. Escaping in both places would double-encode,
+  // so a submitted "<script>" would reach the reader as "&amp;lt;script&amp;gt;".
   return Object.entries(data)
     .filter(([key]) => !INTERNAL_FIELDS.includes(key))
     .map(([key, value]) => ({
       label: labelMap[key] || key,
-      value: sanitiseValue(value),
+      value: sanitiseValue(value, MAX_MESSAGE),
     }));
 }
 
@@ -618,12 +607,18 @@ export async function submitDonor(
       parsed.data.email
     );
 
-    logInfo("donation_fallback_email", { email_sent: emailSent });
+    // Distinct alertable event: the donation was NOT recorded in the DB.
+    // Alerting on this event (via Sentry, Vercel log alerts, etc.) ensures
+    // the team knows a record may have been lost to email-only fallback.
+    logError("donation_db_failed_email_fallback", {
+      email_sent: emailSent,
+      campaign: parsed.data.campaign,
+    });
 
     return {
       success: emailSent,
       message: emailSent
-        ? "Thank you. We received your donation details and will follow up with payment instructions."
+        ? "We received your donation details but could not save them to our system. A Vantage administrator has been notified by email and will follow up with payment instructions."
         : "We could not save your donation details. Please use the payment instructions on this page or contact us directly.",
     };
   }

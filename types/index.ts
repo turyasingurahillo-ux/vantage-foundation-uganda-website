@@ -77,6 +77,37 @@ export type ProjectCategory =
   | "Water & Sanitation"
   | "Youth Leadership";
 
+/**
+ * The four primary programmes. A project's `category` (above) maps 1:1 to one
+ * of these for backward compatibility, but `primaryProgramme` / `secondaryProgrammes`
+ * are the canonical, multi-programme-aware taxonomy going forward.
+ */
+export type ProgrammeId = "health" | "education" | "humanitarian" | "water";
+
+/**
+ * Cross-cutting themes a project can address. A project selects one or more
+ * themes so it can surface on every relevant programme/theme page without
+ * duplicating its source data. Themes are intentionally distinct from
+ * programmes (the "what we do" pillars) and from content types (story/insight).
+ */
+export type ProjectTheme =
+  | "Maternal & Child Health"
+  | "Sexual & Reproductive Health"
+  | "Mental Health"
+  | "Preventive Healthcare"
+  | "Financial Literacy"
+  | "Youth Empowerment"
+  | "Menstrual Health"
+  | "Education"
+  | "Water"
+  | "Sanitation"
+  | "Humanitarian Relief"
+  | "Food Security"
+  | "Disability Inclusion"
+  | "Leadership"
+  | "Community Development"
+  | "Mentorship";
+
 export type ProjectStatus = "Active" | "Completed" | "Planned";
 
 /**
@@ -130,6 +161,8 @@ export interface Project {
   date: string;
   summary: string;
   heroImage?: string;
+  /** Alt text for the hero image. Falls back to the project title when omitted. */
+  heroImageAlt?: string;
   objective?: string;
   activities?: string[];
   outcomes?: string[];
@@ -167,6 +200,39 @@ export interface Project {
    * featuring identifiable people until consent is verified.
    */
   consentClassification?: ConsentClassification;
+  // --- Taxonomy extensions (all optional for backward compatibility) ---
+  /**
+   * Canonical primary programme id. When omitted, derived from `category`
+   * via programmeIdForCategory. Set explicitly when a project's primary
+   * programme differs from its legacy `category` mapping.
+   */
+  primaryProgramme?: ProgrammeId;
+  /**
+   * Secondary programmes this project also contributes to. A project
+   * surfaces on every programme page whose id is in
+   * {primaryProgramme, ...secondaryProgrammes}.
+   */
+  secondaryProgrammes?: ProgrammeId[];
+  /**
+   * Cross-cutting themes addressed by this project (e.g. "Menstrual Health",
+   * "Financial Literacy"). Used for theme-based filtering and surfacing
+   * projects on relevant programme pages without duplicating source data.
+   */
+  themes?: ProjectTheme[];
+  /**
+   * Beneficiary groups this project serves (e.g. "Young women", "Orphans").
+   * Free-form strings for now; may be enumerated later.
+   */
+  beneficiaryGroups?: string[];
+  /**
+   * UN Sustainable Development Goals this project contributes to (numbers 1-17).
+   */
+  sdgs?: number[];
+  /**
+   * Whether this project is a flagship/editorial feature. Flagship projects
+   * get prominent treatment on the homepage and programme pages.
+   */
+  flagship?: boolean;
 }
 
 export interface Story {
@@ -174,19 +240,21 @@ export interface Story {
   slug: string;
   title: string;
   excerpt: string;
-  /** Public editorial format within the Stories & Insights collection. */
+  /** Editorial presentation used by story listings and guide-specific layouts. */
   contentType?: "Story" | "Insight";
   author?: string;
-  /** Schema.org author type. Defaults to Person when omitted. */
+  /** Schema.org author type. Organisation-authored research should not be marked as a person. */
   authorType?: "Person" | "Organization";
   role?: string;
   date: string;
-  /** ISO date for material revisions or fact-check updates. */
+  /** ISO date string for substantive editorial updates. */
   updatedAt?: string;
-  /** Estimated time to read the full article. */
+  /** Editorially reviewed reading-time estimate. */
   readingTimeMinutes?: number;
   location?: string;
   category: string;
+  /** Numeric database id for DB-backed stories (analytics tracking). Null for static stories. */
+  dbId?: number;
   heroImage?: string;
   /** Alt text for the hero image. Falls back to the story title when omitted. */
   heroImageAlt?: string;
@@ -208,44 +276,11 @@ export interface Story {
   consentClassification?: ConsentClassification;
   /** Per-item SEO overrides. */
   seo?: SeoMeta;
-  /** Visible FAQ entries that may also be emitted as FAQPage structured data. */
+  /** Visible FAQ content that may also be expressed as structured data. */
   faqs?: FaqItem[];
   /**
    * Whether the story is published. Defaults to true when omitted.
    * Unpublished stories are filtered out of production routes but
-   * remain visible in development for previewing.
-   */
-  published?: boolean;
-}
-
-export type BlogCategory =
-  | "Health"
-  | "Education"
-  | "Humanitarian Action"
-  | "Community Stories"
-  | "Foundation News"
-  | "Research & Learning"
-  | "Accountability";
-
-export interface BlogPost {
-  id: string;
-  slug: string;
-  title: string;
-  category: BlogCategory;
-  summary: string;
-  body: string;
-  author?: string;
-  /** ISO date string, e.g. "2026-07-27". */
-  publishedAt: string;
-  readingTimeMinutes?: number;
-  heroImage?: string;
-  heroImageAlt?: string;
-  relatedSlugs?: string[];
-  consentClassification?: ConsentClassification;
-  seo?: SeoMeta;
-  /**
-   * Whether the post is published. Defaults to true when omitted.
-   * Unpublished/draft posts are filtered out of production routes but
    * remain visible in development for previewing.
    */
   published?: boolean;
@@ -315,6 +350,14 @@ export interface AreaOfWork {
   items: string[];
   icon: string;
   image?: string;
+  imageAlt?: string;
+  /** Optional external platform link shown as a callout on the programme page
+   *  (e.g. KikumiKyo Academy's online learning hub). */
+  externalPlatformLink?: {
+    label: string;
+    href: string;
+    description: string;
+  };
 }
 
 /**

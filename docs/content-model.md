@@ -27,8 +27,8 @@ Key fields:
 - `reportingPeriod`, `fundingStatus`, `startDate`, `endDate`, `documents`
 - `seo` (title, description, ogImage), `published`, `consentClassification`
 
-### `content/stories.ts` — Stories
-Blog-style stories and articles.
+### `content/stories.ts` — Stories & Insights
+Community stories, programme updates, research and reflections.
 
 **Type:** `Story`
 **Helpers:** `getPublishedStories()`, `getStoryBySlug(slug)`

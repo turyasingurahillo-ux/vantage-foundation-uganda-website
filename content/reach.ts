@@ -18,13 +18,18 @@
 // of Kampala, in Lake Victoria) rather than a founder-supplied coordinate
 // like the other seven.
 export interface ReachDistrict {
+  /** Uganda district name (matches administrative gazetteer). */
   name: string;
-  /** Approximate horizontal position, 0-100% (west to east). */
-  x: number;
-  /** Approximate vertical position, 0-100% (north to south). */
-  y: number;
+  /** Uganda district name — same as `name` for presentational use. */
+  district: string;
+  /** WGS84 latitude of the district centre. */
+  latitude: number;
+  /** WGS84 longitude of the district centre. */
+  longitude: number;
   /** Published project slugs with confirmed activity in this district. */
   projectSlugs?: string[];
+  /** Optional short description for the map tooltip. */
+  description?: string;
 }
 
 // x/y refined 2026-07-31 from real district coordinates (WGS84, sourced and
@@ -34,12 +39,12 @@ export interface ReachDistrict {
 // within a few percentage points), so the refinement doesn't relocate any
 // district, just lets the pins sit precisely on the new outline.
 export const reachDistricts: ReachDistrict[] = [
-  { name: "Gulu", x: 49.9, y: 28.4 },
-  { name: "Kiryandongo", x: 47.3, y: 41.4 },
-  { name: "Kayunga", x: 59.7, y: 61.0 },
-  { name: "Kampala", x: 54.5, y: 66.5, projectSlugs: ["mental-health-financial-literacy-workshops"] },
-  { name: "Jinja", x: 64.6, y: 65.3, projectSlugs: ["orphanage-relief"] },
-  { name: "Namutumba", x: 72.4, y: 58.9 },
-  { name: "Bushenyi", x: 15.6, y: 80.4, projectSlugs: ["mental-health-financial-literacy-workshops"] },
-  { name: "Kalangala", x: 49.8, y: 77.0, projectSlugs: ["orphanage-relief"] },
+  { name: "Gulu", district: "Gulu", latitude: 3.019, longitude: 32.388, description: "Northern outreach and recovery programmes." },
+  { name: "Kiryandongo", district: "Kiryandongo", latitude: 1.991, longitude: 32.051, description: "Humanitarian and food-security support." },
+  { name: "Kayunga", district: "Kayunga", latitude: 0.99, longitude: 32.862, description: "Community empowerment and WASH." },
+  { name: "Kampala", district: "Kampala", latitude: 0.31, longitude: 32.587, projectSlugs: ["mental-health-financial-literacy-workshops"], description: "Mental health and financial-literacy workshops." },
+  { name: "Jinja", district: "Jinja", latitude: 0.544, longitude: 33.229, projectSlugs: ["orphanage-relief"], description: "Orphanage relief and child welfare." },
+  { name: "Namutumba", district: "Namutumba", latitude: 0.887, longitude: 33.666, description: "Eastern livelihoods and education." },
+  { name: "Bushenyi", district: "Bushenyi", latitude: -0.475, longitude: 30.171, projectSlugs: ["mental-health-financial-literacy-workshops"], description: "Mental health and financial-literacy workshops." },
+  { name: "Kalangala", district: "Kalangala", latitude: -0.572, longitude: 32.438, projectSlugs: ["orphanage-relief"], description: "Ssese Islands orphanage relief." },
 ];

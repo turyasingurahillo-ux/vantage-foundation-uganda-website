@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  getStoryBySlug,
-  getStorySlugs,
-  getPublishedStories,
-} from "@/content/stories";
+  getAllStorySlugsWithDb,
+  getPublishedStoriesWithDb,
+  getStoryWithDb,
+} from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
 import { Badge } from "@/components/ui/Badge";
 import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
@@ -14,29 +14,21 @@ import {
   buildBreadcrumbJsonLd,
   buildArticleJsonLd,
 } from "@/components/shared/JsonLd";
-import { StoryCard } from "@/components/shared/StoryCard";
 import { Markdown } from "@/components/shared/Markdown";
+import { ArticleAnalytics } from "@/components/shared/ArticleAnalytics";
+import { ArticleShareButtons } from "@/components/shared/ArticleShareButtons";
+import { ArticleCtaBar } from "@/components/shared/ArticleCtaBar";
+import { RelatedStories } from "@/components/shared/RelatedStories";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
-
-/**
- * Stories carry freeform dates ("2023", "March 2023") alongside full ISO
- * values used for `publishedTime` and JSON-LD. Only reformat the ISO ones
- * for display; anything else is already human-readable as written.
- */
-function formatStoryDate(value: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  return new Date(`${value}T00:00:00Z`).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
+import { formatContentDate } from "@/lib/content-date";
+import { BeyondTheWardGuide } from "@/components/guides/BeyondTheWardGuide";
 
 export async function generateStaticParams() {
-  return getStorySlugs().map((slug) => ({ slug }));
+  return (await getAllStorySlugsWithDb()).map((slug) => ({ slug }));
 }
+
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -44,7 +36,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const story = getStoryBySlug(slug);
+  const story = await getStoryWithDb(slug);
   if (!story) return {};
   return createPublicMetadata({
     title: story.seo?.title || story.title,
@@ -52,6 +44,7 @@ export async function generateMetadata({
     path: `/stories/${slug}`,
     type: "article",
     publishedTime: story.date,
+    modifiedTime: story.updatedAt,
     authors: story.author ? [story.author] : undefined,
     image: story.seo?.ogImage || story.heroImage,
   });
@@ -63,24 +56,43 @@ export default async function StoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const story = getStoryBySlug(slug);
+  const story = await getStoryWithDb(slug);
 
   // In production, unpublished stories should 404.
   if (!story || (process.env.NODE_ENV === "production" && story.published === false)) {
     notFound();
   }
 
-  const relatedStories = getPublishedStories()
-    .filter((s) => s.slug !== story.slug && s.category === story.category)
+  const storyTags = new Set(story.tags ?? []);
+  const relatedStories = (await getPublishedStoriesWithDb())
+    .filter((candidate) => candidate.slug !== story.slug)
+    .map((candidate) => ({
+      story: candidate,
+      score:
+        (candidate.category === story.category ? 10 : 0) +
+        (candidate.tags ?? []).filter((tag) => storyTags.has(tag)).length,
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ story: candidate }) => candidate)
     .slice(0, 3);
+
+  const contentType = story.contentType ?? "Story";
 
   return (
     <>
+      {story.dbId && (
+        <ArticleAnalytics
+          articleId={story.dbId}
+          articleSlug={story.slug}
+          articleTitle={story.title}
+        />
+      )}
       <JsonLd
         data={buildBreadcrumbJsonLd(
           [
             { label: "Home", url: "/" },
-            { label: "Stories", url: "/stories" },
+            { label: "Stories & Insights", url: "/stories" },
             { label: story.title, url: `/stories/${slug}` },
           ],
           site.url
@@ -93,14 +105,22 @@ export default async function StoryPage({
           url: `/stories/${slug}`,
           baseUrl: site.url,
           datePublished: story.date,
+          dateModified: story.updatedAt,
           author: story.author,
+          authorType: story.authorType,
           image: story.heroImage,
         })}
       />
+      {story.slug === "beyond-the-ward" ? (
+        <BeyondTheWardGuide story={story} relatedStories={relatedStories} />
+      ) : (
+        <>
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <div className="max-w-3xl">
-            <Badge variant="accent">{story.category}</Badge>
+            <Badge variant="accent">
+              {contentType} · {story.category}
+            </Badge>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
               {story.title}
             </h1>
@@ -109,7 +129,13 @@ export default async function StoryPage({
               {story.author && <span>By {story.author}</span>}
               {story.role && <span>{story.role}</span>}
               {story.date && (
-                <time dateTime={story.date}>{formatStoryDate(story.date)}</time>
+                <time dateTime={story.date}>{formatContentDate(story.date)}</time>
+              )}
+              {story.updatedAt && story.updatedAt !== story.date && (
+                <span>Updated {formatContentDate(story.updatedAt)}</span>
+              )}
+              {story.readingTimeMinutes && (
+                <span>{story.readingTimeMinutes} min read</span>
               )}
               {story.location && <span>{story.location}</span>}
             </div>
@@ -123,13 +149,16 @@ export default async function StoryPage({
             className="mb-8"
             items={[
               { label: "Home", href: "/" },
-              { label: "Stories", href: "/stories" },
+              { label: "Stories & Insights", href: "/stories" },
               { label: story.title },
             ]}
           />
           {story.heroImage && (
             <figure>
-              <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
+              <div
+                className="relative aspect-[16/9] overflow-hidden rounded-2xl"
+                data-testid="story-hero"
+              >
                 <ImageOrPlaceholder
                   src={story.heroImage}
                   alt={story.heroImageAlt || story.title}
@@ -151,18 +180,19 @@ export default async function StoryPage({
             <Markdown variant="article">{story.body}</Markdown>
           </article>
 
-          {relatedStories.length > 0 && (
-            <div className="mt-16">
-              <h2 className="text-2xl font-bold">More stories</h2>
-              <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {relatedStories.map((s) => (
-                  <StoryCard key={s.slug} story={s} />
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="mx-auto mt-8 max-w-3xl">
+            <ArticleShareButtons slug={story.slug} title={story.title} />
+          </div>
+
+          <div className="mx-auto mt-8 max-w-3xl">
+            <ArticleCtaBar slug={story.slug} />
+          </div>
+
+          <RelatedStories stories={relatedStories} />
         </Container>
       </section>
+        </>
+      )}
     </>
   );
 }

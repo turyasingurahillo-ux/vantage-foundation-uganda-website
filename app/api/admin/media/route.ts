@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { validateCsrf } from "@/lib/csrf";
+import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { validateCsrf, validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo, logError } from "@/lib/logger";
+import { appendAuditLog } from "@/lib/db/audit";
 import {
   createMediaObject,
   getMediaObjects,
@@ -26,9 +27,10 @@ import {
 // Shared auth + CSRF + rate-limit guard.
 // ---------------------------------------------------------------------------
 
-async function guard(request: Request): Promise<{ ok: true; ip: string } | { ok: false; response: NextResponse }> {
+async function guard(request: Request): Promise<{ ok: true; ip: string; actorId: string } | { ok: false; response: NextResponse }> {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
+  if (!session) {
     logWarn("media_api_unauthorized", {});
     return { ok: false, response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
   }
@@ -37,7 +39,7 @@ async function guard(request: Request): Promise<{ ok: true; ip: string } | { ok:
     logWarn("media_api_rate_limited", { ip });
     return { ok: false, response: NextResponse.json({ error: "rate-limited" }, { status: 429 }) };
   }
-  return { ok: true, ip };
+  return { ok: true, ip, actorId: session.actorId };
 }
 
 // ---------------------------------------------------------------------------
@@ -93,12 +95,16 @@ const createSchema = z.object({
 export async function POST(request: Request) {
   const guardResult = await guard(request);
   if (!guardResult.ok) return guardResult.response;
-  const { ip } = guardResult;
+  const { ip, actorId } = guardResult;
 
   const cookieStore = await cookies();
   const contentType = request.headers.get("content-type") ?? "";
   let body: unknown;
   if (contentType.includes("application/json")) {
+    if (!validateCsrfHeader(cookieStore, request.headers.get(CSRF_HEADER_NAME))) {
+      logWarn("media_create_csrf_failed", { ip });
+      return NextResponse.json({ error: "csrf" }, { status: 403 });
+    }
     try {
       body = await request.json();
     } catch {
@@ -173,6 +179,15 @@ export async function POST(request: Request) {
       published: input.published,
     });
     logInfo("media_created", { id: row.id, objectKey: row.objectKey, ip });
+    await appendAuditLog({
+      actorId,
+      actorKind: actorId === BOOTSTRAP_ACTOR_ID ? "bootstrap" : "admin",
+      action: "media.created",
+      resourceType: "media",
+      resourceId: row.id,
+      after: { objectKey: row.objectKey, originalFilename: row.originalFilename, contentType: row.contentType },
+      ip,
+    });
     return NextResponse.json({ item: row, src: getPublicSrc(row.objectKey) }, { status: 201 });
   } catch (err) {
     logError("media_create_failed", {
@@ -203,12 +218,16 @@ const updateSchema = z.object({
 export async function PATCH(request: Request) {
   const guardResult = await guard(request);
   if (!guardResult.ok) return guardResult.response;
-  const { ip } = guardResult;
+  const { ip, actorId } = guardResult;
 
   const cookieStore = await cookies();
   const contentType = request.headers.get("content-type") ?? "";
   let body: unknown;
   if (contentType.includes("application/json")) {
+    if (!validateCsrfHeader(cookieStore, request.headers.get(CSRF_HEADER_NAME))) {
+      logWarn("media_update_csrf_failed", { ip });
+      return NextResponse.json({ error: "csrf" }, { status: 403 });
+    }
     try {
       body = await request.json();
     } catch {
@@ -233,11 +252,22 @@ export async function PATCH(request: Request) {
 
   const { id, ...update } = parsed.data;
   try {
+    const before = await getMediaObjectById(id);
     const row = await updateMediaObject(id, update);
     if (!row) {
       return NextResponse.json({ error: "not-found" }, { status: 404 });
     }
     logInfo("media_updated", { id, ip });
+    await appendAuditLog({
+      actorId,
+      actorKind: actorId === BOOTSTRAP_ACTOR_ID ? "bootstrap" : "admin",
+      action: "media.updated",
+      resourceType: "media",
+      resourceId: id,
+      before: before ? { altText: before.altText, published: before.published, consent: before.consent } : null,
+      after: { altText: row.altText, published: row.published, consent: row.consent },
+      ip,
+    });
     return NextResponse.json({ item: row });
   } catch (err) {
     logError("media_update_failed", {
@@ -260,12 +290,16 @@ const deleteSchema = z.object({
 export async function DELETE(request: Request) {
   const guardResult = await guard(request);
   if (!guardResult.ok) return guardResult.response;
-  const { ip } = guardResult;
+  const { ip, actorId } = guardResult;
 
   const cookieStore = await cookies();
   const contentType = request.headers.get("content-type") ?? "";
   let body: unknown;
   if (contentType.includes("application/json")) {
+    if (!validateCsrfHeader(cookieStore, request.headers.get(CSRF_HEADER_NAME))) {
+      logWarn("media_delete_csrf_failed", { ip });
+      return NextResponse.json({ error: "csrf" }, { status: 403 });
+    }
     try {
       body = await request.json();
     } catch {
@@ -305,6 +339,15 @@ export async function DELETE(request: Request) {
   }
   await softDeleteMediaObject(id);
   logInfo("media_deleted", { id, objectKey: row.objectKey, r2_deleted: deleted, ip });
+  await appendAuditLog({
+    actorId,
+    actorKind: actorId === BOOTSTRAP_ACTOR_ID ? "bootstrap" : "admin",
+    action: "media.deleted",
+    resourceType: "media",
+    resourceId: id,
+    before: { objectKey: row.objectKey, originalFilename: row.originalFilename },
+    ip,
+  });
   return NextResponse.json({ ok: true });
 }
 

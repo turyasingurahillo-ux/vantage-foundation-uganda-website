@@ -42,6 +42,10 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Dependency audit (production)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: false
+
   # Production build — ensures the site compiles and all pages prerender.
   build:
     name: Production build

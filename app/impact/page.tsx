@@ -5,6 +5,7 @@ import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
+import { ImpactMetricList, type ImpactTier } from "@/components/shared/ImpactMetric";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
@@ -17,6 +18,14 @@ export const metadata: Metadata = createPublicMetadata({
 });
 
 export default function ImpactPage() {
+  // Combine the three flat arrays into a single tiered list so the
+  // measurement hierarchy (output → outcome → long-term) is explicit.
+  const tieredItems: { tier: ImpactTier; text: string }[] = [
+    ...outputs.map((text) => ({ tier: "output" as const, text })),
+    ...outcomes.map((text) => ({ tier: "outcome" as const, text })),
+    ...longTermGoals.map((text) => ({ tier: "long-term" as const, text })),
+  ];
+
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -43,45 +52,15 @@ export default function ImpactPage() {
             counting method and links to the relevant project.
           </p>
 
-          <div className="mt-16 grid gap-8 lg:grid-cols-3">
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold text-primary">Outputs</h2>
-              <p className="mt-2 text-sm text-muted-foreground">What we have delivered.</p>
-              <ul className="mt-4 space-y-2 text-sm text-foreground">
-                {outputs.map((item) => (
-                  <li key={item} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold text-primary">Outcomes</h2>
-              <p className="mt-2 text-sm text-muted-foreground">The changes we see.</p>
-              <ul className="mt-4 space-y-2 text-sm text-foreground">
-                {outcomes.map((item) => (
-                  <li key={item} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold text-primary">Long-term goals</h2>
-              <p className="mt-2 text-sm text-muted-foreground">The future we are building.</p>
-              <ul className="mt-4 space-y-2 text-sm text-foreground">
-                {longTermGoals.map((item) => (
-                  <li key={item} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
+          <div className="mt-16">
+            <SectionHeader
+              align="left"
+              title="From outputs to long-term change"
+              description="Our work is measured across three levels: what we deliver (outputs), the changes we see (outcomes), and the future we are building (long-term impact)."
+            />
+            <div className="mt-8">
+              <ImpactMetricList items={tieredItems} />
+            </div>
           </div>
         </Container>
       </section>

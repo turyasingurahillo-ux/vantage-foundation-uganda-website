@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getDonations, DonationRow } from "@/lib/db";
@@ -60,18 +61,18 @@ export default async function AdminDonationsPage({
             </p>
           </div>
           <nav className="flex gap-2" aria-label="Admin navigation">
-            <a
-              href="/admin/blog"
+            <Link
+              href="/admin/stories"
               className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              Blog
-            </a>
-            <a
+              Stories & Insights
+            </Link>
+            <Link
               href="/admin/media"
               className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Media library
-            </a>
+            </Link>
             <form method="post" action="/api/admin/logout" className="inline">
               <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
               <button

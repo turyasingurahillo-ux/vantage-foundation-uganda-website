@@ -8,6 +8,7 @@ type PublicPageMetadata = {
   image?: string;
   type?: "website" | "article";
   publishedTime?: string;
+  modifiedTime?: string;
   authors?: string[];
 };
 
@@ -18,6 +19,7 @@ export function createPublicMetadata({
   image = "/brand/social/vantage-foundation-uganda-og.jpg",
   type = "website",
   publishedTime,
+  modifiedTime,
   authors,
 }: PublicPageMetadata): Metadata {
   const socialTitle = title.includes(site.name)
@@ -56,6 +58,7 @@ export function createPublicMetadata({
             ...openGraphBase,
             type: "article",
             publishedTime,
+            modifiedTime,
             authors,
           }
         : {

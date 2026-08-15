@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SkipToContent } from "@/components/shared/SkipToContent";
 import { JsonLd, buildNgoJsonLd, buildWebSiteJsonLd } from "@/components/shared/JsonLd";
+import { AnalyticsScripts } from "@/components/shared/AnalyticsScripts";
 import { site } from "@/content/site";
 
 const sourceSans = Source_Sans_3({
@@ -107,6 +108,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <AnalyticsScripts />
       </body>
     </html>
   );

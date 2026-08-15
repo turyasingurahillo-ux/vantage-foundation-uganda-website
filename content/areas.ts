@@ -17,6 +17,9 @@ export const areasOfWork: AreaOfWork[] = [
       "Referrals to professional care",
     ],
     icon: "heart-pulse",
+    image: "/images/photos/community-health-camp-checkup.webp",
+    imageAlt:
+      "A community health camp checkup in Uganda.",
   },
   {
     id: "education",
@@ -34,6 +37,15 @@ export const areasOfWork: AreaOfWork[] = [
       "Ongoing mentorship via the KikumiKyo platform",
     ],
     icon: "graduation-cap",
+    image: "/images/photos/photo-011.webp",
+    imageAlt:
+      "A young woman in a yellow t-shirt and headscarf speaks into a microphone at an indoor conference, with a \"Financial Literacy & Career Education\" banner in the background.",
+    externalPlatformLink: {
+      label: "Explore the KikumiKyo Academy online",
+      href: "https://kikumikyo.com/learn",
+      description:
+        "Browse free, Uganda-relevant financial education articles on saving, budgeting, SACCOs, loans and digital money safety — the online learning companion to this programme.",
+    },
   },
   {
     id: "humanitarian",
@@ -50,6 +62,9 @@ export const areasOfWork: AreaOfWork[] = [
       "Community relief initiatives",
     ],
     icon: "hand-heart",
+    image: "/images/photos/photo-003.webp",
+    imageAlt:
+      "Volunteers and community members unload supplies from a pickup truck loaded with boxes of food and hygiene products outside two houses.",
   },
   {
     id: "water",
@@ -66,6 +81,9 @@ export const areasOfWork: AreaOfWork[] = [
       "WASH in schools",
     ],
     icon: "droplets",
+    image: "/images/photos/photo-012.webp",
+    imageAlt:
+      "A group of men and boys gather around a newly installed hand-pump borehole with a concrete apron and drainage channel in a rural setting.",
   },
 ];
 

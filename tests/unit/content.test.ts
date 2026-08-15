@@ -1,6 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
-import { getPublishedProjects, getProjectSlugs, getProjectsByCategory } from "@/content/projects";
+import {
+  getPublishedProjects,
+  getProjectSlugs,
+  getProjectsByCategory,
+  getProjectsByProgramme,
+  getProjectsByTheme,
+  getFlagshipProject,
+  getAllThemes,
+} from "@/content/projects";
 import { getPublishedStories, getStorySlugs } from "@/content/stories";
 import { getPublishedTeam } from "@/content/team";
 import { getPublishedPartners } from "@/content/partners";
@@ -69,6 +77,59 @@ describe("getProjectsByCategory", () => {
     for (const p of healthProjects) {
       expect(p.category).toBe("Health");
     }
+  });
+});
+
+describe("getProjectsByProgramme (taxonomy-aware)", () => {
+  it("returns projects for a primary programme", () => {
+    const waterProjects = getProjectsByProgramme("water");
+    expect(waterProjects.length).toBeGreaterThan(0);
+    for (const p of waterProjects) {
+      const primary = p.primaryProgramme ?? "health";
+      const all = [primary, ...(p.secondaryProgrammes ?? [])];
+      expect(all).toContain("water");
+    }
+  });
+
+  it("includes projects via secondaryProgrammes, not just primaryProgramme", () => {
+    // SaveGirl Uganda is primaryProgramme=education, secondaryProgrammes=[health],
+    // so it must surface under BOTH education and health.
+    const healthProjects = getProjectsByProgramme("health");
+    const educationProjects = getProjectsByProgramme("education");
+    const savegirl = getPublishedProjects().find((p) => p.slug === "savegirl-uganda");
+    expect(savegirl).toBeDefined();
+    expect(healthProjects.map((p) => p.slug)).toContain("savegirl-uganda");
+    expect(educationProjects.map((p) => p.slug)).toContain("savegirl-uganda");
+  });
+});
+
+describe("getProjectsByTheme", () => {
+  it("returns projects addressing a given theme", () => {
+    const menstrualHealthProjects = getProjectsByTheme("Menstrual Health");
+    expect(menstrualHealthProjects.length).toBeGreaterThan(0);
+    for (const p of menstrualHealthProjects) {
+      expect(p.themes).toContain("Menstrual Health");
+    }
+  });
+});
+
+describe("getFlagshipProject", () => {
+  it("returns a project flagged as flagship", () => {
+    const flagship = getFlagshipProject();
+    expect(flagship).toBeDefined();
+    expect(flagship?.flagship).toBe(true);
+  });
+});
+
+describe("getAllThemes", () => {
+  it("returns a sorted, de-duplicated list of themes", () => {
+    const themes = getAllThemes();
+    expect(themes.length).toBeGreaterThan(0);
+    // Sorted alphabetically
+    const sorted = [...themes].sort();
+    expect(themes).toEqual(sorted);
+    // No duplicates
+    expect(new Set(themes).size).toBe(themes.length);
   });
 });
 

@@ -7,8 +7,9 @@ import {
 } from "@/lib/db";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
 import { logInfo, logWarn, logError } from "@/lib/logger";
+import { appendAuditLog } from "@/lib/db/audit";
 
 const validStatuses = ["pending", "verified", "rejected"] as const;
 
@@ -24,10 +25,12 @@ export async function POST(request: Request) {
   const adminCookie = cookieStore.get(sessionCookieName)?.value;
 
   // Verify the signed session token (HMAC-based, not the raw secret).
-  if (!verifySessionToken(adminCookie)) {
+  const session = verifySessionToken(adminCookie);
+  if (!session) {
     logWarn("verify_unauthorized", {});
     return NextResponse.redirect(new URL("/admin/login", request.url), 302);
   }
+  const { actorId } = session;
 
   // Rate limit status changes: 20 per minute per admin IP.
   const ip = getClientIp(request.headers);
@@ -93,7 +96,14 @@ export async function POST(request: Request) {
 
     await updateDonationStatus(id, status, adminNotes);
 
-    // Audit log: who (IP), when (timestamp via logger), before, after.
+    const action = `donation.${status}`;
+    const after = {
+      status,
+      adminNotes: adminNotes ? "(set)" : "(empty)",
+      verifiedAt: status === "verified" ? new Date().toISOString() : null,
+    };
+
+    // Structured log (retained for operational visibility).
     logInfo("donation_status_updated", {
       id,
       before_status: before.status,
@@ -101,7 +111,23 @@ export async function POST(request: Request) {
       before_notes: before.adminNotes ? "(set)" : "(empty)",
       after_notes: adminNotes ? "(set)" : "(empty)",
       status_changed: statusChanged,
+      actor: actorId,
       admin_ip: ip,
+    });
+
+    // Immutable audit log row with before/after snapshot and actor identity.
+    await appendAuditLog({
+      actorId,
+      actorKind: actorId === BOOTSTRAP_ACTOR_ID ? "bootstrap" : "admin",
+      action,
+      resourceType: "donation",
+      resourceId: id,
+      before: {
+        status: before.status,
+        adminNotes: before.adminNotes ? "(set)" : "(empty)",
+      },
+      after,
+      ip,
     });
 
     return NextResponse.redirect(

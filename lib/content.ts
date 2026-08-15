@@ -11,7 +11,6 @@ import {
 } from "@/content/stories";
 import { areasOfWork } from "@/content/areas";
 import { getPublishedTeam } from "@/content/team";
-import { getPublishedBlogPosts } from "@/content/blog";
 import { getPublishedPartners } from "@/content/partners";
 import {
   getPublishedImpactStats,
@@ -34,7 +33,6 @@ export const content = {
   getStoryBySlug,
   getStorySlugs,
   team: getPublishedTeam(),
-  blogPosts: getPublishedBlogPosts(),
   partners: getPublishedPartners(),
   impact: {
     stats: getPublishedImpactStats(),

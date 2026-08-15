@@ -1,146 +1,131 @@
-# Accessibility (WCAG 2.2 AA)
+# Accessibility — Vantage Foundation Uganda
 
-This document describes the accessibility features of the Vantage Foundation Uganda website and the testing process.
+**Target:** WCAG 2.2 AA across all public routes.
 
-## Target
+This document records the current accessibility state, testing methodology, and known considerations for the Vantage Foundation Uganda website.
 
-The site targets **WCAG 2.2 Level AA** compliance. This means:
-- Perceivable: content is presentable in ways users can perceive
-- Operable: interface components are operable
-- Understandable: content and interface are understandable
-- Robust: content works with assistive technologies
+---
 
-## Features Implemented
+## Current state
+
+All 27 public routes pass automated axe-core checks against WCAG 2.2 AA tags (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`). See `tests/e2e/accessibility.spec.ts` for the full test suite.
+
+### Document structure
+- Every page has exactly one visible `<h1>` (verified by E2E tests on all 27 routes).
+- Heading hierarchy follows h1 → h2 → h3 with no skipped levels.
+- `SectionHeader` component supports `level="h1"` (page title) and `level="h2"` (section title, default).
+- `<main id="main">` landmark is present on every page.
 
 ### Skip link
-- "Skip to main content" link is the first focusable element on every page
-- Hidden by default (`sr-only`), becomes visible on keyboard focus
-- Targets `<main id="main">` landmark
-- File: `components/shared/SkipToContent.tsx`
+- `SkipToContent` component is the first focusable element in the layout.
+- Visible on focus, links to `#main`, and moves focus to the main landmark.
+- Verified by E2E keyboard navigation test.
 
-### Heading hierarchy
-- Every page has exactly one `<h1>`
-- No skipped heading levels (h1 → h2 → h3)
-- Verified by automated E2E tests on all 18+ pages
-- `SectionHeader` component supports `level="h1"` or `level="h2"` prop
+### Focus management
+- Global `:focus-visible` style in `globals.css`: `outline: 2px solid var(--primary); outline-offset: 2px`.
+- `Button` component: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
+- `Input`, `Select`, `Textarea`: `focus:ring-2 focus:ring-primary`.
+- Custom buttons in `DonationForm` (amount/frequency toggles): `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
+- `UgandaReachMap` filter buttons: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
 
-### Mobile menu (focus trap)
-- `role="dialog"` and `aria-modal="true"` on the menu
-- Focus moves to close button when menu opens
-- Tab/Shift+Tab cycles within the menu (focus trap)
-- Focus returns to trigger button on close
-- Escape key closes the menu
-- Body scroll is locked while menu is open
-- `aria-label="Open menu"` / `aria-label="Close menu"` on buttons
-- `aria-expanded` and `aria-controls` on trigger button
-- File: `components/layout/Header.tsx`
+### Mobile menu (dialog)
+- `role="dialog"`, `aria-modal="true"`, `aria-label="Mobile navigation"`.
+- Focus trap: Tab and Shift+Tab cycle within the dialog.
+- Escape key closes the dialog.
+- Focus restores to the trigger button on close.
+- Body scroll locked while open.
+- Verified by E2E keyboard navigation test.
 
 ### Forms
-- All form fields have `<label>` elements (visible or `sr-only`)
-- `aria-describedby` associates error messages with fields
-- `aria-invalid` set on fields with validation errors
-- `role="alert"` on error messages
-- `role="status"` on success messages
-- `noValidate` on forms to use server-side validation messages
-- Privacy notices on all public forms
-- Files: `ContactForm.tsx`, `DonationForm.tsx`, `NewsletterForm.tsx`
+All three public forms (`ContactForm`, `DonationForm`, `NewsletterForm`) include:
+- `<Label>` with `htmlFor` association for every field.
+- `aria-invalid` on fields with validation errors.
+- `aria-describedby` linking fields to their error messages.
+- `FieldError` component for per-field error display.
+- `role="status"` + `aria-live="polite"` for form submission status announcements.
+- `HoneypotFields` for anti-spam (hidden from screen readers and sighted users).
+- `FormPrivacyNotice` on every form.
+- `noValidate` on `<form>` (server-side validation with accessible error messages).
+
+### Interactive components
+- **FAQ accordion**: Native `<details>`/`<summary>` — keyboard accessible by default, no JS required.
+- **Project/Story filters**: `Select` elements with `aria-label` for filter controls.
+- **UgandaReachMap**: Map pins are `<button>` elements with `aria-expanded` and `aria-controls`. SVG is `aria-hidden`; accessible district list carries the same information.
+- **GalleryGrid**: Lightbox uses `<dialog>` with `showModal()`. Close button has `aria-label`. Arrow keys navigate. Click backdrop to close.
+- **DonationForm amount/frequency toggles**: `aria-pressed` for toggle state.
+
+### Colour and contrast
+- Primary colour (`#006b70`) passes WCAG AA 4.5:1 on white for normal text.
+- `--primary` token uses teal dark (`#006b70`), not teal primary (`#008f95`) — the latter only reaches 3.9:1.
+- White text on primary background passes AA for normal and large text.
+- `text-muted-foreground` on `bg-background` passes AA.
+- `ImpactMetric` tier badges use colour + text labels (WCAG 1.4.1 — colour is not the sole indicator).
+
+### Motion
+- `prefers-reduced-motion: reduce` media query in `globals.css` disables all animations and transitions.
+
+### Icons
+- All decorative icons have `aria-hidden="true"`.
+- All icon-only buttons have `aria-label` (e.g. "Open menu", "Close menu", "Close photo viewer", "Previous photo", "Next photo").
+
+---
+
+## Testing methodology
+
+### Automated tests (CI)
+
+**axe-core E2E tests** (`tests/e2e/accessibility.spec.ts`):
+- 17 pages checked against WCAG 2.2 AA tags.
+- Run with Playwright in Chromium.
+- Zero violations expected.
+
+**Document structure tests**:
+- 27 routes checked for exactly one visible `<h1>` and a `<main>` landmark.
+
+**Keyboard navigation tests**:
+- Skip link: Tab → focus → Enter → focus moves to `#main`.
+- Mobile menu: focus trigger → Enter → dialog visible → Escape → dialog hidden → focus restored.
+
+### Manual testing
+
+Test the following at **320px, 375px, 768px, 1024px, 1440px**:
+
+1. **Keyboard-only navigation**: Tab through the homepage, open/close mobile menu, navigate to a project page, open gallery lightbox, close it.
+2. **Screen reader testing** (NVDA on Windows or VoiceOver on macOS):
+   - Navigate homepage by headings.
+   - Submit contact form with errors — verify error announcements.
+   - Use UgandaReachMap district list — verify all districts are announced.
+3. **200% zoom**: Verify no horizontal scrolling on key routes.
+4. **High contrast mode**: Verify all text remains readable.
+
+### Test commands
+
+```bash
+# Run accessibility E2E tests
+npx playwright test tests/e2e/accessibility.spec.ts
+
+# Run all E2E tests
+npx playwright test
+
+# Run unit tests (includes component accessibility checks)
+npx vitest run
+```
+
+---
+
+## Known considerations
 
 ### Images
-- All images use meaningful `alt` text describing the content
-- Decorative icons use `aria-hidden="true"`
-- Missing media renders as a quiet neutral surface without an unverified publication promise
-- All images go through `ImageOrPlaceholder` component
+- All images use `next/image` with descriptive `alt` text.
+- Placeholder images (when no photo is available) render as `aria-hidden="true"` neutral surfaces — they make no publication claim.
+- Team member photos use verified alt text based on visible content (no invented names for children/vulnerable people).
 
-### Color contrast
-All color combinations meet WCAG AA (4.5:1 for normal text, 3:1 for large text):
+### External content
+- Instagram posts are server-rendered with accessible captions.
+- Social media links use `rel="noopener noreferrer"` and descriptive `aria-label`s.
 
-| Foreground | Background | Ratio | Level |
-|------------|------------|-------|-------|
-| #0f172a (foreground) | #ffffff (white) | 18.5:1 | AAA |
-| #475569 (muted-foreground) | #ffffff (white) | 7.2:1 | AAA |
-| #475569 (muted-foreground) | #f8fafc (slate-50) | 6.8:1 | AAA |
-| #ffffff (white) | #0f766e (primary) | 5.5:1 | AA |
-| #0f766e (primary) | #ffffff (white) | 5.5:1 | AA |
-| #78350f (amber-900) | #fffbeb (amber-50) | 7.2:1 | AAA |
-| #64748b (slate-500) | #f1f5f9 (slate-100) | 4.6:1 | AA |
-
-### Landmarks
-- `<header>` — site header
-- `<nav aria-label="Main navigation">` — desktop navigation
-- `<nav aria-label="Mobile navigation">` — mobile menu
-- `<nav aria-label="Breadcrumb">` — breadcrumb navigation
-- `<main id="main">` — main content
-- `<footer>` — site footer
-
-### FAQ accordion
-- Uses native `<details>`/`<summary>` elements (built-in keyboard support)
-- `aria-labelledby` associates content with its summary
-- Decorative chevron icon uses `aria-hidden="true"`
-
-### Project filter
-- Search input has `sr-only` label
-- Filter dropdowns have `aria-label`
-- Native form controls for keyboard accessibility
-
-## Testing
-
-### Automated tests
-
-**E2E (Playwright + axe-core):**
-```bash
-npm run test:e2e
-```
-- Heading order: verifies exactly one `<h1>` per page
-- Skip link: verifies it becomes visible on focus
-- axe-core: runs WCAG 2.2 AA checks on all pages
-  - Tags: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`
-  - Fails on any violations
-
-**Unit tests:**
-- Component tests verify ARIA attributes are set correctly
-
-### Manual testing checklist
-
-Test these before each major release:
-
-- [ ] **Keyboard navigation**: Tab through every page, verify focus order is logical
-- [ ] **Skip link**: Press Tab on page load, verify skip link appears, press Enter, verify focus moves to main content
-- [ ] **Mobile menu**: Open with keyboard, verify focus trap, close with Escape, verify focus returns to button
-- [ ] **Forms**: Submit forms with errors, verify error messages are announced
-- [ ] **Screen reader**: Test with NVDA (Windows) or VoiceOver (macOS) on:
-  - Homepage navigation
-  - Contact form submission
-  - Donation form submission
-  - Project filter and search
-- [ ] **200% zoom**: Verify no content is cut off or overlapping at 200% browser zoom
-- [ ] ** prefers-reduced-motion**: Verify animations are reduced when this is set
-- [ ] **High contrast mode**: Verify content is readable in Windows high contrast mode
-
-### Screen reader testing
-
-**NVDA (Windows, free):**
-1. Install NVDA from https://www.nvaccess.org/
-2. Open the site in Chrome or Firefox
-3. Navigate with Tab, Shift+Tab, and arrow keys
-4. Verify all content is announced correctly
-5. Verify form labels and errors are read
-
-**VoiceOver (macOS, built-in):**
-1. Enable VoiceOver with Cmd+F5
-2. Open the site in Safari
-3. Navigate with Tab, Shift+Tab, and VO+arrow keys
-4. Verify all content is announced correctly
-
-## CI Integration
-
-Axe-core accessibility checks run in the E2E test suite (`.github/workflows/ci.yml`). The CI workflow runs:
-- Unit tests (Vitest)
-- E2E tests (Playwright) — includes axe-core checks
-
-Any axe-core violation will fail the CI build.
-
-## Known Limitations
-
-- **No video captions**: The site currently has no video content. If video is added, captions and transcripts must be provided.
-- **Missing media**: a neutral non-text surface avoids broken requests and does not claim that an asset will be published.
-- **Third-party content**: Any embedded third-party content (maps, social widgets) may not meet WCAG AA. Review before adding.
+### Future work
+- Add captions or transcripts for any video content (none currently).
+- Test with a screen reader on critical journeys (NVDA/VoiceOver).
+- Consider adding a high-contrast theme if user research indicates a need.
+- Evaluate `prefers-contrast: more` support for users who need higher contrast.

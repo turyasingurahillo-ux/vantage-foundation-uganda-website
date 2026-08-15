@@ -1,6 +1,277 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Story } from "@/types";
 
+const beyondTheWardBody = readFileSync(
+  join(process.cwd(), "content", "stories", "beyond-the-ward.md"),
+  "utf8"
+);
+
 export const stories: Story[] = [
+  {
+    id: "beyond-the-ward",
+    slug: "beyond-the-ward",
+    title: "Beyond the Ward",
+    excerpt:
+      "A practical, verified guide to research jobs, funded scholarships and careers beyond clinical practice for Uganda's medical graduates and health workers.",
+    contentType: "Insight",
+    author: "Vantage Foundation Uganda Research Team",
+    authorType: "Organization",
+    role: "Research and Learning",
+    date: "2026-08-14",
+    updatedAt: "2026-08-14",
+    readingTimeMinutes: 39,
+    location: "Uganda",
+    category: "Career guide",
+    heroImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
+    heroImageAlt:
+      "A young Ugandan health professional carrying a white coat at branching paths toward research, public health, health data and clinical care.",
+    heroImageCredit:
+      "AI-generated editorial illustration — not a photograph of the people or events described.",
+    consentClassification: "none",
+    relatedProjectSlugs: [
+      "rural-medical-camps",
+      "mental-health-financial-literacy-workshops",
+    ],
+    tags: [
+      "health workforce",
+      "medical graduates",
+      "career guidance",
+      "research jobs",
+      "scholarships",
+      "Uganda",
+    ],
+    seo: {
+      title: "Careers for Medical Graduates in Uganda",
+      description:
+        "Explore verified careers for medical graduates in Uganda: research jobs, funded scholarships, M&E, digital health, free skills and practical next steps.",
+      ogImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
+    },
+    faqs: [
+      {
+        question:
+          "What careers are available for medical graduates in Uganda besides clinical practice?",
+        answer:
+          "You can build a career in research, epidemiology, public health, M&E, health informatics, digital health, pharmacovigilance, regulatory affairs, medical writing, programme management, policy or health-tech product work. The degree gives you clinical context; employers will still want evidence of a practical skill, project, placement or relevant entry-level role.",
+      },
+      {
+        question: "Can a doctor work in research without a master's degree?",
+        answer:
+          "Yes. Entry roles can include Research Assistant, Study Clinician, Research Clinician, Data Officer, Field Officer or Study Coordinator. A master's may help with progression, but it is not a universal entry requirement. GCP, data skills, strong documentation and visible research interest can matter first.",
+      },
+      {
+        question: "Can an MBChB graduate work in monitoring and evaluation?",
+        answer:
+          "Yes. A medical degree can satisfy the health-background requirement for many M&E roles, but it does not replace practical experience. Build through Excel, KoboToolbox, DHIS2, data-quality checks, indicators and reporting, then target Data Assistant, Programme Assistant or M&E Assistant roles before M&E Officer positions.",
+      },
+      {
+        question: "Which funded scholarships suit a fresh Ugandan graduate?",
+        answer:
+          "Commonwealth Shared, Erasmus Mundus Joint Masters, Türkiye Scholarships and UGHE's Mastercard Foundation Scholars Program do not currently state a minimum work-experience requirement. Each has other eligibility rules, and none had a confirmed open call on 14 August 2026. Prepare documents now and wait for the official next call.",
+      },
+      {
+        question: "Can a 2025 or 2026 graduate apply for Chevening in 2026?",
+        answer:
+          "No. For the 2027/28 round, Chevening requires 2,800 hours of work after the undergraduate degree and excludes applicants who completed that degree after October 2024. A recent graduate should document paid and voluntary work and build toward a later round instead of spending time on an ineligible application.",
+      },
+      {
+        question: "Which two free certificates should I start first?",
+        answer:
+          "Start ICH Good Clinical Practice E6(R3) through The Global Health Network and an introductory DHIS2 course through the DHIS2 Online Academy. Then build evidence: clean a permitted dataset, create a KoboToolbox form or produce a small dashboard. A certificate becomes useful when you can demonstrate the skill.",
+      },
+      {
+        question: "Where should I look for medical research jobs in Uganda?",
+        answer:
+          "Monitor the official portals of MRC/UVRI & LSHTM, IDI, MU-JHU, RHSP, IDRC Uganda, UVRI, TASO, Baylor Uganda and Amref. Roles close quickly, so check weekly and search by job title, not only ‘doctor’: Research Assistant, Study Clinician, Data Officer, Field Officer and Study Coordinator.",
+      },
+      {
+        question: "Are research internships and volunteer placements paid?",
+        answer:
+          "Some are paid, some unpaid and some may involve costs. Never infer financial terms from the word ‘internship.’ Before accepting, ask in writing about allowance, transport, meals, accommodation, insurance, fees, working hours, supervision and the certificate or reference you will receive. Vantage's position is that productive work should be fairly compensated.",
+      },
+      {
+        question: "Does low European tuition mean a degree is affordable?",
+        answer:
+          "Not necessarily. For Austria in 2026, a student aged 24 or older generally needed base maintenance proof of €15,700.68 for 12 months, in addition to insurance, extra rent where applicable, tuition, travel and the €218 permit fee. Calculate the entire funding gap before applying.",
+      },
+      {
+        question: "What if I have no formal work experience?",
+        answer:
+          "Begin with a standing internship or volunteer route, community-health work, a data or programme assistant role, or a supervised project. Keep a log of dates, hours, responsibilities and supervisors. Chevening counts eligible post-degree voluntary and internship work; other programmes use different definitions, so always follow the scheme's own rules.",
+      },
+      {
+        question: "Is a delayed internship year a wasted year?",
+        answer:
+          "No—but it needs structure. Use the year to gain one practical data skill, complete GCP, build a small portfolio, enter a health or research organisation, document service and prepare scholarship materials. These steps do not resolve the injustice of delayed or unpaid internship; they protect your momentum while the system changes.",
+      },
+      {
+        question:
+          "Does this guide apply to nurses, pharmacists and other health workers?",
+        answer:
+          "Much of it does. Scholarships, research placements, M&E, digital health and public-health routes often accept several health disciplines. Pharmacists have a strong fit with pharmacovigilance; laboratory scientists may fit UNIPH's Laboratory Leadership track. Never infer eligibility from ‘health-related degree’—check the accepted qualifications in the current call.",
+      },
+    ],
+    body: beyondTheWardBody,
+    published: true,
+  },
+  {
+    id: "why-youth-spaces-matter-in-uganda",
+    slug: "why-youth-spaces-matter-in-uganda",
+    title: "Why Youth Spaces Matter in Uganda",
+    excerpt:
+      "Creating safe, inclusive environments where young people can learn, connect, lead and turn potential into opportunity.",
+    author: "Vantage Foundation team",
+    role: "Research & Learning",
+    date: "2026-08-04",
+    location: "Uganda",
+    category: "Research & Learning",
+    heroImage: "/images/photos/photo-073.webp",
+    heroImageAlt:
+      "A large classroom of secondary school students in uniforms and headscarves sits at wooden desks during a mentorship session in Kampala.",
+    consentClassification: "verified",
+    tags: ["youth empowerment", "youth leadership", "Uganda", "education"],
+    seo: {
+      title: "Why Youth Spaces Matter in Uganda | Vantage Foundation Uganda",
+      description:
+        "Uganda has one of the world’s youngest populations. Discover why safe, inclusive youth spaces support leadership, employment, wellbeing and innovation.",
+      ogImage: "/images/photos/photo-073.webp",
+    },
+    body: `Uganda is a young country—and that may be one of the most important facts about its future.
+
+The **2024 National Population and Housing Census recorded Uganda’s population at 45,905,417**. Almost half of the population—**22.75 million people—are below the age of 18**. The census also counted approximately **10.77 million young people aged 18 to 30**, representing about **23.5% of the population**.
+
+These are more than demographic statistics. They point to a fundamental opportunity: if young people thrive, Uganda has an extraordinary chance to thrive with them.
+
+But potential does not automatically become opportunity.
+
+Young people need environments where they can learn, connect with mentors, access services, develop ideas, build confidence and practise leadership. They need places where they are not simply discussed, but listened to. They need to be treated not only as beneficiaries, but also as participants, creators and leaders.
+
+This is why **youth spaces in Uganda matter**.
+
+## Uganda’s youth opportunity is enormous
+
+Uganda’s young population creates the possibility of a demographic dividend—the economic and social benefits that can emerge when a large young population is healthy, educated, skilled and productively engaged.
+
+That dividend is not automatic. It requires deliberate investment in education and skills, employment and entrepreneurship, health and wellbeing, women and girls, innovation and technology, financial inclusion, and youth participation.
+
+Youth spaces can contribute by bringing several forms of support together around the young person. A well-designed space can connect learning, mentorship, health information, digital access, entrepreneurship and community participation in one trusted environment.
+
+## Why action is urgent
+
+Uganda’s young people are entering adulthood in an economy that cannot easily absorb everyone seeking meaningful work.
+
+According to [Uganda Bureau of Statistics data](https://www.ubos.org/uganda-profile/), **50.9% of people aged 18 to 30 were not in employment, education or training**, representing approximately **5.25 million people**. Among people aged 15 to 24, the proportion was **42.6%**.
+
+Youth unemployment among people aged 15 to 24 was **17.9%**. Unemployment was higher among young women, at **21.0%**, compared with **15.2% among young men**.
+
+The [World Bank estimates](https://www.worldbank.org/en/news/press-release/2026/06/04/world-bank-group-launches-ten-year-strategy-to-drive-jobs-and-prosperity-in-uganda) that **600,000 to 700,000 young people enter Uganda’s labour market each year**.
+
+These figures make one thing clear: young people need more than encouragement. They need infrastructure for opportunity.
+
+## What is a youth space?
+
+A youth space is more than a building. It is a **safe, inclusive and empowering environment where young people can meet, learn, create, receive support and exercise leadership**.
+
+A strong youth space might provide:
+
+- Leadership and life-skills development
+- Career guidance and mentorship
+- Entrepreneurship support and financial literacy
+- Digital-skills training and access to computers
+- Health information, referrals and psychosocial support
+- Peer networks, creative activities and volunteer opportunities
+- Support for youth-led initiatives
+
+A room becomes a youth space when young people feel that they belong there, that their ideas matter and that they have opportunities to grow.
+
+## From unemployment to opportunity
+
+The employment challenge facing Uganda cannot be solved through job advertisements alone. Practical youth spaces can help young people write CVs, prepare for interviews, build digital skills, develop business ideas, understand saving and create professional networks.
+
+This transforms the space from a community centre into an **opportunity hub**.
+
+Financial knowledge is also an important part of youth development. Through financial-literacy initiatives connected to [KikumiKyo Academy](/programmes/education), young people can develop practical knowledge about saving, financial planning, responsible borrowing, investment and entrepreneurship.
+
+## Leadership requires somewhere to practise
+
+Young people are often told that they are tomorrow’s leaders. But leadership cannot begin tomorrow. It must be practised today.
+
+Youth spaces give young people opportunities to organise activities, manage projects, chair discussions, identify community problems and develop solutions.
+
+The question is not only, “How many young people attended?” We should also ask: how many led, made decisions, developed projects or became mentors?
+
+That is the difference between basic participation and meaningful **youth empowerment in Uganda**.
+
+![A facilitator leads a classroom activity with young people during a Vantage Foundation session in Uganda.](/images/photos/photo-016.webp)
+
+## Young women need more than inclusion on paper
+
+Young women do not always experience the same opportunities as young men. Creating a youth space does not automatically make it inclusive. Inclusion must be designed.
+
+A space that genuinely works for young women should consider physical and emotional safety, harassment prevention, female mentors, leadership opportunities, confidentiality, accessible programme schedules, sexual and reproductive health information, economic empowerment and gender-sensitive safeguarding.
+
+Most importantly, young women must not simply be present. They must have **voice, influence and leadership**.
+
+![Students and teachers gather for a Women’s Day celebration at Basajjabalaba High School in Bushenyi.](/images/photos/photo-038.webp)
+
+## Health and opportunity are connected
+
+[UNICEF Uganda identifies](https://www.unicef.org/uganda/what-we-do/adolescent-development) poverty, HIV, early marriage, teenage pregnancy, gender-based violence and limited participation in secondary education among the challenges facing adolescents.
+
+Youth spaces can become trusted entry points for health education and referrals, connecting young people to sexual and reproductive health services, mental-health support, HIV information, counselling and gender-based violence services.
+
+At **Vantage Foundation Uganda**, this approach complements the work of [Vantage Care](/programmes/health), which focuses on improving access to health services and information through community-centred medical outreach.
+
+## Digital access is part of opportunity
+
+Applications, training, business marketing, professional networking and financial services are increasingly digital. A youth space equipped with computers, internet connectivity and digital mentorship can therefore provide access to the modern economy.
+
+Young people can use these spaces to learn digital productivity skills, explore online education, create professional profiles, apply for jobs and training, research business opportunities and build confidence using technology.
+
+## Youth spaces can turn ideas into initiatives
+
+Uganda does not lack young people with ideas. What is often missing is the ecosystem around those ideas: mentorship, workspace, technology, project-management skills, networks, partnerships and funding.
+
+Youth spaces can provide the bridge between **“I have an idea”** and **“We are doing something about it.”**
+
+Youth-led solutions should be seen as a resource for communities—not merely as exercises for young people.
+
+## What should a successful youth space achieve?
+
+Attendance matters, but it is only a starting point. Organisations should also ask whether young people are safer, whether young women are leading, whether vulnerable young people can participate, whether participants are gaining useful skills and whether youth-led projects are emerging.
+
+Most importantly: **Are young people leaving with more agency than when they arrived?**
+
+![Young people take part in a financial literacy and career education conference in Bushenyi.](/images/projects/bushenyi-youth-conference-27.webp)
+
+## The Vantage Foundation Uganda perspective
+
+At **Vantage Foundation Uganda**, our mission is to **change the world one advantage at a time**.
+
+Access to a computer, a meeting with a mentor, health information, financial knowledge or a safe place to develop an idea can create lasting change. These advantages can multiply across families and communities.
+
+That is why investing in youth spaces is ultimately an investment in communities.
+
+## Uganda’s future needs spaces where young people can thrive
+
+Uganda has approximately **10.77 million people aged 18 to 30**. More than **5.25 million young people aged 18 to 30** are estimated to be outside employment, education or training, while **600,000 to 700,000 young people enter the labour market each year**.
+
+Uganda does not lack young people with potential. What remains insufficient are the environments, resources, networks and opportunities that allow that potential to grow.
+
+Youth spaces are not simply rooms. They are infrastructure for **belonging, opportunity, wellbeing, leadership and innovation**.
+
+At Vantage Foundation Uganda, we believe that when young people are given the right advantages, they can do more than change their own lives.
+
+**They can change their communities—and, one advantage at a time, change the world.**
+
+## Sources
+
+- [UBOS National Population and Housing Census 2024](https://statistics.ubos.org/nphc/)
+- [UBOS Uganda profile and labour-market indicators](https://www.ubos.org/uganda-profile/)
+- [UNFPA Uganda: Census 2024 and Uganda’s youthful population](https://uganda.unfpa.org/en/news/census-2024-preliminary-results-released-uganda-remains-young-population)
+- [UNICEF Uganda: Adolescent development](https://www.unicef.org/uganda/what-we-do/adolescent-development)
+- [World Bank: Uganda Country Partnership Framework 2026–2035](https://www.worldbank.org/en/news/press-release/2026/06/04/world-bank-group-launches-ten-year-strategy-to-drive-jobs-and-prosperity-in-uganda)`,
+  },
   {
     id: "healers-in-crisis-ugandas-medical-interns",
     slug: "healers-in-crisis-ugandas-medical-interns",
@@ -146,16 +417,69 @@ That is a debt the nation cannot keep deferring.
     title: "What are we without our dreams?",
     excerpt:
       "A reflection from one of the young people who has journeyed with Vantage Foundation on what it means to hold onto hope.",
-    author: "Kauthar Wangi",
+    author: "Dr Nassazi Kauthar Wangi",
     role: "Youth participant",
-    date: "2023",
+    date: "2023-06-01",
     location: "Uganda",
     category: "Youth voice",
-    heroImage: "/images/photos/photo-071.webp",
+    heroImage: "/images/photos/photo-058.webp",
+    heroImageAlt:
+      "A young woman in a \"Vantage Foundation, Write My Own Story\" t-shirt sits and smiles outdoors near a borehole pump.",
+    consentClassification: "verified",
     relatedProjectSlugs: ["savegirl-uganda", "advantage-book-club"],
-    body: `"What are we without our dreams?" This question sits at the heart of Vantage Foundation's work. For many young people in underserved communities, dreams are often buried under the weight of poverty, lack of opportunity and limited support systems.
+    body: `We come into this world and we are given many things. A name. A nationality. A tribe. A religion. A language. A family. A place to call home.
 
-Vantage Foundation has become a space where those dreams are named, nurtured and given a path forward. Through mentorship, reading, health education and community, young people are reminded that their aspirations matter — and that they are not alone in pursuing them.`,
+Most of these things are chosen for us before we are old enough to understand what they mean. They become part of our identity, and society often uses them to explain who we are.
+
+But somewhere beneath all these labels, there is something much more personal.
+
+Our dreams.
+
+There is something strange and beautiful about dreaming. We do not always choose what moves us. We simply discover it.
+
+One person sees a sick patient and feels a deep desire to heal. Another looks at numbers and sees possibilities. Someone else finds meaning in teaching children, building houses, growing food, painting, singing, designing, writing or starting a business.
+
+Why does one thing make one person's heart come alive while another person feels nothing for it?
+
+Perhaps we will never fully know.
+
+Human beings need meaning, purpose and hope. We need something that makes tomorrow worth reaching for. A dream can become that thing.
+
+And dreams seem to care very little about where we come from.
+
+A child in a wealthy home can dream. So can a child in a village without electricity.
+
+A young person in a refugee settlement can dream. So can someone growing up in the middle of a large city.
+
+Dreams do not first ask about our income, gender, race, religion or social class before appearing inside us.
+
+This is what makes them powerful.
+
+Perhaps dreams are among the few things that truly feel like our own.
+
+And yet, there is an uncomfortable truth: while everyone can dream, not everyone has the same opportunity to pursue their dreams.
+
+Talent can exist without opportunity. Intelligence can exist without education. Ambition can exist without money.
+
+A brilliant young person can be born anywhere. But where they are born can determine whether the world ever gets to see that brilliance.
+
+That raises an important question for all of us:
+
+**How many dreams have we lost, not because people were incapable, but because they were never given a chance?**
+
+Perhaps development is not only about giving people things. Perhaps it is also about removing the barriers between people and who they could become.
+
+Give a child education. Give a young woman a safe space. Give a family access to healthcare. Give a young person knowledge, mentorship and opportunity.
+
+Sometimes, what you are really giving them is permission to imagine a different future.
+
+Our names tell people what to call us. Our nationalities tell them where we come from. Our communities tell part of our story.
+
+But our dreams whisper something different.
+
+They tell us where we hope to go.
+
+And perhaps, somewhere between who we are and who we dream of becoming, we find the deepest part of ourselves.`,
   },
   {
     id: "the-meaning-of-advantage",
@@ -165,10 +489,12 @@ Vantage Foundation has become a space where those dreams are named, nurtured and
       "Hillary Turyasingura on why true advantage is not about luxury, but about lifting others up.",
     author: "Hillary Turyasingura",
     role: "Founding team",
-    date: "2023",
+    date: "2023-03-01",
     location: "Uganda",
     category: "Leadership reflection",
-    heroImage: "/images/blog/what-we-mean-advantage-hero.webp",
+    heroImage: "/images/stories/what-we-mean-advantage-hero.webp",
+    heroImageAlt:
+      "Hillary Turyasingura stands on a green hillside overlooking a broad mountain valley beneath a blue, cloud-filled sky.",
     relatedProjectSlugs: ["savegirl-uganda"],
     consentClassification: "verified",
     body: `There is a word in our name that people often misread before they have spent any real time with us: *Vantage*. It can sound like it belongs to a different world — the world of first-class lounges, corner offices and cars that turn heads on the way into them. That is not the world we mean. It is worth saying plainly what we do mean, because the difference shapes everything we do.
@@ -225,10 +551,13 @@ That is the belief this foundation is built on. Not status. Not visibility. Just
       "How SaveGirl Uganda grew from a crowdfunding campaign for sanitary pads into a holistic mentorship movement.",
     author: "Vantage Foundation team",
     role: "Programme team",
-    date: "2023",
+    date: "2023-06-01",
     location: "Rural Uganda",
     category: "Programme update",
     heroImage: "/images/photos/photo-016.webp",
+    heroImageAlt:
+      "A facilitator in a pink \"SaveGirl Uganda\" shirt teaches at a classroom chalkboard while students listen.",
+    consentClassification: "verified",
     relatedProjectSlugs: ["savegirl-uganda", "menstrual-cups-project"],
     body: `SaveGirl Uganda began as a simple idea: crowdfund money to buy sanitary pads for young women in rural areas who could not afford them. The response was immediate and generous. But as we met the young women we were serving, we realised that pads alone would not remove the barriers they faced.
 
@@ -242,10 +571,13 @@ Period poverty is connected to low self-esteem, limited financial literacy, lack
       "A day of conversation, celebration and empowerment at Basajjabalaba High School.",
     author: "Vantage Foundation team",
     role: "Programme team",
-    date: "March 2023",
+    date: "2023-03-08",
     location: "Basajjabalaba High School, Bushenyi",
     category: "Event highlight",
     heroImage: "/images/photos/photo-038.webp",
+    heroImageAlt:
+      "Students and teachers gather in a school hall for a Women's Day celebration, with panelists seated at a front table beneath chalkboard notes.",
+    consentClassification: "verified",
     relatedProjectSlugs: ["savegirl-uganda", "mental-health-financial-literacy-workshops"],
     body: `On International Women's Day 2023, the Vantage Foundation team joined students and staff at Basajjabalaba High School in Bushenyi for a day of conversation, celebration and empowerment.
 
@@ -263,6 +595,9 @@ The event focused on confidence, education and the power of young women to shape
     location: "Bushenyi, Uganda",
     category: "Event highlight",
     heroImage: "/images/projects/bushenyi-youth-conference-27.webp",
+    heroImageAlt:
+      "Young people in matching branded t-shirts gather at the Bushenyi youth conference on financial literacy and career education.",
+    consentClassification: "verified",
     relatedProjectSlugs: ["advantage-book-club", "mental-health-financial-literacy-workshops", "savegirl-uganda"],
     body: `On 10 September 2022, our SaveGirl Uganda team hosted a youth conference in Bushenyi bringing together young people for sessions on financial literacy, habit building and career education. The day was designed to fill gaps left by the formal school system, giving participants practical skills they can use immediately.
 
@@ -278,14 +613,49 @@ From budgeting to goal-setting, the conversations were energetic and honest. You
       "A high-school mentorship session that opened up safe conversations about mental health.",
     author: "Vantage Foundation team",
     role: "Programme team",
-    date: "2023",
+    date: "2023-09-01",
     location: "Kampala, Uganda",
     category: "Event highlight",
     heroImage: "/images/photos/photo-073.webp",
+    heroImageAlt:
+      "A large classroom of secondary school students in uniforms and headscarves sits at wooden desks during an assembly.",
+    consentClassification: "verified",
     relatedProjectSlugs: ["mental-health-financial-literacy-workshops"],
     body: `At a high school in Kampala, our team led a mentorship session focused on mental health. The conversation covered stress, coping skills, seeking help and supporting friends.
 
 For many students, it was the first time mental health had been discussed openly in school. The session created a safe space for questions and reflection, and several students signed up for follow-up activities.`,
+  },
+  {
+    id: "the-greatest-impact-serving-others",
+    slug: "the-greatest-impact-serving-others",
+    title: "The greatest impact is found in serving others",
+    excerpt:
+      "A young medical doctor and volunteer reflects on the impact of service, the power of compassion, and why volunteering is about more than giving.",
+    author: "Oliyer Abwooli Kabagenyi",
+    role: "Medical doctor and volunteer",
+    date: "2026-08-04",
+    location: "Uganda",
+    category: "Volunteer voice",
+    heroImage: "/images/photos/community-health-camp-checkup.webp",
+    heroImageAlt:
+      "A volunteer medical professional conducts a health check-up on a community member at a rural health camp.",
+    consentClassification: "verified",
+    relatedProjectSlugs: ["savegirl-uganda", "rural-medical-camps"],
+    body: `Volunteering has always been about the impact for me. It has always been about people. Every act of kindness, every conversation, and every opportunity to serve reminds me that we all have the ability to make someone's life a little better. I always wanted to be part of the positive change. That belief is what inspired me to join Vantage Foundation Uganda as a volunteer in 2021, and it continues to motivate me today.
+
+Growing up and later pursuing a career in medicine, I came to appreciate how much a person's life can change when someone chooses to care. Sometimes people need financial support, but many times they simply need someone who believes in them, listens to them, and reminds them that their dreams are valid. Volunteering allows me to be that person for someone else.
+
+One of the most memorable experiences in my journey with Vantage Foundation was being part of the team that organized the Save Girl Conference in Bushenyi. Seeing young girls gather with hope, eager to learn and be encouraged, was incredibly fulfilling. It reminded me that empowering one girl has the potential to transform an entire family and, ultimately, a community. Knowing that I contributed, even in a small way, to creating that opportunity reinforced why I value service so deeply.
+
+What I treasure most about volunteering is not only the opportunity to give but also the meaningful connections that are created along the way. I have met passionate individuals who selflessly dedicate their time and talents to improving the lives of others. These relationships have inspired me, challenged me to grow, and reminded me that positive change is possible when people unite around a shared purpose.
+
+Charity, to me, is an expression of compassion. It is about recognizing the dignity and potential in every individual and choosing to act with generosity, even when no reward is expected. I believe that genuine service creates a ripple effect. A single act of kindness can inspire another, and over time, those small acts become lasting change.
+
+As a young medical doctor, volunteering has also shaped the kind of professional I aspire to be. It has taught me empathy, humility, teamwork, and the importance of serving communities beyond the walls of a hospital. These lessons continue to influence both my personal life and my career.
+
+Looking ahead, I hope Vantage Foundation Uganda continues to expand its impact by empowering young people with practical skills that enable them to create opportunities for themselves and for others. Beyond inspiring volunteerism, I would love to see more initiatives focused on entrepreneurship, innovation, leadership, and mentorship — programmes that equip young people to become job creators rather than job seekers. When young people are empowered to identify problems, develop solutions, and build sustainable livelihoods, they not only transform their own lives but also uplift their communities.
+
+Looking back on my journey since 2021 fills me with gratitude. I feel proud of myself for having made the decision. Vantage Foundation Uganda has given me more than a platform to serve — it has given me a family of changemakers, opportunities to grow, and experiences that have strengthened my commitment to making a difference. As long as I am able, I will continue to volunteer because I believe that the greatest impact we can make is found in serving others with compassion, purpose, and love.`,
   },
 ];
 
@@ -304,5 +674,7 @@ export function getStorySlugs(): string[] {
  */
 export function getPublishedStories(): Story[] {
   const isDev = process.env.NODE_ENV === "development";
-  return stories.filter((s) => isDev || s.published !== false);
+  return stories
+    .filter((s) => isDev || s.published !== false)
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }

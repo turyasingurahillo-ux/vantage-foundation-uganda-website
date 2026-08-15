@@ -11,9 +11,9 @@ export function StoriesSection() {
     <section className="py-16 md:py-24 lg:py-32">
       <Container>
         <SectionHeader
-          eyebrow="Stories"
-          title="Voices from our community"
-          description="Real reflections from the young people, volunteers and leaders shaping our work."
+          eyebrow="Stories & Insights"
+          title="Voices and ideas from our community"
+          description="Real reflections, research and programme updates from the young people, volunteers and leaders shaping our work."
         />
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -24,7 +24,7 @@ export function StoriesSection() {
 
         <div className="mt-12 text-center">
           <Button href="/stories" variant="outline">
-            Read More Stories
+            Read Stories & Insights
           </Button>
         </div>
       </Container>

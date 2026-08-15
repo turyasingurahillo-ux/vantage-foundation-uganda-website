@@ -1000,8 +1000,8 @@ export const mediaAssets: MediaAsset[] = [
     // AVIF also available: /images/photos/photo-089.avif
   },
   {
-    id: "blog-advantage-vantage-point",
-    src: "/images/blog/what-we-mean-advantage-hero.webp",
+    id: "story-advantage-vantage-point",
+    src: "/images/stories/what-we-mean-advantage-hero.webp",
     alt: "Hillary Turyasingura stands on a green hillside overlooking a broad mountain valley beneath a blue, cloud-filled sky.",
     caption:
       "Hillary Turyasingura reflects on advantage as a vantage point: a position from which to see farther and serve others.",

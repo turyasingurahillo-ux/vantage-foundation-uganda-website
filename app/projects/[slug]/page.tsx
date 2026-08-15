@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getProjectBySlug,
   getProjectSlugs,
-  getPublishedProjects,
+  getProjectsByProgramme,
 } from "@/content/projects";
 import { Container } from "@/components/shared/Container";
 import { Badge } from "@/components/ui/Badge";
@@ -13,10 +14,12 @@ import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
 import { Button } from "@/components/ui/Button";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
-import { MapPin, Calendar, Users } from "lucide-react";
+import { LazySection } from "@/components/shared/LazySection";
+import { ImpactMetric } from "@/components/shared/ImpactMetric";
+import { MapPin, Calendar, Users, Target, ListChecks, TrendingUp } from "lucide-react";
 import { Markdown } from "@/components/shared/Markdown";
 import { site } from "@/content/site";
-import { programmeTokenForCategory } from "@/lib/design-tokens";
+import { programmeTokenForCategory, programmeIdForCategory, programmeLabel } from "@/lib/design-tokens";
 import { createPublicMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
@@ -52,10 +55,19 @@ export default async function ProjectPage({
     notFound();
   }
 
-  const relatedProjects = getPublishedProjects()
-    .filter((p) => p.category === project.category && p.slug !== project.slug)
+  // Taxonomy-aware related projects: surface projects in the same programme
+  // (primary or secondary), falling back to the legacy category match.
+  const primaryProgramme = project.primaryProgramme ?? programmeIdForCategory(project.category);
+  const relatedProjects = getProjectsByProgramme(primaryProgramme)
+    .filter((p) => p.slug !== project.slug)
     .slice(0, 3);
   const prog = programmeTokenForCategory(project.category);
+
+  // All programmes this project belongs to (for the at-a-glance sidebar).
+  const allProgrammes = [
+    primaryProgramme,
+    ...(project.secondaryProgrammes ?? []),
+  ];
 
   return (
     <>
@@ -79,6 +91,11 @@ export default async function ProjectPage({
               <Badge variant="outline" className="border-white/30 text-white">
                 {project.status}
               </Badge>
+              {project.flagship && (
+                <span className="inline-flex items-center rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  Flagship
+                </span>
+              )}
             </div>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
               {project.title}
@@ -101,7 +118,7 @@ export default async function ProjectPage({
           <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
             <ImageOrPlaceholder
               src={project.heroImage}
-              alt={project.title}
+              alt={project.heroImageAlt || project.title}
               fill
               preload
               preset="detailHero"
@@ -109,105 +126,201 @@ export default async function ProjectPage({
             />
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {project.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {project.date}
-            </span>
-            {project.beneficiaries && (
-              <span className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                {project.beneficiaries}
-              </span>
-            )}
-          </div>
+          {/* Two-column layout: main content + at-a-glance sidebar */}
+          <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_320px]">
+            {/* Main content column */}
+            <div className="min-w-0 space-y-12">
+              {project.body && (
+                <div className="max-w-3xl">
+                  <Markdown>{project.body}</Markdown>
+                </div>
+              )}
 
-          {project.body && (
-            <div className="mt-8 max-w-3xl">
-              <Markdown>{project.body}</Markdown>
-            </div>
-          )}
+              {project.objective && (
+                <div>
+                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                    <Target className="h-6 w-6 text-primary" aria-hidden="true" />
+                    Why it matters
+                  </h2>
+                  <p className="mt-4 text-muted-foreground">{project.objective}</p>
+                </div>
+              )}
 
-          <div className="mt-12 grid gap-8 lg:grid-cols-2">
-            {project.objective && (
-              <div>
-                <h2 className="text-2xl font-bold">Community need & objectives</h2>
-                <p className="mt-4 text-muted-foreground">{project.objective}</p>
-              </div>
-            )}
-            {project.activities && project.activities.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold">Activities</h2>
-                <ul className="mt-4 space-y-2 text-muted-foreground">
-                  {project.activities.map((activity) => (
-                    <li key={activity} className="flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                      {activity}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+              {project.activities && project.activities.length > 0 && (
+                <div>
+                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                    <ListChecks className="h-6 w-6 text-primary" aria-hidden="true" />
+                    What we did
+                  </h2>
+                  <ul className="mt-4 space-y-2 text-muted-foreground">
+                    {project.activities.map((activity) => (
+                      <li key={activity} className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        {activity}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-          {project.outcomes && project.outcomes.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold">Results</h2>
-              <ul className="mt-4 space-y-2 text-muted-foreground">
-                {project.outcomes.map((outcome) => (
-                  <li key={outcome} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-                    {outcome}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+              {project.outcomes && project.outcomes.length > 0 && (
+                <div>
+                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                    <TrendingUp className="h-6 w-6 text-primary" aria-hidden="true" />
+                    Impact
+                  </h2>
+                  <ul className="mt-4 space-y-4">
+                    {project.outcomes.map((outcome, i) => (
+                      <ImpactMetric
+                        key={i}
+                        tier={i === 0 ? "output" : i <= 2 ? "outcome" : "long-term"}
+                        text={outcome}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-          {project.gallery && project.gallery.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold">Gallery</h2>
-              <div className="mt-6">
-                <GalleryGrid
-                  images={project.gallery.map((src, index) => ({
-                    id: `${project.slug}-${index}`,
-                    src,
-                    alt: `${project.title} — photo ${index + 1}`,
-                    consent: "verified" as const,
-                  }))}
-                />
-              </div>
-            </div>
-          )}
-
-          {project.partners && project.partners.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold">Partners</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {project.partners.map((partner) => (
-                  <span
-                    key={partner}
-                    className="rounded-full border border-border bg-white px-3 py-1 text-sm"
+              {project.gallery && project.gallery.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold">Gallery</h2>
+                  <LazySection
+                    placeholderHeight="300px"
+                    rootMargin="300px"
+                    className="mt-6 rounded-xl bg-surface"
                   >
-                    {partner}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+                    <GalleryGrid
+                      images={project.gallery.map((src, index) => ({
+                        id: `${project.slug}-${index}`,
+                        src,
+                        alt: `${project.title} — photo ${index + 1}`,
+                        consent: "verified" as const,
+                      }))}
+                    />
+                  </LazySection>
+                </div>
+              )}
 
-          <div className="mt-12 rounded-xl bg-primary p-8 text-white">
-            <h2 className="text-2xl font-bold">Support this project</h2>
-            <p className="mt-2 text-white/90">
-              Your contribution helps us expand this work and reach more communities.
-            </p>
-            <Button href="/donate" variant="secondary" className="mt-6">
-              Donate now
-            </Button>
+              {project.partners && project.partners.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold">Partners</h2>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {project.partners.map((partner) => (
+                      <span
+                        key={partner}
+                        className="rounded-full border border-border bg-white px-3 py-1 text-sm"
+                      >
+                        {partner}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* At-a-glance sidebar */}
+            <aside className="lg:sticky lg:top-24 lg:self-start">
+              <div className="rounded-2xl border border-border bg-surface p-6">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-primary">
+                  At a glance
+                </h2>
+                <dl className="mt-4 space-y-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold text-foreground">Location</dt>
+                      <dd className="text-muted-foreground">{project.location}</dd>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold text-foreground">Timeline</dt>
+                      <dd className="text-muted-foreground">{project.date}</dd>
+                    </div>
+                  </div>
+                  {project.beneficiaries && (
+                    <div className="flex items-start gap-3">
+                      <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <div>
+                        <dt className="font-semibold text-foreground">Beneficiaries</dt>
+                        <dd className="text-muted-foreground">{project.beneficiaries}</dd>
+                      </div>
+                    </div>
+                  )}
+                  {project.fundingStatus && (
+                    <div>
+                      <dt className="font-semibold text-foreground">Funding</dt>
+                      <dd className="mt-0.5 text-muted-foreground">{project.fundingStatus}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="font-semibold text-foreground">Programmes</dt>
+                    <dd className="mt-1 flex flex-wrap gap-1.5">
+                      {allProgrammes.map((pid) => (
+                        <Link
+                          key={pid}
+                          href={`/programmes/${pid}`}
+                          className="rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-medium text-primary hover:border-primary/50"
+                        >
+                          {programmeLabel(pid)}
+                        </Link>
+                      ))}
+                    </dd>
+                  </div>
+                  {project.themes && project.themes.length > 0 && (
+                    <div>
+                      <dt className="font-semibold text-foreground">Themes</dt>
+                      <dd className="mt-1 flex flex-wrap gap-1.5">
+                        {project.themes.map((theme) => (
+                          <span key={theme} className="rounded-full bg-primary-light px-2.5 py-0.5 text-xs font-medium text-primary">
+                            {theme}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                  {project.beneficiaryGroups && project.beneficiaryGroups.length > 0 && (
+                    <div>
+                      <dt className="font-semibold text-foreground">Who benefits</dt>
+                      <dd className="mt-1 flex flex-wrap gap-1.5">
+                        {project.beneficiaryGroups.map((group) => (
+                          <span key={group} className="text-xs text-muted-foreground">
+                            {group}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                  {project.sdgs && project.sdgs.length > 0 && (
+                    <div>
+                      <dt className="font-semibold text-foreground">SDGs</dt>
+                      <dd className="mt-2 flex flex-wrap gap-2">
+                        {project.sdgs.map((goal) => (
+                          <span
+                            key={goal}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white"
+                            title={`UN Sustainable Development Goal ${goal}`}
+                          >
+                            {goal}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              <div className="mt-6 rounded-2xl bg-primary p-6 text-white">
+                <h2 className="text-lg font-bold">Support this project</h2>
+                <p className="mt-2 text-sm text-white/90">
+                  Your contribution helps us expand this work and reach more communities.
+                </p>
+                <Button href="/donate" variant="secondary" className="mt-4 w-full">
+                  Donate now
+                </Button>
+              </div>
+            </aside>
           </div>
 
           {relatedProjects.length > 0 && (

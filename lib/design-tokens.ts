@@ -121,6 +121,34 @@ export function programmeTokenForCategory(category: string): ProgrammeToken {
   return id ? programmeColours[id] : { ...programmeColours.health, hex: brandColors.deepTeal, token: "primary" };
 }
 
+/**
+ * Maps a ProjectCategory string to a canonical ProgrammeId (the four primary
+ * programmes). "Youth Leadership" maps to "education" as the closest primary
+ * programme since youth leadership is a cross-cutting approach, not a fifth
+ * standalone programme. Falls back to "health" for unknown categories.
+ */
+export function programmeIdForCategory(category: string): ProgrammeId {
+  const map: Record<string, ProgrammeId> = {
+    Health: "health",
+    Education: "education",
+    "Water & Sanitation": "water",
+    "Humanitarian Aid": "humanitarian",
+    "Youth Leadership": "education",
+  };
+  return map[category] ?? "health";
+}
+
+/** Human-readable label for a ProgrammeId, matching the programme page titles. */
+export function programmeLabel(id: ProgrammeId): string {
+  const map: Partial<Record<ProgrammeId, string>> = {
+    health: "Vantage Care",
+    education: "KikumiKyo Academy",
+    humanitarian: "Humanitarian Assistance",
+    water: "Water, Sanitation and Hygiene",
+  };
+  return map[id] ?? id;
+}
+
 export const typography = {
   fontFamily: "var(--font-source-sans), 'Frutiger', 'Segoe UI', system-ui, -apple-system, sans-serif",
   scale: {

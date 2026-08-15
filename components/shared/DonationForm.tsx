@@ -101,9 +101,12 @@ export function DonationForm() {
                 : "border-border bg-white hover:bg-surface"
             }`}
           >
-            Monthly
+            Monthly pledge
           </button>
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          A monthly pledge is a manual commitment, not an automatic recurring payment.
+        </p>
       </fieldset>
 
       <input type="hidden" name="frequency" value={frequency} />

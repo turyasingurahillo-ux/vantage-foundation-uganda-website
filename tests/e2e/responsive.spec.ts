@@ -6,7 +6,6 @@ const routes = [
   "/about-us/team",
   "/about-us/team/nassazi-kauthar-wangi",
   "/accessibility",
-  "/blog",
   "/stories/the-meaning-of-advantage",
   "/contact",
   "/donate",

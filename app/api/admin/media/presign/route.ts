@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { validateCsrf } from "@/lib/csrf";
+import { validateCsrf, validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo, logError } from "@/lib/logger";
 import {
@@ -25,7 +25,7 @@ const presignSchema = z.object({
     "documents",
     "logos",
     "resources",
-    "blog",
+    "stories",
   ]),
   slug: z.string().max(100).optional(),
   csrf_token: z.string().optional(),
@@ -47,6 +47,10 @@ export async function POST(request: Request) {
   let body: unknown;
   const contentType = request.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
+    if (!validateCsrfHeader(cookieStore, request.headers.get(CSRF_HEADER_NAME))) {
+      logWarn("media_presign_csrf_failed", { ip });
+      return NextResponse.json({ error: "csrf" }, { status: 403 });
+    }
     try {
       body = await request.json();
     } catch {

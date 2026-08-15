@@ -45,3 +45,31 @@ describe("Markdown links", () => {
     expect(link).not.toHaveAttribute("rel");
   });
 });
+
+describe("Markdown career-guide enhancements", () => {
+  it("keeps stable heading anchors and distinguishes evidence from action", () => {
+    const { container } = render(
+      <Markdown variant="guide">{`## 1. Your next 30 days
+
+**VERIFIED** and **ACT NOW**`}</Markdown>
+    );
+
+    expect(
+      container.ownerDocument.getElementById("1-your-next-30-days")
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Evidence status: Verified")).toBeInTheDocument();
+    expect(screen.getByLabelText("Reader action: Act now")).toBeInTheDocument();
+  });
+
+  it("adds an accessible scroll affordance to comparison tables", () => {
+    render(
+      <Markdown variant="guide">{`| Route | Action |
+|---|---|
+| Research | Apply |`}</Markdown>
+    );
+
+    expect(
+      screen.getByRole("region", { name: "Scrollable comparison table" })
+    ).toHaveAttribute("tabindex", "0");
+  });
+});

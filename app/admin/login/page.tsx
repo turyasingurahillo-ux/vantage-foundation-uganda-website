@@ -20,7 +20,9 @@ export default async function AdminLoginPage({
       <Container className="max-w-md">
         <h1 className="text-2xl font-bold">Admin login</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enter the administrator password to view and verify donations.
+          Sign in with your admin username and password. If no admin accounts
+          exist yet, leave the username blank and enter the bootstrap password
+          (ADMIN_SECRET) to create the first admin.
         </p>
 
         <form
@@ -30,6 +32,18 @@ export default async function AdminLoginPage({
         >
           <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
           <div>
+            <label htmlFor="username" className="block text-sm font-medium">
+              Username <span className="text-muted-foreground">(blank for bootstrap)</span>
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              className="mt-1.5 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <div>
             <label htmlFor="password" className="block text-sm font-medium">
               Password
             </label>
@@ -38,6 +52,7 @@ export default async function AdminLoginPage({
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? "login-error" : undefined}
               className="mt-1.5 block w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -64,7 +79,7 @@ export default async function AdminLoginPage({
               {error !== "rate-limited" &&
                 error !== "csrf" &&
                 error !== "locked" &&
-                "Incorrect password. Please try again."}
+                "Incorrect username or password. Please try again."}
             </p>
           )}
         </form>

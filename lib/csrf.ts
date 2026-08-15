@@ -81,6 +81,21 @@ export function validateCsrf(
   return timingSafeEqual(cookieToken, formToken);
 }
 
+/**
+ * Validates that the CSRF cookie matches the CSRF header value.
+ * Used by JSON-based route handlers (e.g. /api/admin/admins) that send
+ * the token via the `x-csrf-token` header instead of a form field.
+ * Returns true if valid, false otherwise.
+ */
+export function validateCsrfHeader(
+  cookieStore: Awaited<ReturnType<typeof getCookies>>,
+  headerValue: string | null
+): boolean {
+  const cookieToken = cookieStore.get(COOKIE_NAME)?.value;
+  if (!cookieToken || !headerValue) return false;
+  return timingSafeEqual(cookieToken, headerValue);
+}
+
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;

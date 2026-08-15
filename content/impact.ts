@@ -5,8 +5,8 @@ export const impactStats: ImpactStat[] = [
     value: "10,000+",
     label: "People with access to the Kasaale water point",
     programme: "Water, Sanitation and Hygiene",
-    location: "Kasaale, Uganda",
-    period: "Project completed in 2022",
+    location: "Kasaale, Magada Sub-county, Namutumba District, Uganda",
+    period: "Borehole completed 16 May 2025; continuation phase underway",
     methodology:
       "Community catchment estimate recorded by the project team for the completed borehole.",
     href: "/projects/kasaale-deep-borehole",

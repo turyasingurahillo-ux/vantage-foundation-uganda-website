@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Healers in Crisis: Why Uganda Cannot Afford to Lose Its Young Doctors — Vantage Foundation Uganda">
+  <title>Healers in Crisis — Vantage Foundation Uganda</title>
+  <desc>Editorial social-share card. Deep teal background with a thin teal-primary accent rule above the headline.</desc>
+
+  <!-- Background: site --primary (#006b70), teal dark -->
+  <rect width="1200" height="630" fill="#006b70" />
+
+  <!-- Subtle paper-grain via faint diagonal hatch (very low opacity) -->
+  <defs>
+    <pattern id="grain" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#006b70" />
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-width="0.5" opacity="0.025" />
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grain)" />
+
+  <!-- Centered text block, generous whitespace. Safe zone: central 1120×560. -->
+  <!-- Block is vertically centered around y=315; left-aligned at x=120. -->
+
+  <!-- Accent rule (3px, --programme-health teal primary #008f95) -->
+  <rect x="120" y="200" width="96" height="3" fill="#008f95" />
+
+  <!-- Kicker: "HEALERS IN CRISIS" — uppercase, tracked, ~28px, white at 80% -->
+  <text x="120" y="248" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="600" letter-spacing="6" fill="#ffffff" opacity="0.8">HEALERS IN CRISIS</text>
+
+  <!-- Headline — bold, ~52px, white, two lines -->
+  <text x="120" y="328" font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="700" fill="#ffffff">Why Uganda cannot afford to lose</text>
+  <text x="120" y="392" font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="700" fill="#ffffff">its young doctors</text>
+
+  <!-- Byline — ~20px, white at 70% -->
+  <text x="120" y="448" font-family="Georgia, 'Times New Roman', serif" font-size="20" fill="#ffffff" opacity="0.7">Vantage Foundation Uganda  ·  31 July 2026</text>
+
+  <!-- Bottom-left wordmark -->
+  <text x="120" y="578" font-family="Georgia, 'Times New Roman', serif" font-size="16" font-weight="600" letter-spacing="2" fill="#ffffff" opacity="0.85">VANTAGE FOUNDATION UGANDA</text>
+</svg>

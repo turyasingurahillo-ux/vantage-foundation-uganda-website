@@ -6,13 +6,15 @@ export const projects: Project[] = [
     slug: "kasaale-deep-borehole",
     title: "Kasaale Deep Borehole Project",
     category: "Water & Sanitation",
-    status: "Completed",
-    location: "Kasaale, Uganda",
-    date: "2022",
+    status: "Active",
+    location: "Kasaale, Magada Sub-county, Namutumba District, Uganda",
+    date: "Completed 16 May 2025 — continuation phase underway",
+    startDate: "2022-01-01",
+    endDate: "2025-05-16",
     summary:
-      "A deep water well providing clean, reliable water to over 10,000 people in a rural community.",
+      "A deep water well completed on 16 May 2025, now serving over 10,000 people in Magada Sub-county, Namutumba District. A continuation phase will motorise the well and build a community hall where youth can learn, share and grow.",
     objective:
-      "Improve access to safe drinking water, reduce water-borne disease and free families — especially women and girls — from long-distance water collection.",
+      "Improve access to safe drinking water, reduce water-borne disease, free families — especially women and girls — from long-distance water collection, and establish a community hub for youth learning and development.",
     activities: [
       "Community needs assessment and site selection",
       "Drilling of a deep borehole with hand pump",
@@ -20,13 +22,21 @@ export const projects: Project[] = [
       "Water point committee formation for maintenance",
     ],
     outcomes: [
-      "Clean water currently serving over 10,000 people",
+      "Clean water serving over 10,000 community members since May 2025",
       "Reduced water-related illness in the community",
       "More time for school and livelihood activities",
     ],
     beneficiaries: "Over 10,000 community members",
     partners: ["Local community leaders", "WASH technical team"],
+    fundingStatus: "Continuation phase (motorisation + community hall) — fundraising open",
     heroImage: "/images/projects/kasaale-borehole-project-01.webp",
+    heroImageAlt:
+      "A newly drilled borehole with a hand pump stands in a rural clearing, surrounded by community members and onlookers.",
+    primaryProgramme: "water",
+    themes: ["Water", "Sanitation", "Youth Empowerment", "Community Development"],
+    beneficiaryGroups: ["Community members in Kasaale", "Women and girls", "Youth"],
+    sdgs: [3, 6, 10],
+    flagship: true,
     gallery: [
       "/images/projects/kasaale-borehole-project-02.webp",
       "/images/projects/kasaale-borehole-project-03.webp",
@@ -46,9 +56,27 @@ export const projects: Project[] = [
       "/images/projects/kasaale-borehole-project-17.webp",
       "/images/projects/kasaale-borehole-project-18.webp",
     ],
-    body: `The Kasaale Deep Borehole Project is one of our flagship Water, Sanitation and Hygiene (WASH) interventions. Constructed in partnership with the local community, the deep borehole now provides a reliable source of clean water to over 10,000 people.
+    cta: {
+      label: "Donate to the Kasaale water well community project",
+      href: "/donate?campaign=kasaale-water-well",
+    },
+    body: `The Kasaale Deep Borehole Project is one of our flagship Water, Sanitation and Hygiene (WASH) interventions. Constructed in partnership with the local community in Kasaale, Magada Sub-county, Namutumba District, the deep borehole was completed on 16 May 2025 and now provides a reliable source of clean water to over 10,000 people.
 
-Access to clean water means children spend more time in school, families save time and money, and the burden of waterborne disease is reduced. The community has been supported with hygiene education and a water-user committee to keep the borehole functional for years to come.`,
+Access to clean water means children spend more time in school, families save time and money, and the burden of waterborne disease is reduced. The community has been supported with hygiene education and a water-user committee to keep the borehole functional for years to come.
+
+## Next phase
+
+The borehole is the first step, not the last. The continuation phase is fundraising and has two goals:
+
+1. **Motorise the well** so that water is reticulated closer to households, reducing the time families — and women and girls in particular — spend collecting water each day.
+2. **Build a community hall** where youth can come to learn, share and grow: a space for mentorship, life-skills sessions, reading circles and community gatherings that turn a water point into a hub of opportunity.
+
+Once this phase is delivered, the expected impact is:
+
+- Shorter collection times and wider reach through a motorised water supply.
+- A dedicated community hall where youth can learn, share and grow.
+
+[Donate to the Kasaale water well community project](/donate?campaign=kasaale-water-well) and help us build it.`,
   },
   {
     id: "savegirl-uganda",
@@ -76,6 +104,14 @@ Access to clean water means children spend more time in school, families save ti
     beneficiaries: "About 500 young women and men",
     partners: ["Volunteer mentors", "Community organisations", "Girl Power USA"],
     heroImage: "/images/projects/savegirl-uganda-menstrual-hygiene-campaign-01.webp",
+    heroImageAlt:
+      "Young women in matching \"SaveGirl Uganda\" t-shirts and white headscarves gather during a mentorship and menstrual health education session.",
+    primaryProgramme: "education",
+    secondaryProgrammes: ["health"],
+    themes: ["Menstrual Health", "Youth Empowerment", "Financial Literacy", "Mentorship", "Sexual & Reproductive Health"],
+    beneficiaryGroups: ["Young women", "Young men", "Rural youth"],
+    sdgs: [3, 4, 5, 10],
+    flagship: true,
     gallery: [
       "/images/projects/savegirl-uganda-menstrual-hygiene-campaign-02.webp",
       "/images/projects/savegirl-uganda-menstrual-hygiene-campaign-03.webp",
@@ -115,6 +151,13 @@ Since 2021, SaveGirl Uganda has been supported by [Girl Power USA](https://girlp
     beneficiaries: "Women and girls reached through SaveGirl Uganda",
     partners: ["The Cup Foundation", "Lunette"],
     heroImage: "/images/projects/menstrual-cup-project-01.webp",
+    heroImageAlt:
+      "A facilitator demonstrates a Lunette menstrual cup to a group of young women during a hands-on training session.",
+    primaryProgramme: "health",
+    secondaryProgrammes: ["education"],
+    themes: ["Menstrual Health", "Sexual & Reproductive Health", "Youth Empowerment"],
+    beneficiaryGroups: ["Women and girls"],
+    sdgs: [3, 5, 10],
     gallery: [
       "/images/projects/menstrual-cup-project-02.webp",
       "/images/projects/menstrual-cup-project-03.webp",
@@ -152,6 +195,12 @@ The menstrual cup is a relatively uncommon product despite its profound benefits
     beneficiaries: "Youth participants across Uganda",
     partners: ["Volunteer facilitators", "Book donors"],
     heroImage: "/images/projects/advantage-book-club-mentorship-01.webp",
+    heroImageAlt:
+      "Young people sit together with books and notebooks during an Advantage Book Club reading and discussion session.",
+    primaryProgramme: "education",
+    themes: ["Education", "Youth Empowerment", "Leadership", "Mentorship"],
+    beneficiaryGroups: ["Youth", "Students"],
+    sdgs: [4, 10],
     gallery: [
       "/images/projects/advantage-book-club-mentorship-02.webp",
       "/images/projects/advantage-book-club-mentorship-03.webp",
@@ -190,6 +239,12 @@ This opens doors for young people who would otherwise not have access to this ge
     beneficiaries: "Rural communities with limited health access",
     partners: ["Local health workers", "Volunteer clinicians"],
     heroImage: "/images/projects/medical-camp-01.webp",
+    heroImageAlt:
+      "Volunteer clinicians and community members gather at a rural medical camp providing basic health screenings and consultations.",
+    primaryProgramme: "health",
+    themes: ["Preventive Healthcare", "Maternal & Child Health", "Community Development"],
+    beneficiaryGroups: ["Rural communities", "Women and children"],
+    sdgs: [3, 10],
     gallery: [
       "/images/projects/medical-camp-02.webp",
       "/images/projects/medical-camp-03.webp",
@@ -226,6 +281,13 @@ The camps are run with volunteer clinicians and local health workers, ensuring t
     beneficiaries: "Students and youth in schools and communities",
     partners: ["Schools", "Volunteer facilitators"],
     heroImage: "/images/projects/bushenyi-youth-conference-01.webp",
+    heroImageAlt:
+      "Young people in matching branded t-shirts attend a financial literacy and career education conference in Bushenyi.",
+    primaryProgramme: "health",
+    secondaryProgrammes: ["education"],
+    themes: ["Mental Health", "Financial Literacy", "Sexual & Reproductive Health", "Youth Empowerment", "Mentorship"],
+    beneficiaryGroups: ["Students", "Youth"],
+    sdgs: [3, 4, 10],
     gallery: [
       "/images/projects/bushenyi-youth-conference-02.webp",
       "/images/projects/bushenyi-youth-conference-03.webp",
@@ -283,6 +345,12 @@ By combining mental wellness, financial skills and reproductive health, we help 
     beneficiaries: "Children in orphanages and young women on Kalangala Island",
     partners: ["Local orphanages", "Community volunteers", "S.A.L.V.E. International"],
     heroImage: "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-01.webp",
+    heroImageAlt:
+      "Volunteers deliver donated food, clothing and essential supplies to children at an orphanage in Uganda.",
+    primaryProgramme: "humanitarian",
+    themes: ["Humanitarian Relief", "Food Security", "Disability Inclusion", "Community Development"],
+    beneficiaryGroups: ["Orphans", "Vulnerable children", "Young women", "Isolated communities"],
+    sdgs: [2, 10, 17],
     gallery: [
       "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-02.webp",
       "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-03.webp",
@@ -341,4 +409,53 @@ export function getProjectsByCategory(category: string): Project[] {
 export function getPublishedProjects(): Project[] {
   const isDev = process.env.NODE_ENV === "development";
   return projects.filter((p) => isDev || p.published !== false);
+}
+
+/**
+ * Returns published projects that belong to a programme, considering both
+ * the primary programme and any secondary programmes. This is the
+ * taxonomy-aware replacement for getProjectsByCategory — a project surfaces
+ * on every programme page whose id is in {primaryProgramme, ...secondaryProgrammes}.
+ * Falls back to the legacy category mapping when primaryProgramme is unset.
+ */
+export function getProjectsByProgramme(programmeId: string): Project[] {
+  return getPublishedProjects().filter((p) => {
+    const primary = p.primaryProgramme ?? legacyCategoryToProgrammeId(p.category);
+    const allProgrammes = [primary, ...(p.secondaryProgrammes ?? [])];
+    return allProgrammes.includes(programmeId as never);
+  });
+}
+
+/**
+ * Returns published projects that address a given theme. A project surfaces
+ * on every theme it addresses, so e.g. SaveGirl Uganda appears under both
+ * "Menstrual Health" and "Financial Literacy" without duplicating its source data.
+ */
+export function getProjectsByTheme(theme: string): Project[] {
+  return getPublishedProjects().filter((p) => (p.themes ?? []).includes(theme as never));
+}
+
+/** Returns the flagship project (or the first one flagged as flagship). */
+export function getFlagshipProject(): Project | undefined {
+  return getPublishedProjects().find((p) => p.flagship) ?? getPublishedProjects()[0];
+}
+
+/** All themes used by at least one published project, sorted alphabetically. */
+export function getAllThemes(): string[] {
+  const themes = new Set<string>();
+  for (const p of getPublishedProjects()) {
+    for (const t of p.themes ?? []) themes.add(t);
+  }
+  return [...themes].sort();
+}
+
+function legacyCategoryToProgrammeId(category: string): string {
+  const map: Record<string, string> = {
+    Health: "health",
+    Education: "education",
+    "Water & Sanitation": "water",
+    "Humanitarian Aid": "humanitarian",
+    "Youth Leadership": "education",
+  };
+  return map[category] ?? "health";
 }

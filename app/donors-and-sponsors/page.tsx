@@ -75,46 +75,58 @@ export default async function DonorsAndSponsorsPage() {
         <Container>
           <SectionHeader
             title="Recognised contributors"
-            description="Featured with the documented consent of each contributor."
+            description="Featured with the documented consent of each contributor, grouped by relationship type."
           />
 
           {recognized.length > 0 ? (
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {recognized.map((partner) => (
-                <Card key={partner.name} className="flex flex-col items-center p-6 text-center">
-                  <div className="flex h-20 w-full items-center justify-center rounded-lg border border-border bg-white px-4">
-                    {partner.logo ? (
-                      <ImageOrPlaceholder
-                        src={partner.logo}
-                        alt={partner.logoAlt ?? `${partner.name} logo`}
-                        fill
-                        preset="card"
-                        containerClassName="h-14 w-36"
-                      />
-                    ) : (
-                      <span className="text-lg font-bold text-primary">
-                        {partner.name}
-                      </span>
-                    )}
+            <div className="mt-12 space-y-12">
+              {/* Group contributors by relationship type */}
+              {Object.entries(
+                recognized.reduce((groups, partner) => {
+                  const type = partner.relationshipType ?? "Other";
+                  if (!groups[type]) groups[type] = [];
+                  groups[type].push(partner);
+                  return groups;
+                }, {} as Record<string, typeof recognized>),
+              ).map(([type, partners]) => (
+                <div key={type}>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">
+                    {type}
+                  </h3>
+                  <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {partners.map((partner) => (
+                      <Card key={partner.name} className="flex flex-col items-center p-6 text-center">
+                        <div className="flex h-20 w-full items-center justify-center rounded-lg border border-border bg-white px-4">
+                          {partner.logo ? (
+                            <ImageOrPlaceholder
+                              src={partner.logo}
+                              alt={partner.logoAlt ?? `${partner.name} logo`}
+                              fill
+                              preset="card"
+                              containerClassName="h-14 w-36"
+                            />
+                          ) : (
+                            <span className="text-lg font-bold text-primary">
+                              {partner.name}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="mt-4 text-lg font-semibold">{partner.name}</h4>
+                        <p className="mt-2 text-sm text-muted-foreground">{partner.description}</p>
+                        {partner.url && (
+                          <a
+                            href={partner.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                          >
+                            Visit official website
+                          </a>
+                        )}
+                      </Card>
+                    ))}
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">{partner.name}</h3>
-                  {partner.relationshipType && (
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-primary">
-                      {partner.relationshipType}
-                    </p>
-                  )}
-                  <p className="mt-2 text-sm text-muted-foreground">{partner.description}</p>
-                  {partner.url && (
-                    <a
-                      href={partner.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                    >
-                      Visit official website
-                    </a>
-                  )}
-                </Card>
+                </div>
               ))}
             </div>
           ) : (

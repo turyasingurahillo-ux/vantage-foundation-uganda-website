@@ -2,10 +2,9 @@ import type { MetadataRoute } from "next";
 import { site } from "@/content/site";
 import { getProjectSlugs } from "@/content/projects";
 import { getStorySlugs } from "@/content/stories";
+import { getDbStorySlugs } from "@/lib/stories-public";
 import { areasOfWork } from "@/content/areas";
 import { getTeamSlugs } from "@/content/team";
-import { getBlogSlugs } from "@/content/blog";
-import { getDbBlogSlugs } from "@/lib/blog-public";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = site.url;
@@ -18,7 +17,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/projects",
     "/impact",
     "/stories",
-    "/blog",
     "/gallery",
     "/get-involved",
     "/donors-and-sponsors",
@@ -53,7 +51,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const storyRoutes = getStorySlugs().map((slug) => ({
+  const storySlugs = [...new Set([...getStorySlugs(), ...(await getDbStorySlugs())])];
+  const storyRoutes = storySlugs.map((slug) => ({
     url: `${baseUrl}/stories/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
@@ -67,20 +66,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const dbBlogSlugs = await getDbBlogSlugs();
-  const blogRoutes = [...dbBlogSlugs, ...getBlogSlugs()].map((slug) => ({
-    url: `${baseUrl}/blog/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
-
   return [
     ...routes,
     ...programmeRoutes,
     ...projectRoutes,
     ...storyRoutes,
     ...teamRoutes,
-    ...blogRoutes,
   ];
 }

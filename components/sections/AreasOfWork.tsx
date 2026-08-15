@@ -2,10 +2,8 @@ import Link from "next/link";
 import { areasOfWork } from "@/content/areas";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { AreaIcon } from "@/components/shared/AreaIcon";
-import { Card } from "@/components/ui/Card";
+import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { ArrowRight } from "lucide-react";
-import { programmeTokenForArea } from "@/lib/design-tokens";
 
 export function AreasOfWork() {
   return (
@@ -13,54 +11,41 @@ export function AreasOfWork() {
       <Container>
         <SectionHeader
           eyebrow="Our Work"
-          title="Four programmes. One community-centred mission."
-          description="We work across four interconnected areas because health, education, relief and clean water reinforce one another. Youth leadership is a cross-cutting approach across all our programmes."
+          title="Four connected programmes, one community-centred mission."
+          description="Health, education, humanitarian relief and clean water reinforce one another — and youth leadership runs through them all."
         />
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {areasOfWork.map((area) => {
-            const prog = programmeTokenForArea(area.id);
-            return (
-            <Card key={area.id} className="flex flex-col p-6">
-              <div
-                className="inline-flex h-12 w-12 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${prog.hex}1a`, color: prog.hex }}
-              >
-                <AreaIcon id={area.id} className="h-6 w-6" />
+        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+          {areasOfWork.map((area) => (
+            <Link
+              key={area.id}
+              href={`/programmes/${area.id}`}
+              className="group block overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <ImageOrPlaceholder
+                  src={area.image}
+                  alt={area.imageAlt || area.title}
+                  fill
+                  sizes="(max-width: 639px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <h3 className="mt-4 text-xl font-semibold">
-                {area.programmeName ?? area.title}
-              </h3>
-              {area.programmeName && (
+              <div className="p-6">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {area.title} Programme
                 </p>
-              )}
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                {area.summary}
-              </p>
-              <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
-                {area.items.slice(0, 4).map((item) => (
-                  <li key={item} className="flex items-start gap-2">
-                    <span
-                      className="mt-1.5 h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: prog.hex }}
-                      aria-hidden="true"
-                    />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={`/programmes/${area.id}`}
-                className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-              >
-                Explore {area.programmeName ?? area.title}
-                <ArrowRight className="h-4 w-4 shrink-0" />
-              </Link>
-            </Card>
-            );
-          })}
+                <h3 className="mt-2 text-2xl font-bold text-foreground">
+                  {area.programmeName ?? area.title}
+                </h3>
+                <p className="mt-3 text-muted-foreground">{area.summary}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  Explore {area.programmeName ?? area.title}
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </Container>
     </section>

@@ -17,7 +17,7 @@ Key types:
 |------|------|-------------|
 | `SiteConfig` | `content/site.ts` | Global config: name, contact, nav, bank details |
 | `Project` | `content/projects.ts` | A project with slug, category, status, body |
-| `Story` | `content/stories.ts` | A story/blog post with slug, author, body |
+| `Story` | `content/stories.ts` | A story or insight with slug, author, body |
 | `AreaOfWork` | `content/areas.ts` | A programme area (Health, Education, etc.) |
 | `TeamMember` | `content/team.ts` | A team member with name, role, bio, photo |
 | `Partner` | `content/partners.ts` | A partner organisation |

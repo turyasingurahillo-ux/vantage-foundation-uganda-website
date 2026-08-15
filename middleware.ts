@@ -11,9 +11,10 @@ import {
 //
 // In Next.js 16, `middleware.ts` is deprecated and renamed to `proxy.ts`, but
 // `proxy.ts` always runs on the Node.js runtime and cannot be changed to Edge.
-// Cloudflare Pages (via OpenNext) requires Edge middleware, so we keep the
-// deprecated `middleware.ts` name which still allows `runtime = "edge"`.
-// On Vercel, Edge middleware is also supported and preferred.
+// Cloudflare Pages (via OpenNext) and Cloudflare Workers Builds require Edge
+// middleware, so we keep the deprecated `middleware.ts` name which still
+// allows `runtime = "experimental-edge"`. On Vercel, Edge middleware is also
+// supported and preferred.
 //
 // Note: middleware cannot import from the main app's module graph in all cases.
 // The CSRF token generation is self-contained in lib/csrf.ts which has no

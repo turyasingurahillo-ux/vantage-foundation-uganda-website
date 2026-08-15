@@ -6,7 +6,6 @@ const publicPages = [
   "/about-us",
   "/about-us/team",
   "/accessibility",
-  "/blog",
   "/contact",
   "/donate",
   "/donors-and-sponsors",
@@ -80,7 +79,7 @@ test.describe("SEO — page metadata", () => {
     }
   });
 
-  test("dynamic project, story, programme, blog and team routes are canonical", async ({
+  test("dynamic project, story, programme and team routes are canonical", async ({
     page,
   }) => {
     const routes = [
@@ -138,62 +137,6 @@ test.describe("SEO — structured data", () => {
       .locator('script[type="application/ld+json"]')
       .allTextContents();
     expect(records.some((record) => record.includes('"Article"'))).toBe(true);
-  });
-
-  test("blog article has complete BlogPosting metadata and JSON-LD", async ({
-    page,
-  }) => {
-    // Posts are admin-published into `blog_posts`; the static manifest is
-    // normally empty, so there is no slug to pin to. Resolve one from the
-    // listing and skip when the blog has none.
-    await page.goto("/blog");
-    const links = page.locator('main a[href^="/blog/"]');
-    test.skip(
-      (await links.count()) === 0,
-      "No published blog post to exercise BlogPosting metadata."
-    );
-
-    const path = (await links.first().getAttribute("href")) as string;
-    await page.goto(path);
-
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      "href",
-      `${canonicalOrigin}${path}`
-    );
-    await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
-      "content",
-      "article"
-    );
-    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
-      "content",
-      "summary_large_image"
-    );
-
-    const schemas = await page
-      .locator('script[type="application/ld+json"]')
-      .allTextContents();
-    const blogPosting = schemas
-      .map((schema) => JSON.parse(schema))
-      .find((schema) => schema["@type"] === "BlogPosting");
-
-    expect(blogPosting).toBeTruthy();
-
-    const headline = (
-      await page.locator("main article h1").first().textContent()
-    )?.trim();
-    expect(blogPosting.headline).toBe(headline);
-    expect(blogPosting.datePublished).toMatch(/^\d{4}-\d{2}-\d{2}/);
-    expect(blogPosting.image).toBeTruthy();
-    expect(blogPosting).toMatchObject({
-      publisher: {
-        "@type": "Organization",
-        name: "Vantage Foundation Uganda",
-      },
-      mainEntityOfPage: {
-        "@type": "WebPage",
-        "@id": `${canonicalOrigin}${path}`,
-      },
-    });
   });
 
   test("FAQ page has FAQPage JSON-LD", async ({ page }) => {

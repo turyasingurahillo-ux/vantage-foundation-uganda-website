@@ -140,7 +140,7 @@ context required for responsible use:
 
 | Figure | Programme and geography | Period | Method shown to visitors |
 | --- | --- | --- | --- |
-| `10,000+` | Kasaale WASH work | Project completed in 2022 | Community catchment estimate |
+| `10,000+` | Kasaale WASH work | Borehole completed 16 May 2025; continuation phase underway | Community catchment estimate |
 | `About 500` | SaveGirl Uganda | Cumulative reach since 2021 | Participant count maintained by the programme team |
 | `4 orphanages` | Humanitarian Assistance | Programme activity since 2022 | Institutions receiving at least one recorded relief delivery |
 
@@ -176,7 +176,7 @@ environment value. Public routes now receive:
 - an exact canonical URL;
 - Open Graph title, description, URL, and image;
 - Twitter card metadata; and
-- article metadata for story and blog detail pages.
+- article metadata for Stories & Insights detail pages.
 
 The sitemap and structured data use the same canonical origin. Automated tests
 also reject malformed `/http/` URLs, Vercel preview origins, duplicate public
@@ -210,7 +210,7 @@ canonical internal links.
 | `/projects` and `/projects/[slug]` | Listing and detail metadata standardised; project evidence paths support impact traceability. |
 | `/impact` | Claims contextualised with period, method, location, programme, evidence link, and assurance disclaimer. |
 | `/stories`, story profiles, and RSS | Listing/detail metadata standardised; detail pages use article sharing metadata. |
-| `/blog` and blog articles | Listing/detail metadata standardised; detail pages use article sharing metadata. |
+| `/stories` and Stories & Insights articles | Listing/detail metadata standardised; detail pages use article sharing metadata. |
 | `/gallery` | Metadata standardised; responsive image behaviour retained and tested. |
 | `/get-involved` | Metadata standardised and participation pathway retained. |
 | `/donors-and-sponsors` | Relationship types and honest no-logo treatment added. |

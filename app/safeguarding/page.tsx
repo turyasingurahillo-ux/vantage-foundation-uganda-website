@@ -215,11 +215,10 @@ export default function SafeguardingPage() {
                 </li>
               </ul>
               <p className="mt-3">
-                All reports are treated confidentially and handled by
-                designated safeguarding personnel within our organisation. We
-                cooperate fully with Ugandan authorities, including the
-                Uganda Police Force and the Ministry of Gender, Labour and
-                Social Development, in any investigation.
+                All reports are treated confidentially and handled by our
+                volunteer leadership team. We cooperate fully with Ugandan
+                authorities, including the Uganda Police Force and the Ministry
+                of Gender, Labour and Social Development, in any investigation.
               </p>
             </div>
 
@@ -257,10 +256,19 @@ export default function SafeguardingPage() {
               </p>
             </div>
 
-            <p className="border-t border-border pt-6 text-sm text-muted-foreground">
-              Last updated: July 2026. This policy is reviewed annually.
-              Designated safeguarding officer: to be confirmed by management.
-            </p>
+            <div className="border-t border-border pt-6">
+              <h2 className="mb-3 text-xl font-bold text-foreground">
+                Designated safeguarding officer
+              </h2>
+              <p className="text-muted-foreground">
+                We are in the process of formally appointing a designated
+                safeguarding officer. Their name and direct contact will be
+                published here once confirmed.
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Last updated: July 2026. This policy is reviewed annually.
+              </p>
+            </div>
           </div>
         </Container>
       </section>

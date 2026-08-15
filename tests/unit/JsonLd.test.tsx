@@ -65,9 +65,8 @@ describe("buildArticleJsonLd", () => {
       dateModified: "2024-01-02",
       author: "Jane Doe",
       image: "/images/test.jpg",
-      type: "BlogPosting",
     });
-    expect(result["@type"]).toBe("BlogPosting");
+    expect(result["@type"]).toBe("Article");
     expect(result.headline).toBe("Test Article");
     expect(result.datePublished).toBe("2024-01-01");
     expect(result.dateModified).toBe("2024-01-02");

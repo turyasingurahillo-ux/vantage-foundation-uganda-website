@@ -22,7 +22,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `content/` — all editable content (site config, projects, stories, team, partners, impact, FAQ, reports, donation)
 - `lib/` — utilities and content helpers
 - `lib/storage/` — Cloudflare R2 client and object-key conventions (server-only)
-- `lib/db/` — Neon PostgreSQL queries (`index.ts` = donations, `media.ts` = media objects, `schema.sql` = table definitions)
+- `lib/db/` — Neon PostgreSQL queries (`index.ts` = donations, `media.ts` = media objects, `admins.ts` = named admin accounts, `audit.ts` = immutable audit log, `schema.sql` = table definitions)
 - `public/images/` — real images go here; placeholder filenames are handled by `ImageOrPlaceholder`
 - `types/` — shared TypeScript interfaces
 
@@ -47,24 +47,57 @@ All non-code content lives in the `content/` folder as TypeScript modules. To up
 Copy `.env.example` to `.env.local` and set:
 - `NEXT_PUBLIC_SITE_URL` — canonical site URL
 - `DATABASE_URL` — Neon PostgreSQL connection string (server-side only, never commit)
-- `ADMIN_SECRET` — password for the donation verification dashboard
+- `ADMIN_SECRET` — HMAC signing key for session tokens AND the bootstrap fallback password (only usable when zero named admins exist). Rotate to revoke all outstanding sessions.
+- `CRON_SECRET` — bearer token required by the `/api/instagram/refresh` cron endpoint. If unset, the endpoint fails closed (503).
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — optional email server for form notifications
 - `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` — Cloudflare R2 object storage (server-only). Same bucket/credentials as the sibling kikumikyo project; Vantage objects live under a `vantage/` prefix. Do not rename these variables or create a new bucket.
+- `NEXT_PUBLIC_GA4_MEASUREMENT_ID` — optional Google Analytics 4 Measurement ID (public, safe to expose). If set, GA4 loads on public pages and article events are mirrored to gtag. If unset, only the first-party `/api/analytics/events` endpoint runs.
+- `GSC_SERVICE_ACCOUNT_EMAIL`, `GSC_PRIVATE_KEY`, `GSC_SITE_URL` — optional Google Search Console integration (all server-only, NEVER exposed to browser). If set, a periodic sync job fetches search analytics and caches them in `article_search_queries`. The admin UI shows a clean setup state when unset. See `lib/search-console.ts`.
 
 ## Database setup
 1. Create a Neon PostgreSQL database.
-2. Run `node scripts/setup-db.mjs` (or paste `lib/db/schema.sql` in the Neon SQL editor) to create the `donations`, `media_objects` and `blog_posts` tables. The script is idempotent — safe to re-run after schema updates.
+2. Run `node scripts/setup-db.mjs` (or paste `lib/db/schema.sql` in the Neon SQL editor) to create the `donations`, `media_objects`, `stories`, `admins`, `audit_log`, and content analytics tables (`article_analytics_daily`, `article_reader_sessions`, `article_share_events`, `article_cta_events`, `article_search_queries`, `search_console_config`). The script is idempotent — safe to re-run after schema updates.
 3. Never commit `.env.local` or any real credentials.
 
 ## Admin dashboard
-- `/admin/login` — sign in with `ADMIN_SECRET`.
-- `/admin/donations` — view and verify/reject donor submissions. Donations are stored with status `pending` and are only marked `verified` after an administrator confirms the transfer against the official bank statement.
-- `/admin/media` — upload and manage photos, documents, and logos stored in Cloudflare R2. New uploads default to `pending` consent and `unpublished`; set both before publishing. The browser uploads directly to R2 via a presigned PUT URL (issued by `/api/admin/media/presign`), then the server confirms the object via HEAD and records it in the `media_objects` table. R2 object keys are stored (never signed URLs) so the DB stays stable; presigned GET URLs are minted at render time.
-- `/admin/messages` — read contact-form submissions. Every message is stored in
-  `contact_messages` before the notification email is attempted, so an SMTP
-  outage cannot lose an inquiry. Anything badged "Email failed" needs a manual
-  reply and means SMTP needs attention.
-- `/admin/blog` — write, edit and publish blog posts (stored in `blog_posts`), each optionally with a hero image uploaded the same way media is (folder `blog`, presigned PUT, HEAD-confirmed before saving). New posts default to a draft; publishing is a separate explicit toggle. `/blog` and `/blog/[slug]` merge published rows here with the (normally empty) static `content/blog.ts` manifest.
+- `/admin/login` — sign in with a named admin username + password, or leave username blank and use `ADMIN_SECRET` (bootstrap mode, only when zero named admins exist). The first admin is created via bootstrap; subsequent logins should use named accounts.
+- `/admin/donations` — view and verify/reject donor submissions. Donations are stored with status `pending` and are only marked `verified` after an administrator confirms the transfer against the official bank statement. Every status change is written to the immutable `audit_log` with the actor identity, before/after state, and IP.
+- `/admin/media` — upload and manage photos, documents, and logos stored in Cloudflare R2. New uploads default to `pending` consent and `unpublished`; set both before publishing. The browser uploads directly to R2 via a presigned PUT URL (issued by `/api/admin/media/presign`), then the server confirms the object via HEAD and records it in the `media_objects` table. R2 object keys are stored (never signed URLs) so the DB stays stable; presigned GET URLs are minted at render time. Create/update/delete actions are written to `audit_log`.
+- `/admin/messages` — read contact-form submissions. Every message is stored in `contact_messages` before the notification email is attempted, so an SMTP outage cannot lose an inquiry. Anything badged "Email failed" never reached the inbox, needs a manual reply, and means SMTP needs attention. Read-only, so no `audit_log` entry is written.
+- `/admin/stories` — write, edit and publish Stories & Insights entries stored in the `stories` table. Stories can use Markdown bodies and optional hero images uploaded through the media presign flow. New entries default to drafts; publishing is explicit. Public `/stories` routes merge database entries with the static `content/stories.ts` manifest. The page now opens to a **Content Analytics & Intelligence Dashboard** with KPI summary, trend chart, traffic source breakdown, sortable performance table, Top Content rankings, and Category Intelligence. A view toggle switches to the story editor. CSV export is available for donor/board/grant reporting.
+- `/admin/stories/[id]` — individual article analytics view with Edit/Analytics tabs. The Analytics tab shows performance overview, Article Impact Score (0–100 composite), reading behaviour funnel (25/50/75/90% scroll milestones), traffic source attribution with UTM support, Google Search Console performance (when configured), sharing analytics by platform, CTA/impact tracking (donations, volunteering, partnerships, newsletter sign-ups), and a trend chart. The Edit tab provides the full story editor.
+- `/admin` — main admin dashboard with a Content Performance card summarising this month's content KPIs and the top performing article, plus quick links to donation verifications and other admin sections.
+- `/admin/admins` — create and disable named admin accounts. Passwords are hashed with scrypt (`lib/password.ts`). Disabled admins cannot log in but are retained for audit history. Admins cannot disable their own account.
+- `/admin/audit` — read-only view of the immutable `audit_log` table. Every state-changing admin action (donation verification, media CRUD, admin create/disable) is recorded with the actor identity, before/after JSON snapshot, and IP address.
+
+## Donor PII retention
+Donor personal data (name, email, phone, message) is stored in the `donations` table. Retention and erasure:
+
+- **Soft-delete**: donations can be soft-deleted (`deleted_at` set) via `purgeOldDeletedDonations` in `lib/db/index.ts`. Soft-deleted rows are excluded from list queries but retained for audit.
+- **Retention period**: soft-deleted donations are purged after the retention window defined in `purgeOldDeletedDonations`. Verify the retention period matches your NDPR-Uganda / GDPR obligations before launch (typically 6–7 years for financial records, shorter for non-verified intents).
+- **Erasure path**: to fully erase a donor's PII, soft-delete the donation row AND remove their data from any email notifications (SMTP logs are outside this system). A dedicated donor-erasure admin tool is a future task; for now, run a SQL `UPDATE donations SET name = '[erased]', email = '[erased]', phone = NULL, message = NULL WHERE id = <id>` after soft-deleting.
+- **Privacy notice**: the donation form must display a privacy notice explaining how donor PII is used and stored, mirroring the `FormPrivacyNotice` on the contact form. Verify this is present before launch.
+- **Audit log**: the `audit_log` table may contain before/after snapshots that include donor PII (e.g. donation status changes reference the donation). The audit log is append-only and immutable; erasure of donor PII from audit snapshots is a manual SQL operation that should be documented in your retention policy.
+
+## Content Analytics & Intelligence
+The site includes a privacy-safe, first-party content analytics system (no third-party cookies required). Key files:
+- `lib/db/analytics.ts` — ingestion upserts and admin aggregation queries (overview, per-article, traffic sources, categories, rankings, trends, Impact Score).
+- `lib/db/schema.sql` — analytics tables: `article_analytics_daily` (pre-aggregated daily rollups per article+source), `article_reader_sessions` (per-reader dedup for scroll milestones), `article_share_events`, `article_cta_events`, `article_search_queries` (Search Console cache), `search_console_config`.
+- `app/api/analytics/events/route.ts` — public ingestion endpoint. Privacy: anonymous reader cookie is HMAC-hashed server-side with `ADMIN_SECRET`; no IPs/names/emails stored. Rejects events for unpublished articles. Rate-limited.
+- `components/shared/ArticleAnalytics.tsx` — client tracker. Fires `article_view`, `article_scroll` (25/50/75/90%, deduped per session), `article_complete`, `article_engagement` (heartbeat). Exposes `window.__vantageArticle.trackShare()` and `trackCta()` for share buttons and CTAs.
+- `components/shared/AnalyticsScripts.tsx` — env-configurable GA4 loader. Only loads if `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is set.
+- `components/shared/ArticleShareButtons.tsx` — share controls (WhatsApp, LinkedIn, X, Facebook, copy link, native share) with per-platform tracking.
+- `components/shared/ArticleCtaBar.tsx` — end-of-article CTAs (Donate, Volunteer, Partner, Contact, Programmes, About) with CTA click tracking.
+- `lib/search-console.ts` — server-only Google Search Console integration. Credentials never exposed to browser. Sync job fetches search analytics and caches in `article_search_queries`. Admin UI shows clean setup state when unconfigured.
+- `components/admin/charts/Charts.tsx` — lightweight SVG charts (Donut, Bar, Line, Funnel, Sparkline). No external charting library.
+- `components/admin/AnalyticsDashboard.tsx` — the main Content Analytics dashboard (KPI summary, trend, performance table, rankings, category intelligence).
+- `components/admin/ArticleAnalyticsDetail.tsx` — per-article analytics view.
+- `app/api/admin/analytics/route.ts` — admin analytics API (overview, articles, article-detail, traffic, shares, ctas, search-performance, search-queries, categories, trend).
+- `app/api/admin/analytics/export/route.ts` — CSV export for donor/board/grant reporting.
+
+**Article Impact Score** (0–100): composite score combining Reach (25%), Engagement (25%), Search (20%), Amplification (15%), and Action (15%). Normalised against the article cohort so a single viral article cannot distort scores. Used for comparing articles, not as an absolute measure. See `computeImpactScore` in `lib/db/analytics.ts`.
+
+**Empty states**: the dashboard distinguishes "0 = measured and none occurred" from "— = data unavailable" (e.g. Search Console not connected). Analytics widgets show clean setup states rather than broken/empty UI when data sources are unconfigured.
 
 ## Deployment
 This project is configured for Vercel. Set the framework preset to Next.js and, if needed, the root directory to `vantage-website`.

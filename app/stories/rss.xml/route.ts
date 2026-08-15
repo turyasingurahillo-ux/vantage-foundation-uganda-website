@@ -1,7 +1,7 @@
-import { getPublishedStories } from "@/content/stories";
+import { getPublishedStoriesWithDb } from "@/lib/stories-public";
 import { site } from "@/content/site";
 
-export const dynamic = "force-static";
+export const revalidate = 3600;
 
 function escapeXml(text: string): string {
   return text
@@ -12,7 +12,7 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function storyToItem(story: ReturnType<typeof getPublishedStories>[number], baseUrl: string): string {
+function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>>[number], baseUrl: string): string {
   const url = `${baseUrl}/stories/${story.slug}`;
   const description = escapeXml(story.excerpt);
   const title = escapeXml(story.title);
@@ -33,7 +33,7 @@ function storyToItem(story: ReturnType<typeof getPublishedStories>[number], base
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url || "https://vantagefoundationuganda.org";
-  const stories = getPublishedStories();
+  const stories = await getPublishedStoriesWithDb();
   const lastBuildDate = stories.length > 0
     ? new Date(stories[0].date).toUTCString()
     : new Date().toUTCString();

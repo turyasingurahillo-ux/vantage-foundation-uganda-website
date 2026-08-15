@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { Button } from "@/components/ui/Button";
 import { site } from "@/content/site";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (

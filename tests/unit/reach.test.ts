@@ -7,13 +7,16 @@ describe("reachDistricts data", () => {
     expect(reachDistricts.length).toBeGreaterThan(0);
   });
 
-  it("every district has a name and valid percentage coordinates", () => {
+  it("every district has a name and valid WGS84 coordinates", () => {
     for (const d of reachDistricts) {
       expect(d.name).toBeTruthy();
-      expect(d.x).toBeGreaterThanOrEqual(0);
-      expect(d.x).toBeLessThanOrEqual(100);
-      expect(d.y).toBeGreaterThanOrEqual(0);
-      expect(d.y).toBeLessThanOrEqual(100);
+      expect(d.district).toBe(d.name);
+      expect(d.latitude).toBeDefined();
+      expect(d.longitude).toBeDefined();
+      expect(d.latitude).toBeGreaterThanOrEqual(-2);
+      expect(d.latitude).toBeLessThanOrEqual(5);
+      expect(d.longitude).toBeGreaterThanOrEqual(29);
+      expect(d.longitude).toBeLessThanOrEqual(36);
     }
   });
 
