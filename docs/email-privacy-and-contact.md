@@ -193,11 +193,19 @@ Start at `p=none` (monitor only). After a few weeks of clean reports, tighten to
 > *outbound* mail from the domain (e.g. via Resend or Google Workspace), add that
 > provider's DKIM records and include it in SPF at that point.
 
-### 4e. Configure SMTP so the form can send
+### 4e. Configure SMTP so the form can send — **highest-priority gap**
 
-The form currently has **no SMTP configured** (`SMTP_HOST` is blank). Messages
-are still captured in the database and readable at `/admin/messages`, but no
-notification is emailed. Set in Vercel:
+The form has **no SMTP configured** (`SMTP_HOST` is blank in Vercel). Messages
+are captured in the database and readable at `/admin/messages`, so nothing is
+lost — but **nobody is notified when an enquiry arrives.**
+
+> This is not theoretical. A genuine volunteering enquiry came through the
+> production form and sat unread because no notification was sent. Until SMTP
+> is configured, someone must check `/admin/messages` regularly. The admin
+> dashboard now badges the unhandled count and says explicitly when a message
+> never got an email out, so the backlog is at least visible.
+
+Set in Vercel:
 
 ```
 SMTP_HOST = smtp.resend.com          (or your provider)

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import {
@@ -44,7 +45,13 @@ export default async function AdminMessagesPage() {
   return (
     <section className="py-12">
       <Container>
-        <h1 className="text-2xl font-bold">Contact messages</h1>
+        <Link
+          href="/admin"
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          ← Admin dashboard
+        </Link>
+        <h1 className="mt-4 text-2xl font-bold">Contact messages</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Submissions from the public contact form, newest first. Every message
           is stored here before the notification email is sent, so nothing is
