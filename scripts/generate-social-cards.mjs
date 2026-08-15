@@ -48,6 +48,44 @@ const CROP_MIN_ASPECT_RATIO = 1.7;
 /** Mirrors SOCIAL_CARD_DIRECTORY in lib/social-image.ts. */
 const CARD_URL_PREFIX = "/images/social/";
 
+/**
+ * Read a CSS `object-position` value like "50% 12%" into fractions.
+ * Returns undefined for anything that is not a plain percentage pair —
+ * keywords and length units are left to the saliency path.
+ */
+function parseFocalPoint(value) {
+  const match = /^\s*([\d.]+)%\s+([\d.]+)%\s*$/.exec(value ?? "");
+  if (!match) return undefined;
+  return { x: Number(match[1]) / 100, y: Number(match[2]) / 100 };
+}
+
+/**
+ * The largest card-shaped rectangle inside the source, centred on the focal
+ * point and clamped to stay within the image.
+ */
+function focalCrop(sourceWidth, sourceHeight, { x, y }) {
+  const targetRatio = CARD_WIDTH / CARD_HEIGHT;
+  const sourceRatio = sourceWidth / sourceHeight;
+
+  const width =
+    sourceRatio > targetRatio
+      ? Math.round(sourceHeight * targetRatio)
+      : sourceWidth;
+  const height =
+    sourceRatio > targetRatio
+      ? sourceHeight
+      : Math.round(sourceWidth / targetRatio);
+
+  const clamp = (value, max) => Math.max(0, Math.min(Math.round(value), max));
+
+  return {
+    left: clamp(x * sourceWidth - width / 2, sourceWidth - width),
+    top: clamp(y * sourceHeight - height / 2, sourceHeight - height),
+    width,
+    height,
+  };
+}
+
 async function main() {
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
@@ -104,12 +142,24 @@ async function main() {
       await sharp(sourcePath).metadata();
     const sourceRatio = sourceWidth / sourceHeight;
 
+    // A story that declares heroImageFocalPoint has already told us where its
+    // subject is, for exactly this reason (see "Story hero images" in
+    // AGENTS.md). Honour it rather than second-guessing with saliency, so the
+    // card and the page hero frame the same thing.
+    const focalPoint = parseFocalPoint(item.heroImageFocalPoint);
+
     const pipeline =
       sourceRatio >= CROP_MIN_ASPECT_RATIO
-        ? sharp(sourcePath).resize(CARD_WIDTH, CARD_HEIGHT, {
-            fit: "cover",
-            position: sharp.strategy.attention,
-          })
+        ? focalPoint
+          ? sharp(sourcePath)
+              .extract(
+                focalCrop(sourceWidth, sourceHeight, focalPoint)
+              )
+              .resize(CARD_WIDTH, CARD_HEIGHT)
+          : sharp(sourcePath).resize(CARD_WIDTH, CARD_HEIGHT, {
+              fit: "cover",
+              position: sharp.strategy.attention,
+            })
         : sharp(
             await sharp(sourcePath)
               .resize(CARD_WIDTH, CARD_HEIGHT, { fit: "cover" })
