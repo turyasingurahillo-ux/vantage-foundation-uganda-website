@@ -8,6 +8,7 @@ import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { Badge } from "@/components/ui/Badge";
 import { createPublicMetadata } from "@/lib/metadata";
 import { formatContentDate } from "@/lib/content-date";
+import { DEFAULT_LANDSCAPE_FOCAL_POINT } from "@/lib/story-article";
 
 export const metadata: Metadata = createPublicMetadata({
   title: "Stories & Insights",
@@ -43,13 +44,14 @@ export default async function StoriesPage() {
         <section className="py-12 md:py-16">
           <Container>
             <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-surface-strong shadow-lg">
                 <ImageOrPlaceholder
                   src={featured.heroImage}
                   alt={featured.heroImageAlt || featured.title}
                   fill
                   preset="half"
                   priority
+                  objectPosition={featured.heroImageFocalPoint ?? DEFAULT_LANDSCAPE_FOCAL_POINT}
                   containerClassName="h-full w-full"
                 />
               </div>

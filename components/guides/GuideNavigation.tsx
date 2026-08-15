@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, List } from "lucide-react";
+import { ReadingProgress } from "@/components/shared/ReadingProgress";
 import { cn } from "@/lib/utils";
 
 export interface GuideNavigationItem {
@@ -9,9 +10,8 @@ export interface GuideNavigationItem {
   label: string;
 }
 
-function useGuidePosition(items: GuideNavigationItem[], targetId: string) {
+function useActiveSection(items: GuideNavigationItem[]) {
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
-  const [progress, setProgress] = useState(0);
   const ids = useMemo(() => items.map((item) => item.id), [items]);
 
   useEffect(() => {
@@ -49,35 +49,7 @@ function useGuidePosition(items: GuideNavigationItem[], targetId: string) {
     return () => window.removeEventListener("hashchange", syncToHash);
   }, [ids]);
 
-  useEffect(() => {
-    let frame = 0;
-
-    const update = () => {
-      frame = 0;
-      const target = document.getElementById(targetId);
-      if (!target) return;
-      const start = target.offsetTop;
-      const distance = Math.max(target.offsetHeight - window.innerHeight, 1);
-      const value = Math.min(Math.max((window.scrollY - start) / distance, 0), 1);
-      setProgress(value);
-    };
-
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, [targetId]);
-
-  return { activeId, progress };
+  return activeId;
 }
 
 function NavigationLinks({
@@ -132,20 +104,12 @@ export function GuideNavigation({
   targetId?: string;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { activeId, progress } = useGuidePosition(items, targetId);
+  const activeId = useActiveSection(items);
   const activeLabel = items.find((item) => item.id === activeId)?.label;
 
   return (
     <>
-      <div
-        className="fixed inset-x-0 top-0 z-[60] h-1 bg-transparent"
-        aria-hidden="true"
-      >
-        <div
-          className="h-full origin-left bg-deep-teal transition-transform duration-150 motion-reduce:transition-none"
-          style={{ transform: `scaleX(${progress})` }}
-        />
-      </div>
+      <ReadingProgress targetId={targetId} />
 
       <div className="sticky top-[85px] z-30 -mx-4 border-b border-border bg-white/95 px-4 py-2 shadow-sm backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
         <button

@@ -4,15 +4,10 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ImageOrPlaceholder } from "./ImageOrPlaceholder";
 import { formatContentDate } from "@/lib/content-date";
+import { DEFAULT_LANDSCAPE_FOCAL_POINT, estimateReadingTime } from "@/lib/story-article";
 
 interface StoryCardProps {
   story: Story;
-}
-
-/** Estimates reading time in minutes from body text (200 wpm). */
-function estimateReadingTime(body: string): number {
-  const words = body.trim().split(/\s+/).length;
-  return Math.max(1, Math.round(words / 200));
 }
 
 export function StoryCard({ story }: StoryCardProps) {
@@ -21,11 +16,17 @@ export function StoryCard({ story }: StoryCardProps) {
 
   return (
     <Card className="flex flex-col overflow-hidden">
-      <div className="relative aspect-[16/10] overflow-hidden">
+      {/*
+        Card thumbnails reuse the story's hero image, so a portrait photograph
+        meets the shallowest crop on the site here. The focal point travels
+        with the story, which is what keeps a subject's head in frame.
+      */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-surface-strong">
         <ImageOrPlaceholder
           src={story.heroImage}
           alt={story.heroImageAlt || story.title}
           fill
+          objectPosition={story.heroImageFocalPoint ?? DEFAULT_LANDSCAPE_FOCAL_POINT}
           containerClassName="h-full w-full"
         />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { trackArticleShare } from "./ArticleAnalytics";
 
 /**
@@ -12,10 +13,16 @@ import { trackArticleShare } from "./ArticleAnalytics";
  *
  * Platforms tracked separately: WhatsApp, LinkedIn, X, Facebook, Copy link,
  * Native device share.
+ *
+ * `variant="bar"` is the horizontal row used below the article on narrow
+ * screens; `variant="rail"` is the stacked form used in the sticky desktop
+ * margin. Only one is rendered at a time, so a share is never counted twice.
  */
 interface ArticleShareButtonsProps {
   slug: string;
   title: string;
+  variant?: "bar" | "rail";
+  className?: string;
 }
 
 function shareUrl(slug: string): string {
@@ -23,11 +30,17 @@ function shareUrl(slug: string): string {
   return `${window.location.origin}/stories/${slug}`;
 }
 
-export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
+export function ArticleShareButtons({
+  slug,
+  title,
+  variant = "bar",
+  className,
+}: ArticleShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const url = shareUrl(slug);
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
+  const isRail = variant === "rail";
 
   const handleShare = (platform: string, href: string) => {
     trackArticleShare(platform);
@@ -58,13 +71,27 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
 
   const hasNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
+  const buttonClass = cn(
+    "rounded-lg border border-border bg-white text-sm font-medium hover:border-primary hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+    isRail ? "block w-full px-3 py-2 text-left" : "px-3 py-1.5"
+  );
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-muted-foreground">Share:</span>
+    <div className={cn(isRail ? "space-y-2" : "flex flex-wrap items-center gap-2", className)}>
+      <span
+        className={cn(
+          "font-medium text-muted-foreground",
+          isRail
+            ? "block text-xs font-bold uppercase tracking-[0.1em] text-primary"
+            : "text-sm"
+        )}
+      >
+        {isRail ? "Share" : "Share:"}
+      </span>
       <button
         type="button"
         onClick={() => handleShare("whatsapp", `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`)}
-        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={buttonClass}
         aria-label="Share on WhatsApp"
       >
         WhatsApp
@@ -72,7 +99,7 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
       <button
         type="button"
         onClick={() => handleShare("linkedin", `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`)}
-        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={buttonClass}
         aria-label="Share on LinkedIn"
       >
         LinkedIn
@@ -80,7 +107,7 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
       <button
         type="button"
         onClick={() => handleShare("x", `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`)}
-        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={buttonClass}
         aria-label="Share on X"
       >
         X
@@ -88,7 +115,7 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
       <button
         type="button"
         onClick={() => handleShare("facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`)}
-        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={buttonClass}
         aria-label="Share on Facebook"
       >
         Facebook
@@ -96,7 +123,7 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
       <button
         type="button"
         onClick={handleCopyLink}
-        className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className={buttonClass}
         aria-label="Copy link"
       >
         {copied ? "Copied!" : "Copy link"}
@@ -105,7 +132,7 @@ export function ArticleShareButtons({ slug, title }: ArticleShareButtonsProps) {
         <button
           type="button"
           onClick={handleNativeShare}
-          className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className={buttonClass}
           aria-label="Share via device"
         >
           Share…
