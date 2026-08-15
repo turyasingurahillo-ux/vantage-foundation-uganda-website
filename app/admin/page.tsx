@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { getDonations } from "@/lib/db";
+import { getContactMessageCounts } from "@/lib/db/contact";
 import { Container } from "@/components/shared/Container";
 import { Badge } from "@/components/ui/Badge";
 import { ContentPerformanceCard } from "@/components/admin/ContentPerformanceCard";
@@ -33,6 +34,19 @@ export default async function AdminDashboardPage() {
     donationsAvailable = false;
   }
 
+  // Contact enquiries. Until SMTP is configured no notification email goes out,
+  // so this dashboard is the only place an unanswered enquiry becomes visible.
+  let unhandledMessages = 0;
+  let notEmailedMessages = 0;
+  let contactMessagesAvailable = true;
+  try {
+    const counts = await getContactMessageCounts();
+    unhandledMessages = counts.unhandled;
+    notEmailedMessages = counts.notEmailed;
+  } catch {
+    contactMessagesAvailable = false;
+  }
+
   return (
     <section className="py-12 md:py-16">
       <Container>
@@ -44,6 +58,7 @@ export default async function AdminDashboardPage() {
           <nav className="flex flex-wrap gap-2" aria-label="Admin navigation">
             <Link href="/admin/stories" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Stories &amp; Insights</Link>
             <Link href="/admin/donations" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Donations</Link>
+            <Link href="/admin/messages" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Messages</Link>
             <Link href="/admin/media" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Media</Link>
             <Link href="/admin/admins" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Admins</Link>
             <Link href="/admin/audit" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Audit</Link>
@@ -75,6 +90,25 @@ export default async function AdminDashboardPage() {
               ) : (
                 <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
                   Donations database not configured.
+                </div>
+              )}
+              {contactMessagesAvailable ? (
+                <Link href="/admin/messages" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
+                  <div>
+                    <div className="font-medium">Contact messages</div>
+                    <div className="text-sm text-muted-foreground">
+                      {notEmailedMessages > 0
+                        ? "Nobody was emailed about these — reply from here"
+                        : "Enquiries submitted through the website"}
+                    </div>
+                  </div>
+                  <Badge variant={unhandledMessages > 0 ? "warning" : "success"}>
+                    {unhandledMessages} unhandled
+                  </Badge>
+                </Link>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                  Contact messages database not configured.
                 </div>
               )}
               <Link href="/admin/stories" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">

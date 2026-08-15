@@ -87,6 +87,31 @@ export async function getContactMessages(
   }));
 }
 
+/**
+ * Counts submissions nobody has actioned yet, and how many of those never
+ * got a notification email out.
+ *
+ * A count query rather than reusing getContactMessages() so the dashboard does
+ * not pull up to 200 rows of personal data just to render a badge.
+ */
+export async function getContactMessageCounts(): Promise<{
+  unhandled: number;
+  notEmailed: number;
+}> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT
+      COUNT(*) FILTER (WHERE handled_at IS NULL)::int AS unhandled,
+      COUNT(*) FILTER (WHERE handled_at IS NULL AND email_sent = false)::int AS not_emailed
+    FROM contact_messages
+    WHERE deleted_at IS NULL
+  `;
+  return {
+    unhandled: Number(rows[0].unhandled),
+    notEmailed: Number(rows[0].not_emailed),
+  };
+}
+
 /** Records whether the internal notification email was delivered. */
 export async function markContactMessageEmailed(
   id: number,
