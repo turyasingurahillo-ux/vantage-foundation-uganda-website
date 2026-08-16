@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
+import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getAuditLogs, AuditLogEntry } from "@/lib/db/audit";
 import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
@@ -101,41 +101,7 @@ export default async function AdminAuditPage({
               is logged with the actor, before/after state, and IP address.
             </p>
           </div>
-          <nav className="flex gap-2" aria-label="Admin navigation">
-            <Link
-              href="/admin/stories"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Stories & Insights
-            </Link>
-            <Link
-              href="/admin/donations"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Donations
-            </Link>
-            <Link
-              href="/admin/media"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Media library
-            </Link>
-            <Link
-              href="/admin/admins"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Admins
-            </Link>
-            <form method="post" action="/api/admin/logout" className="inline">
-              <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-              <button
-                type="submit"
-                className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                Log out
-              </button>
-            </form>
-          </nav>
+          <AdminNav current="/admin/audit" csrfToken={csrfToken} />
         </div>
 
         {/* Filters */}

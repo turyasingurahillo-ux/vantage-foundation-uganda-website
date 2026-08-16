@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getDonations, DonationRow } from "@/lib/db";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { Container } from "@/components/shared/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
@@ -60,29 +60,7 @@ export default async function AdminDonationsPage({
               Verify each donation against the official bank statement before marking it successful.
             </p>
           </div>
-          <nav className="flex gap-2" aria-label="Admin navigation">
-            <Link
-              href="/admin/stories"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Stories & Insights
-            </Link>
-            <Link
-              href="/admin/media"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              Media library
-            </Link>
-            <form method="post" action="/api/admin/logout" className="inline">
-              <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-              <button
-                type="submit"
-                className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                Log out
-              </button>
-            </form>
-          </nav>
+          <AdminNav current="/admin/donations" csrfToken={csrfToken} />
         </div>
 
         {updated && (
