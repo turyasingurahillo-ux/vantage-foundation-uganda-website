@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import nodemailer from "nodemailer";
 import { headers } from "next/headers";
 // `site` is used only for PUBLIC details (phone). Vantage's protected mailbox
 // is no longer part of the site config — it is server-only, in
@@ -15,17 +14,15 @@ import {
 } from "@/lib/db/contact";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logInfo, logWarn, logError } from "@/lib/logger";
-import { sanitiseValue, escapeHtml } from "@/lib/sanitise";
 import {
-  CONTACT_CATEGORY_VALUES,
-  buildSubjectPrefix,
-  getCategoryLabel,
-} from "@/lib/contact-categories";
-import {
-  getDefaultInbox,
-  getFromAddress,
-  resolveInboxFor,
-} from "@/lib/contact-inbox";
+  buildEmailRows,
+  emailTemplate,
+  formatBody,
+  sendEmail,
+} from "@/lib/email";
+import { sendContactNotification } from "@/lib/contact-notify";
+import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
+import { getDefaultInbox, resolveInboxFor } from "@/lib/contact-inbox";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 // Field limits. These are generous enough for a detailed grant or partnership
@@ -182,147 +179,32 @@ function isBotSubmission(raw: Record<string, unknown>): boolean {
   return false;
 }
 
-// sanitiseValue and escapeHtml are imported from @/lib/sanitise (tested).
+// The email plumbing (sendEmail, emailTemplate, formatBody, buildEmailRows)
+// lives in lib/email.ts, and the contact-specific notification in
+// lib/contact-notify.ts, so the admin "send to inbox" action reuses exactly the
+// same code instead of growing a second copy that can drift.
 //
-// The previous getValidatedFromAddress() helper is gone: it fell back to
+// The old getValidatedFromAddress() helper is gone: it fell back to
 // site.contact.email, which no longer exists now that the operational mailbox
 // is server-only. getFromAddress() in lib/contact-inbox.ts replaces it and
 // deliberately never falls back to the protected mailbox — an unauthorised
 // From address is rejected by SPF/DMARC anyway.
 
-/**
- * Sends an internal notification.
- *
- * `to` is always resolved server-side from env + a fixed category enum
- * (lib/contact-inbox.ts). Nothing in the visitor's request can influence the
- * recipient, so this cannot be used as an open relay.
- */
-async function sendEmail(
-  subject: string,
-  body: string,
-  html: string | undefined,
-  to: string,
-  replyTo?: string
-): Promise<boolean> {
-  const smtpHost = process.env.SMTP_HOST;
-  if (!smtpHost) return false;
+/** Labels for the donor and newsletter notifications, still built here. */
+const LEGACY_LABELS: Record<string, string> = {
+  name: "Name",
+  email: "Email",
+  phone: "Phone",
+  organisation: "Organisation",
+  subject: "Category",
+  message: "Message",
+  amount: "Amount",
+  frequency: "Frequency",
+  campaign: "Campaign",
+  transactionReference: "Transaction Reference",
+  consent: "Consent",
+};
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    // Fall back to the destination itself so the message still sends when no
-    // SMTP_FROM/SMTP_USER is configured. Both are server-side values.
-    const from = getFromAddress() ?? to;
-
-    await transporter.sendMail({
-      from,
-      to,
-      subject: sanitiseValue(subject).substring(0, 200),
-      text: body,
-      // Lets the team reply straight to the enquirer. Sanitised and validated
-      // as an email address by Zod before reaching here.
-      ...(replyTo ? { replyTo: sanitiseValue(replyTo).substring(0, MAX_EMAIL) } : {}),
-      ...(html ? { html } : {}),
-    });
-    return true;
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    logError("email_send_failed", {
-      smtp_host: smtpHost,
-      // Never log the subject verbatim — it can contain visitor-supplied text.
-      error: errMsg.substring(0, 200),
-    });
-    return false;
-  }
-}
-
-// Internal-only fields that must never appear in the notification email.
-const INTERNAL_FIELDS = [
-  "website",
-  "company_url",
-  "form_loaded_at",
-  "submissionId",
-  "cf-turnstile-response",
-];
-
-function formatBody(data: Record<string, unknown>): string {
-  return Object.entries(data)
-    .filter(([key]) => !INTERNAL_FIELDS.includes(key))
-    .map(([key, value]) => `${key}: ${sanitiseValue(value, MAX_MESSAGE)}`)
-    .join("\n");
-}
-
-// --- HTML email template ---
-function emailTemplate(title: string, rows: { label: string; value: string }[]): string {
-  // Every interpolated value is HTML-escaped: submissions are untrusted input
-  // and must never render as live markup in the reader's mail client.
-  const safeTitle = escapeHtml(title);
-  const tableRows = rows
-    .map(
-      (r) =>
-        `<tr><td style="padding:4px 12px 4px 0;font-weight:bold;color:#050708;vertical-align:top;">${escapeHtml(
-          r.label
-        )}</td><td style="padding:4px 0;color:#475569;white-space:pre-wrap;">${escapeHtml(
-          r.value
-        )}</td></tr>`
-    )
-    .join("");
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>${safeTitle}</title></head>
-<body style="margin:0;padding:0;background:#f7fafa;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #dce5e5;">
-        <tr><td style="background:#008f95;padding:20px 24px;">
-          <h1 style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">${safeTitle}</h1>
-        </td></tr>
-        <tr><td style="padding:24px;">
-          <p style="margin:0 0 16px;color:#475569;">A new submission was received on the Vantage Foundation Uganda website.</p>
-          <table cellpadding="0" cellspacing="0">${tableRows}</table>
-          <p style="margin:24px 0 0;color:#475569;font-size:12px;border-top:1px solid #dce5e5;padding-top:16px;">
-            This is an automated notification from vantagefoundationuganda.com
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
-
-function buildEmailRows(data: Record<string, unknown>): { label: string; value: string }[] {
-  const labelMap: Record<string, string> = {
-    name: "Name",
-    email: "Email",
-    phone: "Phone",
-    organisation: "Organisation",
-    subject: "Category",
-    message: "Message",
-    amount: "Amount",
-    frequency: "Frequency",
-    campaign: "Campaign",
-    transactionReference: "Transaction Reference",
-    consent: "Consent",
-  };
-  // Values are sanitised here but NOT escaped: emailTemplate() escapes every
-  // field as it builds the HTML. Escaping in both places would double-encode,
-  // so a submitted "<script>" would reach the reader as "&amp;lt;script&amp;gt;".
-  return Object.entries(data)
-    .filter(([key]) => !INTERNAL_FIELDS.includes(key))
-    .map(([key, value]) => ({
-      label: labelMap[key] || key,
-      value: sanitiseValue(value, MAX_MESSAGE),
-    }));
-}
 
 export async function submitContact(
   _prevState: FormState,
@@ -400,22 +282,16 @@ export async function submitContact(
     }
   }
 
-  // Destination is resolved server-side from env + the validated category.
-  const to = resolveInboxFor(category);
-  const subjectLine = `${buildSubjectPrefix(category)} ${getCategoryLabel(
-    category
-  )} from ${sanitiseValue(parsed.data.name).substring(0, 80)}`;
-
-  const rows = buildEmailRows(parsed.data);
-  const body = formatBody(parsed.data);
-  const html = emailTemplate(subjectLine, rows);
-  const emailSent = await sendEmail(
-    subjectLine,
-    body,
-    html,
-    to,
-    parsed.data.email
-  );
+  // Destination is resolved inside sendContactNotification() from server env
+  // plus the validated category — never from anything the visitor sent.
+  const emailSent = await sendContactNotification({
+    name: parsed.data.name,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+    organisation: parsed.data.organisation,
+    category,
+    message: parsed.data.message,
+  });
 
   if (messageId !== null) {
     try {
@@ -482,7 +358,7 @@ export async function submitNewsletter(
     };
   }
 
-  const rows = buildEmailRows(parsed.data);
+  const rows = buildEmailRows(parsed.data, LEGACY_LABELS);
   const body = formatBody(parsed.data);
   const subjectLine = "[VANTAGE CONTACT — NEWSLETTER] New subscriber";
   const html = emailTemplate(subjectLine, rows);
@@ -570,7 +446,7 @@ export async function submitDonor(
       frequency: parsed.data.frequency,
     });
 
-    const rows = buildEmailRows(parsed.data);
+    const rows = buildEmailRows(parsed.data, LEGACY_LABELS);
     const body = formatBody(parsed.data);
     const subjectLine = "[VANTAGE CONTACT — DONATION] Donation intent received";
     const html = emailTemplate(subjectLine, rows);
@@ -595,7 +471,7 @@ export async function submitDonor(
       frequency: parsed.data.frequency,
     });
 
-    const rows = buildEmailRows(parsed.data);
+    const rows = buildEmailRows(parsed.data, LEGACY_LABELS);
     const body = formatBody(parsed.data);
     const subjectLine = "[VANTAGE CONTACT — DONATION] Donation intent";
     const html = emailTemplate(subjectLine, rows);
