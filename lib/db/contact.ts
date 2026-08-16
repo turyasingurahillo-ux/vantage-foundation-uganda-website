@@ -56,6 +56,32 @@ export interface ContactMessageRow extends ContactMessageInput {
   emailSent: boolean;
 }
 
+/** Returns one submission by id, or null. Used by the re-send action. */
+export async function getContactMessageById(
+  id: number,
+): Promise<ContactMessageRow | null> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT id, created_at, name, email, phone, organisation, category,
+           message, email_sent
+    FROM contact_messages
+    WHERE id = ${id} AND deleted_at IS NULL
+  `;
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  return {
+    id: Number(row.id),
+    createdAt: new Date(row.created_at as string),
+    name: row.name as string,
+    email: row.email as string,
+    phone: (row.phone as string) ?? undefined,
+    organisation: (row.organisation as string) ?? undefined,
+    category: row.category as ContactCategory,
+    message: row.message as string,
+    emailSent: Boolean(row.email_sent),
+  };
+}
+
 /**
  * Returns recent submissions, newest first.
  *

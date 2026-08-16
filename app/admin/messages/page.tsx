@@ -7,9 +7,19 @@ import {
   ContactMessageRow,
 } from "@/lib/db/contact";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
 import { Badge } from "@/components/ui/Badge";
 import { getCategoryLabel } from "@/lib/contact-categories";
+
+const RESEND_ERRORS: Record<string, string> = {
+  "rate-limited": "Too many attempts. Wait a minute and try again.",
+  csrf: "Security check failed. Reload the page and try again.",
+  invalid: "That message could not be identified.",
+  notfound: "That message no longer exists.",
+  send: "The email could not be sent. Check the SMTP settings, then try again.",
+  server: "Something went wrong. Please try again.",
+};
 
 export const metadata: Metadata = {
   title: "Contact Messages",
@@ -23,12 +33,19 @@ export const metadata: Metadata = {
  * is the backstop when SMTP is unconfigured or failing: anything with
  * "Email failed" never reached the inbox and needs a manual reply.
  */
-export default async function AdminMessagesPage() {
+export default async function AdminMessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ resent?: string; error?: string }>;
+}) {
+  const { resent, error } = await searchParams;
   const cookieStore = await cookies();
 
   if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
     redirect("/admin/login");
   }
+
+  const csrfToken = await getCsrfTokenFromRequest();
 
   let messages: ContactMessageRow[] = [];
   let dbError = "";
@@ -64,12 +81,24 @@ export default async function AdminMessagesPage() {
           </p>
         )}
 
+        {resent && (
+          <p className="mt-6 rounded-md border border-success/30 bg-success/5 p-4 text-sm">
+            Sent. Check the team inbox — it may take a minute to arrive.
+          </p>
+        )}
+
+        {error && (
+          <p className="mt-6 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            {RESEND_ERRORS[error] ?? "Something went wrong. Please try again."}
+          </p>
+        )}
+
         {!dbError && undelivered > 0 && (
           <p className="mt-6 rounded-md border border-warning/30 bg-warning/5 p-4 text-sm">
             <strong>{undelivered}</strong>{" "}
-            {undelivered === 1 ? "message was" : "messages were"} stored but not
-            emailed. Reply to {undelivered === 1 ? "it" : "them"} directly and
-            check the SMTP configuration.
+            {undelivered === 1 ? "message was" : "messages were"} stored but
+            never emailed to the team. Use <strong>Send to inbox</strong> on
+            each one, or reply to the sender directly.
           </p>
         )}
 
@@ -99,6 +128,29 @@ export default async function AdminMessagesPage() {
                     timeStyle: "short",
                   })}
                 </time>
+
+                {/* Push a stored message to the team inbox. Shown for anything
+                    that never got an email out, and as a quiet re-send for the
+                    rest. Only the id is submitted — the recipient is resolved
+                    server-side from the stored category. */}
+                <form
+                  method="post"
+                  action="/api/admin/messages/resend"
+                  className="ml-auto"
+                >
+                  <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
+                  <input type="hidden" name="id" value={m.id} />
+                  <button
+                    type="submit"
+                    className={
+                      m.emailSent
+                        ? "rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-slate-50"
+                        : "rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                    }
+                  >
+                    {m.emailSent ? "Send again" : "Send to inbox"}
+                  </button>
+                </form>
               </div>
 
               <h2 className="mt-3 font-semibold">
