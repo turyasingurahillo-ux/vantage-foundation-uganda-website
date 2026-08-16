@@ -99,22 +99,46 @@ export function emailTemplate(
 </html>`;
 }
 
+export interface SendEmailOptions {
+  subject: string;
+  body: string;
+  html?: string;
+  /** Resolved server-side. Never accept this from a browser request. */
+  to: string;
+  replyTo?: string;
+  /**
+   * RFC 5322 threading headers. Setting In-Reply-To/References against the
+   * Message-ID of the previous mail in the conversation is what makes Gmail
+   * and other clients group replies into one thread.
+   */
+  inReplyTo?: string;
+  references?: string[];
+}
+
+export interface SendEmailResult {
+  ok: boolean;
+  /** Message-ID assigned by the transport, kept for threading the next reply. */
+  messageId?: string;
+  /** Raw provider acknowledgement, stored for support/debugging. */
+  providerStatus?: string;
+  error?: string;
+}
+
 /**
- * Sends an internal notification.
+ * Sends mail and reports what the provider actually said.
  *
- * `to` is always resolved server-side from env plus a fixed category enum
- * (lib/contact-inbox.ts). Nothing in a visitor's request can influence the
- * recipient, so this cannot be used as an open relay.
+ * `to` is always resolved server-side — from env plus a fixed category enum
+ * for notifications, or from the stored contact row for replies. Nothing in a
+ * browser request can influence the recipient, so this cannot be used as an
+ * open relay.
  */
-export async function sendEmail(
-  subject: string,
-  body: string,
-  html: string | undefined,
-  to: string,
-  replyTo?: string,
-): Promise<boolean> {
+export async function sendEmailDetailed(
+  options: SendEmailOptions,
+): Promise<SendEmailResult> {
   const smtpHost = process.env.SMTP_HOST;
-  if (!smtpHost) return false;
+  if (!smtpHost) {
+    return { ok: false, error: "SMTP is not configured" };
+  }
 
   try {
     const transporter = nodemailer.createTransport({
@@ -129,20 +153,34 @@ export async function sendEmail(
 
     // Fall back to the destination itself so the message still sends when no
     // SMTP_FROM/SMTP_USER is configured. Both are server-side values.
-    const from = getFromAddress() ?? to;
+    const from = getFromAddress() ?? options.to;
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from,
-      to,
-      subject: sanitiseValue(subject).substring(0, 200),
-      text: body,
-      // Lets the team reply straight to the enquirer.
-      ...(replyTo
-        ? { replyTo: sanitiseValue(replyTo).substring(0, EMAIL_MAX_LENGTH) }
+      to: options.to,
+      subject: sanitiseValue(options.subject).substring(0, 200),
+      text: options.body,
+      ...(options.replyTo
+        ? {
+            replyTo: sanitiseValue(options.replyTo).substring(
+              0,
+              EMAIL_MAX_LENGTH,
+            ),
+          }
         : {}),
-      ...(html ? { html } : {}),
+      ...(options.html ? { html: options.html } : {}),
+      ...(options.inReplyTo ? { inReplyTo: options.inReplyTo } : {}),
+      ...(options.references?.length ? { references: options.references } : {}),
     });
-    return true;
+
+    return {
+      ok: true,
+      messageId: info.messageId,
+      providerStatus:
+        typeof info.response === "string"
+          ? info.response.substring(0, 200)
+          : undefined,
+    };
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     logError("email_send_failed", {
@@ -150,6 +188,27 @@ export async function sendEmail(
       // Never log the subject verbatim — it can contain visitor-supplied text.
       error: errMsg.substring(0, 200),
     });
-    return false;
+    return { ok: false, error: errMsg.substring(0, 200) };
   }
+}
+
+/**
+ * Boolean-returning wrapper kept for the notification paths, which only need
+ * to know whether the mail went out.
+ */
+export async function sendEmail(
+  subject: string,
+  body: string,
+  html: string | undefined,
+  to: string,
+  replyTo?: string,
+): Promise<boolean> {
+  const result = await sendEmailDetailed({
+    subject,
+    body,
+    html,
+    to,
+    replyTo,
+  });
+  return result.ok;
 }

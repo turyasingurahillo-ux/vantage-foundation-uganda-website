@@ -359,3 +359,68 @@ CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(c
 CREATE INDEX IF NOT EXISTS idx_contact_messages_category ON contact_messages(category);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_email_sent ON contact_messages(email_sent);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_deleted_at ON contact_messages(deleted_at);
+
+-- ---------------------------------------------------------------------------
+-- Correspondence: replies sent to a contact submission, and the workflow state
+-- of the conversation.
+--
+-- Replies are NOT appended to contact_messages.message — the original
+-- submission stays exactly as the visitor wrote it, and each reply is its own
+-- row so the conversation can be reconstructed in order and audited.
+--
+-- `direction` leaves room for inbound replies (Phase 2). Only 'outbound' is
+-- written today; see docs/email-privacy-and-contact.md for the inbound route.
+--
+-- `send_status` models email as the fallible external call it is:
+--   pending -> the row exists but the provider has not accepted it yet
+--   sent    -> the provider accepted it and returned a message id
+--   failed  -> the provider rejected it or errored; safe to retry
+-- A conversation only becomes 'replied' once a reply reaches 'sent'.
+-- ---------------------------------------------------------------------------
+
+-- Workflow columns on the existing table. ADD COLUMN IF NOT EXISTS is native
+-- in PostgreSQL and idempotent, so this is safe to re-run.
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new';
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS last_replied_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP WITH TIME ZONE;
+
+-- Constrain status to the known workflow states. Added separately (and
+-- guarded) because ADD CONSTRAINT has no IF NOT EXISTS.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_status_values'
+  ) THEN
+    ALTER TABLE contact_messages
+      ADD CONSTRAINT contact_messages_status_values
+      CHECK (status IN ('new', 'awaiting_response', 'replied', 'archived'));
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status);
+
+CREATE TABLE IF NOT EXISTS contact_message_replies (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  message_id INTEGER NOT NULL REFERENCES contact_messages(id) ON DELETE CASCADE,
+  -- 'outbound' = Vantage -> enquirer. 'inbound' reserved for Phase 2.
+  direction TEXT NOT NULL DEFAULT 'outbound',
+  body TEXT NOT NULL,
+  sender_email TEXT,
+  recipient_email TEXT NOT NULL,
+  -- Actor from the admin session (a named admin id, or 'bootstrap').
+  admin_actor_id TEXT,
+  -- RFC 5322 Message-ID returned by the provider, used for threading.
+  provider_message_id TEXT,
+  provider_status TEXT,
+  send_status TEXT NOT NULL DEFAULT 'pending',
+  error_detail TEXT,
+  -- Client-supplied token used to collapse double submissions.
+  idempotency_key TEXT UNIQUE,
+  sent_at TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT contact_message_replies_direction CHECK (direction IN ('outbound', 'inbound')),
+  CONSTRAINT contact_message_replies_send_status CHECK (send_status IN ('pending', 'sent', 'failed'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_cmr_message_id ON contact_message_replies(message_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_cmr_send_status ON contact_message_replies(send_status);

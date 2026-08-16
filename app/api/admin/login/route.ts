@@ -19,6 +19,16 @@ import { logWarn, logInfo, logError } from "@/lib/logger";
 import { getActiveAdminByUsername, countActiveAdmins } from "@/lib/db/admins";
 import { verifyPassword } from "@/lib/password";
 
+/**
+ * Successful-attempt throttle, separate from the failure lockout below.
+ * Defaults to 5/minute; ADMIN_LOGIN_RATE_LIMIT raises it for the end-to-end
+ * suite only, which signs in many times from a single IP.
+ */
+const ADMIN_LOGIN_RATE_LIMIT = (() => {
+  const parsed = Number(process.env.ADMIN_LOGIN_RATE_LIMIT);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 5;
+})();
+
 // Lockout policy: after 5 failed attempts within 15 minutes, lock out for 15 minutes.
 const LOCKOUT_MAX_FAILURES = 5;
 const LOCKOUT_WINDOW_MS = 15 * 60_000;
@@ -49,8 +59,17 @@ export async function POST(request: Request) {
     return NextResponse.redirect(url, 302);
   }
 
-  // Rate limit: 5 attempts per minute (in addition to lockout).
-  if (!rateLimit({ key: `admin-login:${ip}`, limit: 5, windowMs: 60_000 })) {
+  // Rate limit: 5 attempts per minute (in addition to lockout). Configurable
+  // via ADMIN_LOGIN_RATE_LIMIT so the end-to-end suite, which signs in
+  // repeatedly from one IP, can raise it without weakening the deployed
+  // default — the same pattern as FORM_RATE_LIMIT in app/actions.ts.
+  if (
+    !rateLimit({
+      key: `admin-login:${ip}`,
+      limit: ADMIN_LOGIN_RATE_LIMIT,
+      windowMs: 60_000,
+    })
+  ) {
     logWarn("admin_login_rate_limited", { ip });
     return NextResponse.redirect(
       new URL("/admin/login?error=rate-limited", request.url),

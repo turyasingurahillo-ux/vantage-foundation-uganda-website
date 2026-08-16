@@ -7,6 +7,15 @@ import { defineConfig, devices } from "@playwright/test";
 // collision without touching the normal `npm run dev` workflow (still :3000).
 const PORT = 3100;
 
+// The admin end-to-end tests need to sign in, which means the runner and the
+// server under test have to agree on ADMIN_SECRET. Pin one value for both so
+// those tests actually execute in CI instead of skipping themselves. This is
+// test-only: it never touches the deployed secret, and any real value in the
+// environment still wins so a local run against .env.local behaves normally.
+const E2E_ADMIN_SECRET =
+  process.env.ADMIN_SECRET ?? "e2e-admin-secret-not-used-in-production";
+process.env.ADMIN_SECRET = E2E_ADMIN_SECRET;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -37,6 +46,11 @@ export default defineConfig({
       // accessibility assertions can run. This does NOT change the deployed
       // default — see FORM_RATE_LIMIT in app/actions.ts.
       FORM_RATE_LIMIT: "500",
+      // Match the runner so /admin/login succeeds for the admin specs.
+      ADMIN_SECRET: E2E_ADMIN_SECRET,
+      // The admin specs sign in once per test from one IP, which trips the
+      // production 5/minute login throttle. Raised here only.
+      ADMIN_LOGIN_RATE_LIMIT: "200",
     },
   },
 });
