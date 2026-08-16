@@ -334,8 +334,65 @@ Every submission is written to `contact_messages` *before* the email is
 attempted, so an SMTP outage cannot lose an inquiry.
 
 Read them at **`/admin/messages`** (sign in at `/admin/login`). Anything badged
-**"Email failed"** never reached the inbox and needs a manual reply — and
-signals that SMTP needs attention.
+**"Email failed"** never reached the team inbox — the enquiry is still safe in
+the database, and the team simply was not notified.
+
+---
+
+## 7a. Replying from the admin inbox
+
+`/admin/messages` is a working correspondence inbox, not just an archive.
+
+**Workflow states**
+
+| Status | Meaning |
+|---|---|
+| **New** | Nobody has actioned it yet. |
+| **Awaiting response** | Vantage owes a reply. Set by an admin, and automatically when a reply attempt fails. |
+| **Replied** | At least one reply was *accepted by the email provider*. Clicking Send is not enough. |
+| **Archived** | Deliberately out of the active workflow. |
+
+**Sending a reply**
+
+Open a conversation, type in the composer, press **Send reply**. The reply is
+emailed to the address stored with the original submission, quoting their
+message underneath, and is kept in the conversation history.
+
+Two safeguards worth knowing about:
+
+- The recipient is read from the database. The browser only ever submits a
+  message id, so a reply cannot be redirected to another address.
+- Each composer carries a one-shot key. A double-click, or a browser retry,
+  collapses onto the same reply instead of sending two emails.
+
+If the provider rejects a reply it is kept and badged **Not sent**, with the
+error shown, and the conversation moves to *Awaiting response* — never to
+*Replied*. Send again to retry.
+
+**Resend internal notification** is a separate, secondary action. It re-sends
+the *internal team* notification and does **not** email the enquirer.
+
+### Inbound replies are Phase 2
+
+When someone replies to a Vantage reply it lands in the Gmail inbox via
+Cloudflare Email Routing — it does **not** appear in `/admin/messages`. Only
+outbound correspondence is captured today.
+
+The data model is already shaped for it: `contact_message_replies.direction`
+accepts `inbound`, and every outbound reply stores the provider `Message-ID`,
+so an inbound mail can be matched to its conversation by `In-Reply-To`.
+
+Two viable routes when it is worth doing, neither of which is wired up:
+
+1. **Cloudflare Email Workers.** The domain's MX already points at Cloudflare
+   Email Routing, and a Worker on that route can POST the parsed message to an
+   authenticated endpoint on this site. Keeps the current routing intact.
+2. **Resend inbound.** Resend can receive mail, but enabling it means pointing
+   MX at Resend, which would displace Cloudflare Email Routing and break the
+   existing `contact@` forwarding. Not advisable without migrating every alias
+   at the same time.
+
+Do not poll or scrape the Gmail mailbox for this.
 
 ---
 

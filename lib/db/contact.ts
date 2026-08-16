@@ -50,25 +50,34 @@ export async function createContactMessage(
   return Number(rows[0].id);
 }
 
+/**
+ * Workflow state of a conversation.
+ *
+ * - `new`               nobody has actioned it yet (insert default)
+ * - `awaiting_response` Vantage owes a reply: set explicitly by an admin, and
+ *                       automatically when a reply attempt fails, since the
+ *                       enquirer is still waiting. Phase 2 inbound replies
+ *                       would also land here.
+ * - `replied`           at least one reply reached `sent` at the provider
+ * - `archived`          deliberately taken out of the active workflow
+ */
+export type ContactMessageStatus =
+  | "new"
+  | "awaiting_response"
+  | "replied"
+  | "archived";
+
 export interface ContactMessageRow extends ContactMessageInput {
   id: number;
   createdAt: Date;
+  /** Whether the INTERNAL notification reached the team inbox — not a reply. */
   emailSent: boolean;
+  status: ContactMessageStatus;
+  lastRepliedAt?: Date;
+  archivedAt?: Date;
 }
 
-/** Returns one submission by id, or null. Used by the re-send action. */
-export async function getContactMessageById(
-  id: number,
-): Promise<ContactMessageRow | null> {
-  const sql = getSql();
-  const rows = await sql`
-    SELECT id, created_at, name, email, phone, organisation, category,
-           message, email_sent
-    FROM contact_messages
-    WHERE id = ${id} AND deleted_at IS NULL
-  `;
-  if (rows.length === 0) return null;
-  const row = rows[0];
+function mapMessage(row: Record<string, unknown>): ContactMessageRow {
   return {
     id: Number(row.id),
     createdAt: new Date(row.created_at as string),
@@ -79,7 +88,29 @@ export async function getContactMessageById(
     category: row.category as ContactCategory,
     message: row.message as string,
     emailSent: Boolean(row.email_sent),
+    status: (row.status as ContactMessageStatus) ?? "new",
+    lastRepliedAt: row.last_replied_at
+      ? new Date(row.last_replied_at as string)
+      : undefined,
+    archivedAt: row.archived_at
+      ? new Date(row.archived_at as string)
+      : undefined,
   };
+}
+
+/** Returns one submission by id, or null. Used by the re-send action. */
+export async function getContactMessageById(
+  id: number,
+): Promise<ContactMessageRow | null> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT id, created_at, name, email, phone, organisation, category,
+           message, email_sent, status, last_replied_at, archived_at
+    FROM contact_messages
+    WHERE id = ${id} AND deleted_at IS NULL
+  `;
+  if (rows.length === 0) return null;
+  return mapMessage(rows[0]);
 }
 
 /**
@@ -94,23 +125,117 @@ export async function getContactMessages(
   const sql = getSql();
   const rows = await sql`
     SELECT id, created_at, name, email, phone, organisation, category,
-           message, email_sent
+           message, email_sent, status, last_replied_at, archived_at
     FROM contact_messages
     WHERE deleted_at IS NULL
     ORDER BY created_at DESC
     LIMIT ${limit}
   `;
-  return rows.map((row) => ({
-    id: Number(row.id),
-    createdAt: new Date(row.created_at as string),
-    name: row.name as string,
-    email: row.email as string,
-    phone: (row.phone as string) ?? undefined,
-    organisation: (row.organisation as string) ?? undefined,
-    category: row.category as ContactCategory,
-    message: row.message as string,
-    emailSent: Boolean(row.email_sent),
-  }));
+  return rows.map(mapMessage);
+}
+
+/** Inbox tabs. "all" spans every status including archived. */
+export type InboxFilter = ContactMessageStatus | "all";
+
+/**
+ * Inbox listing with an optional free-text search across the fields an admin
+ * would actually recognise a conversation by.
+ *
+ * Both the filter and the search term are passed as bound parameters — the
+ * search string never becomes SQL.
+ */
+export async function searchContactMessages(options: {
+  filter?: InboxFilter;
+  query?: string;
+  limit?: number;
+}): Promise<ContactMessageRow[]> {
+  const sql = getSql();
+  const filter = options.filter ?? "new";
+  const limit = options.limit ?? 200;
+  const term = options.query?.trim();
+  const like = term ? `%${term}%` : null;
+
+  const rows = await sql`
+    SELECT id, created_at, name, email, phone, organisation, category,
+           message, email_sent, status, last_replied_at, archived_at
+    FROM contact_messages
+    WHERE deleted_at IS NULL
+      AND (${filter} = 'all' OR status = ${filter})
+      AND (
+        ${like}::text IS NULL
+        OR name ILIKE ${like}
+        OR email ILIKE ${like}
+        OR category ILIKE ${like}
+        OR message ILIKE ${like}
+        OR COALESCE(organisation, '') ILIKE ${like}
+      )
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `;
+  return rows.map(mapMessage);
+}
+
+/** Per-tab counts for the inbox header. One pass over the table. */
+export async function getInboxCounts(): Promise<Record<InboxFilter, number>> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT
+      COUNT(*) FILTER (WHERE status = 'new')::int AS new,
+      COUNT(*) FILTER (WHERE status = 'awaiting_response')::int AS awaiting_response,
+      COUNT(*) FILTER (WHERE status = 'replied')::int AS replied,
+      COUNT(*) FILTER (WHERE status = 'archived')::int AS archived,
+      COUNT(*)::int AS all
+    FROM contact_messages
+    WHERE deleted_at IS NULL
+  `;
+  const r = rows[0];
+  return {
+    new: Number(r.new),
+    awaiting_response: Number(r.awaiting_response),
+    replied: Number(r.replied),
+    archived: Number(r.archived),
+    all: Number(r.all),
+  };
+}
+
+/**
+ * Moves a conversation to an explicit workflow state.
+ *
+ * `replied` is deliberately NOT settable here — it is only ever reached via
+ * markContactMessageReplied() once the provider has accepted a reply, so an
+ * admin cannot mark a conversation answered without an email going out.
+ */
+export async function setContactMessageStatus(
+  id: number,
+  status: Exclude<ContactMessageStatus, "replied">,
+): Promise<void> {
+  const sql = getSql();
+  await sql`
+    UPDATE contact_messages
+    SET status = ${status},
+        archived_at = ${status === "archived" ? "now()" : null}::timestamptz,
+        handled_at = CASE
+          WHEN ${status} = 'new' THEN NULL
+          ELSE COALESCE(handled_at, CURRENT_TIMESTAMP)
+        END
+    WHERE id = ${id} AND deleted_at IS NULL
+  `;
+}
+
+/**
+ * Called only after a reply has been accepted by the email provider.
+ * Archived conversations stay archived — answering one should not drag it back
+ * into the active workflow.
+ */
+export async function markContactMessageReplied(id: number): Promise<void> {
+  const sql = getSql();
+  await sql`
+    UPDATE contact_messages
+    SET status = CASE WHEN status = 'archived' THEN 'archived' ELSE 'replied' END,
+        last_replied_at = CURRENT_TIMESTAMP,
+        handled_at = COALESCE(handled_at, CURRENT_TIMESTAMP)
+    WHERE id = ${id} AND deleted_at IS NULL
+  `;
 }
 
 /**
@@ -127,8 +252,10 @@ export async function getContactMessageCounts(): Promise<{
   const sql = getSql();
   const rows = await sql`
     SELECT
-      COUNT(*) FILTER (WHERE handled_at IS NULL)::int AS unhandled,
-      COUNT(*) FILTER (WHERE handled_at IS NULL AND email_sent = false)::int AS not_emailed
+      COUNT(*) FILTER (WHERE status IN ('new', 'awaiting_response'))::int AS unhandled,
+      COUNT(*) FILTER (
+        WHERE status IN ('new', 'awaiting_response') AND email_sent = false
+      )::int AS not_emailed
     FROM contact_messages
     WHERE deleted_at IS NULL
   `;
