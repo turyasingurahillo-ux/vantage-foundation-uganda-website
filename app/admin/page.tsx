@@ -3,10 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
+import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getDonations } from "@/lib/db";
 import { getContactMessageCounts } from "@/lib/db/contact";
 import { Container } from "@/components/shared/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 import { ContentPerformanceCard } from "@/components/admin/ContentPerformanceCard";
 
@@ -55,18 +56,7 @@ export default async function AdminDashboardPage() {
             <h1 className="text-2xl font-bold">Admin dashboard</h1>
             <p className="text-sm text-muted-foreground">Overview of Vantage Foundation Uganda operations.</p>
           </div>
-          <nav className="flex flex-wrap gap-2" aria-label="Admin navigation">
-            <Link href="/admin/stories" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Stories &amp; Insights</Link>
-            <Link href="/admin/donations" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Donations</Link>
-            <Link href="/admin/messages" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Messages</Link>
-            <Link href="/admin/media" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Media</Link>
-            <Link href="/admin/admins" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Admins</Link>
-            <Link href="/admin/audit" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Audit</Link>
-            <form method="post" action="/api/admin/logout" className="inline">
-              <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-              <button type="submit" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Log out</button>
-            </form>
-          </nav>
+          <AdminNav current="/admin" csrfToken={csrfToken} />
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

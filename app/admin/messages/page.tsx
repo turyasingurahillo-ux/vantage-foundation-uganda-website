@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import {
@@ -9,6 +8,7 @@ import {
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 import { getCategoryLabel } from "@/lib/contact-categories";
 
@@ -62,13 +62,8 @@ export default async function AdminMessagesPage({
   return (
     <section className="py-12">
       <Container>
-        <Link
-          href="/admin"
-          className="text-sm font-semibold text-primary hover:underline"
-        >
-          ← Admin dashboard
-        </Link>
-        <h1 className="mt-4 text-2xl font-bold">Contact messages</h1>
+        <AdminNav current="/admin/messages" csrfToken={csrfToken} />
+        <h1 className="mt-6 text-2xl font-bold">Contact messages</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Submissions from the public contact form, newest first. Every message
           is stored here before the notification email is sent, so nothing is
