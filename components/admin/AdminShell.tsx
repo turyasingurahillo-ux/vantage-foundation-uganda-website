@@ -53,6 +53,7 @@ export function AdminShell({
     <div className="min-h-screen bg-slate-50 text-foreground">
       <a
         href="#main"
+        tabIndex={0}
         className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-white"
       >
         Skip to content
