@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
+import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getStoryById } from "@/lib/db/stories";
 import { Container } from "@/components/shared/Container";
 import { ArticleAnalyticsDetail } from "@/components/admin/ArticleAnalyticsDetail";
@@ -57,15 +57,7 @@ export default async function AdminArticleDetailPage({
               </>
             )}
           </div>
-          <nav className="flex gap-2" aria-label="Admin navigation">
-            <Link href="/admin/donations" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold">Donations</Link>
-            <Link href="/admin/media" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold">Media</Link>
-            <Link href="/admin/audit" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold">Audit</Link>
-            <form method="post" action="/api/admin/logout" className="inline">
-              <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-              <button type="submit" className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold">Log out</button>
-            </form>
-          </nav>
+
         </div>
 
         {dbError && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">{dbError}</p>}

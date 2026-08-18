@@ -5,7 +5,6 @@ import { getDonations, DonationRow } from "@/lib/db";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
@@ -60,7 +59,7 @@ export default async function AdminDonationsPage({
               Verify each donation against the official bank statement before marking it successful.
             </p>
           </div>
-          <AdminNav current="/admin/donations" csrfToken={csrfToken} />
+
         </div>
 
         {updated && (

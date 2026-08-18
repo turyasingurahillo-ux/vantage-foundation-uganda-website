@@ -20,14 +20,17 @@
 import { cookies as getCookies } from "next/headers";
 import { headers as getHeaders } from "next/headers";
 import { NextResponse } from "next/server";
+import {
+  CSRF_COOKIE_NAME as COOKIE_NAME,
+  CSRF_HEADER_NAME as HEADER_NAME,
+  CSRF_FIELD_NAME as FIELD_NAME,
+} from "./csrf-constants";
 
-const COOKIE_NAME = "vantage_csrf";
-const HEADER_NAME = "x-csrf-token";
-const FIELD_NAME = "csrf_token";
-
-export const CSRF_COOKIE_NAME = COOKIE_NAME;
-export const CSRF_HEADER_NAME = HEADER_NAME;
-export const CSRF_FIELD_NAME = FIELD_NAME;
+export {
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+  CSRF_FIELD_NAME,
+} from "./csrf-constants";
 
 function generateToken(): string {
   // 32 bytes of randomness, hex-encoded (64 chars).
