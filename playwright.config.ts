@@ -21,7 +21,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: "html",
   use: {
     baseURL: `http://localhost:${PORT}`,
@@ -37,7 +37,7 @@ export default defineConfig({
     command: `npm run build && npm run start -- -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: 300000,
     env: {
       // Every test drives the forms from the same (localhost) IP, so the
       // production default of 3 submissions/minute throttles the suite itself.
