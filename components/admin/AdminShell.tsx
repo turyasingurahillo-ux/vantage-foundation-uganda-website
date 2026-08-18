@@ -42,18 +42,21 @@ export function AdminShell({
     };
   }, [mobileOpen]);
 
+  const wasOpen = useRef(false);
+
   useEffect(() => {
-    if (!mobileOpen) {
-      // Restore focus to the menu trigger when the drawer closes.
+    // Restore focus to the menu trigger only when the drawer transitions
+    // from open to closed; do not focus anything on initial mount.
+    if (wasOpen.current && !mobileOpen) {
       menuButtonRef.current?.focus();
     }
+    wasOpen.current = mobileOpen;
   }, [mobileOpen]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-foreground">
       <a
         href="#main"
-        tabIndex={0}
         className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-white"
       >
         Skip to content
