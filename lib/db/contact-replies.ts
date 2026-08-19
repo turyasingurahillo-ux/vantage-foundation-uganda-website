@@ -169,6 +169,40 @@ export async function getRepliesForMessages(
 }
 
 /**
+ * Lightweight grouped count of sent replies for a set of conversations.
+ *
+ * Returns only counts — no reply bodies, error details, or recipient
+ * addresses. Used by the inbox list to show reply counts without loading
+ * full reply rows for every message.
+ *
+ * Only `direction='outbound' AND send_status='sent'` replies are counted,
+ * matching the canonical "replied" semantics: a pending or failed reply
+ * does not count as a successful reply.
+ */
+export async function getSentReplyCountsForMessages(
+  messageIds: number[],
+): Promise<Map<number, number>> {
+  const counts = new Map<number, number>();
+  if (messageIds.length === 0) return counts;
+
+  const sql = getSql();
+  const rows = await sql`
+    SELECT
+      message_id,
+      COUNT(*) FILTER (
+        WHERE direction = 'outbound' AND send_status = 'sent'
+      )::int AS reply_count
+    FROM contact_message_replies
+    WHERE message_id = ANY(${messageIds})
+    GROUP BY message_id
+  `;
+  for (const row of rows) {
+    counts.set(Number(row.message_id), Number(row.reply_count));
+  }
+  return counts;
+}
+
+/**
  * The most recent successfully sent outbound reply, used to thread the next
  * one via In-Reply-To / References.
  */

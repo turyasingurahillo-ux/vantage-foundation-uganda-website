@@ -5,13 +5,15 @@ import { cookies } from "next/headers";
 import { ArrowLeft } from "lucide-react";
 import {
   getInboxCounts,
-  searchContactMessages,
+  searchContactMessageSummaries,
   getContactMessageById,
+  type ContactMessageSummary,
   type ContactMessageRow,
   type InboxFilter,
 } from "@/lib/db/contact";
 import {
   getRepliesForMessage,
+  getSentReplyCountsForMessages,
   type ContactReplyRow,
 } from "@/lib/db/contact-replies";
 import { getAdmins } from "@/lib/db/admins";
@@ -105,14 +107,15 @@ export default async function AdminMessagesPage({
     query ? `&q=${encodeURIComponent(query)}` : ""
   }`;
 
-  // Fetch list summaries and counts in parallel.
-  let messages: ContactMessageRow[] = [];
+  // Fetch list summaries (bounded previews, no full message bodies) and
+  // canonical counts in parallel.
+  let messages: ContactMessageSummary[] = [];
   let counts: Record<InboxFilter, number> | null = null;
   let dbError = false;
 
   try {
     const [found, tallies] = await Promise.all([
-      searchContactMessages({ filter, query }),
+      searchContactMessageSummaries({ filter, query }),
       getInboxCounts(),
     ]);
     messages = found;
@@ -121,9 +124,23 @@ export default async function AdminMessagesPage({
     dbError = true;
   }
 
-  // Fetch the selected conversation's replies and the selected message
-  // itself (to get full details even if it's not in the current filtered list).
-  // Also batch-resolve admin names for actor attribution.
+  // Fetch lightweight grouped reply counts for all list messages.
+  // This returns only counts — no reply bodies, error details, or
+  // recipient addresses — so the list can show reply counts without
+  // loading full reply rows.
+  let replyCounts = new Map<number, number>();
+  if (!dbError && messages.length > 0) {
+    try {
+      replyCounts = await getSentReplyCountsForMessages(
+        messages.map((m) => m.id),
+      );
+    } catch {
+      // Reply counts are a nice-to-have; list still renders without them.
+    }
+  }
+
+  // Fetch the selected conversation's full message + replies + admin names.
+  // The full message body is only loaded for the selected conversation.
   let selectedMessage: ContactMessageRow | null = null;
   let replies: ContactReplyRow[] = [];
   let adminNames: Record<string, string> = {};
@@ -160,14 +177,6 @@ export default async function AdminMessagesPage({
     count: counts?.[tab.key],
   }));
 
-  // Reply counts for list items — derived from the loaded replies only for
-  // the selected message. For unselected messages we don't fetch replies,
-  // so we show no count. This is a deliberate trade-off: the list stays
-  // lightweight, and the count appears when a conversation is opened.
-  const selectedReplyCount = replies.filter(
-    (r) => r.sendStatus === "sent",
-  ).length;
-
   return (
     <Container>
       <PageHeader
@@ -202,7 +211,7 @@ export default async function AdminMessagesPage({
         <StatusTabs
           tabs={tabs}
           basePath="/admin/messages"
-          aria-label="Message filters"
+          ariaLabel="Message filters"
         />
         <SearchInput
           defaultValue={query}
@@ -235,34 +244,27 @@ export default async function AdminMessagesPage({
       {/* Desktop: two-pane master/detail. Mobile: list or conversation. */}
       {!dbError && messages.length > 0 && (
         <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border lg:grid-cols-[380px_1fr]">
-          {/* MESSAGE LIST PANE */}
-          <div
-            className="border-b border-border bg-white lg:border-b-0 lg:border-r"
-            aria-label="Message list"
+          {/* MESSAGE LIST PANE — navigation semantics, not a listbox widget.
+              These are navigation links driven by URL state. */}
+          <nav
+            aria-label="Conversations"
+            className={
+              "border-b border-border bg-white lg:border-b-0 lg:border-r " +
+              (selectedMessage ? "hidden lg:block" : "block")
+            }
           >
-            {/* On mobile, hide the list when a conversation is open */}
-            <ul
-              role="listbox"
-              aria-label="Conversations"
-              className={
-                selectedMessage
-                  ? "hidden lg:block max-h-[70vh] overflow-y-auto"
-                  : "block max-h-[70vh] overflow-y-auto"
-              }
-            >
+            <ul className="max-h-[70vh] overflow-y-auto">
               {messages.map((m) => (
                 <MessageListItem
                   key={m.id}
                   message={m}
                   selected={selectedMessage?.id === m.id}
                   preserveParams={preserveParams}
-                  replyCount={
-                    selectedMessage?.id === m.id ? selectedReplyCount : 0
-                  }
+                  replyCount={replyCounts.get(m.id) ?? 0}
                 />
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* CONVERSATION PANE */}
           <div className="bg-white">
@@ -313,7 +315,6 @@ export default async function AdminMessagesPage({
                       messageId={selectedMessage.id}
                       status={selectedMessage.status}
                       csrfToken={csrfToken}
-                      preserveParams={preserveParams}
                     />
                   </div>
                 </div>
@@ -382,7 +383,6 @@ export default async function AdminMessagesPage({
                     messageId={selectedMessage.id}
                     status={selectedMessage.status}
                     csrfToken={csrfToken}
-                    preserveParams={preserveParams}
                   />
                 </div>
               </div>
