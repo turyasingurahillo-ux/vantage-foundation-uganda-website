@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { z } from "zod";
 import {
   getContactMessageById,
   markContactMessageReplied,
@@ -12,7 +11,8 @@ import {
   markReplyFailed,
   markReplySent,
 } from "@/lib/db/contact-replies";
-import { REPLY_MAX_LENGTH, sendContactReply } from "@/lib/contact-reply";
+import { sendContactReply } from "@/lib/contact-reply";
+import { parseReplyForm } from "@/lib/reply-validation";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -35,19 +35,11 @@ import { appendAuditLog } from "@/lib/db/audit";
  * called, then moved to `sent` or `failed`. The conversation is only marked
  * replied off the back of a `sent` row, so a provider rejection is never
  * displayed as a delivered reply, and a failed reply can be retried.
+ *
+ * Validation lives in `lib/reply-validation.ts` so every failure mode maps
+ * onto a fixed application error code (`empty`, `too-long`, `invalid`) rather
+ * than leaking raw Zod messages into a redirect URL.
  */
-
-const schema = z.object({
-  id: z.coerce.number().int().positive(),
-  body: z
-    .string()
-    .trim()
-    .min(1, "empty")
-    .max(REPLY_MAX_LENGTH, "too-long"),
-  // Generated per composer mount. UNIQUE in the schema, so a double submit
-  // collapses onto the same row instead of sending twice.
-  idempotencyKey: z.string().min(8).max(100),
-});
 
 function back(request: Request, id: number | string, params: string) {
   return NextResponse.redirect(
@@ -78,15 +70,14 @@ export async function POST(request: Request) {
     return back(request, "", "error=csrf");
   }
 
-  const parsed = schema.safeParse({
+  const parsed = parseReplyForm({
     id: formData.get("id"),
     body: formData.get("body"),
     idempotencyKey: formData.get("idempotencyKey"),
   });
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0]?.message ?? "invalid";
+  if (!parsed.ok) {
     const rawId = String(formData.get("id") ?? "");
-    return back(request, rawId, `error=${encodeURIComponent(issue)}`);
+    return back(request, rawId, `error=${parsed.code}`);
   }
 
   const { id, body, idempotencyKey } = parsed.data;
