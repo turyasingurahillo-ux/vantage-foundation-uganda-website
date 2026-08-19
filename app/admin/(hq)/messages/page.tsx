@@ -2,23 +2,32 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { ArrowLeft } from "lucide-react";
 import {
   getInboxCounts,
   searchContactMessages,
+  getContactMessageById,
   type ContactMessageRow,
-  type ContactMessageStatus,
   type InboxFilter,
 } from "@/lib/db/contact";
 import {
-  getRepliesForMessages,
+  getRepliesForMessage,
   type ContactReplyRow,
 } from "@/lib/db/contact-replies";
+import { getAdmins } from "@/lib/db/admins";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
 import { ReplyComposer } from "@/components/admin/ReplyComposer";
-import { Badge } from "@/components/ui/Badge";
-import { getCategoryLabel } from "@/lib/contact-categories";
+import { PageHeader } from "@/components/admin/hq/PageHeader";
+import { StatusTabs } from "@/components/admin/hq/StatusTabs";
+import { SearchInput } from "@/components/admin/hq/SearchInput";
+import { Alert } from "@/components/admin/hq/Alert";
+import { EmptyState } from "@/components/admin/hq/EmptyState";
+import { MessageListItem } from "@/components/admin/hq/MessageListItem";
+import { ConversationHeader } from "@/components/admin/hq/ConversationHeader";
+import { ConversationTimeline } from "@/components/admin/hq/ConversationTimeline";
+import { MessageWorkflowActions } from "@/components/admin/hq/MessageWorkflowActions";
 import { REPLY_MAX_LENGTH, getReplyFromAddress } from "@/lib/contact-reply";
 
 export const metadata: Metadata = {
@@ -28,17 +37,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = {
-  "rate-limited": "Too many attempts. Wait a minute and try again.",
-  csrf: "Security check failed. Reload the page and try again.",
-  invalid: "That request could not be understood.",
-  notfound: "That message no longer exists.",
-  empty: "Write something before sending.",
-  "too-long": `Replies are limited to ${REPLY_MAX_LENGTH} characters.`,
-  send: "The email could not be sent. The draft is kept and marked as failed — check the email settings, then send again.",
-  server: "Something went wrong. Please try again.",
-};
-
 const TABS: { key: InboxFilter; label: string }[] = [
   { key: "new", label: "New" },
   { key: "awaiting_response", label: "Awaiting response" },
@@ -47,22 +45,23 @@ const TABS: { key: InboxFilter; label: string }[] = [
   { key: "all", label: "All" },
 ];
 
-const STATUS_BADGE: Record<
-  ContactMessageStatus,
-  { label: string; variant: "default" | "success" | "warning" | "outline" }
-> = {
-  new: { label: "New", variant: "warning" },
-  awaiting_response: { label: "Awaiting response", variant: "warning" },
-  replied: { label: "Replied", variant: "success" },
-  archived: { label: "Archived", variant: "outline" },
-};
-
 const EMPTY_STATE: Record<InboxFilter, string> = {
-  new: "No new messages. Anything submitted through the contact form lands here first.",
+  new: "No new messages.",
   awaiting_response: "Nothing is waiting on a response.",
   replied: "No replied conversations yet.",
-  archived: "Nothing archived.",
-  all: "No messages yet. Submissions from the website contact form will appear here.",
+  archived: "No archived messages.",
+  all: "No messages yet.",
+};
+
+const ERROR_MESSAGES: Record<string, string> = {
+  "rate-limited": "Too many attempts. Wait a minute and try again.",
+  csrf: "Security check failed. Reload the page and try again.",
+  invalid: "That request could not be understood.",
+  notfound: "That message no longer exists.",
+  empty: "Write something before sending.",
+  "too-long": `Replies are limited to ${REPLY_MAX_LENGTH} characters.`,
+  send: "The reply could not be sent. The failed attempt is saved in the conversation — check the email settings, then try again.",
+  server: "Something went wrong. Please try again.",
 };
 
 function isFilter(value: string | undefined): value is InboxFilter {
@@ -72,138 +71,6 @@ function isFilter(value: string | undefined): value is InboxFilter {
     value === "replied" ||
     value === "archived" ||
     value === "all"
-  );
-}
-
-function formatDateTime(date: Date) {
-  return date.toLocaleString("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-/** Small form that posts one workflow action. */
-function ActionButton({
-  action,
-  csrfToken,
-  id,
-  status,
-  label,
-  variant = "ghost",
-}: {
-  action: string;
-  csrfToken: string;
-  id: number;
-  status?: string;
-  label: string;
-  variant?: "ghost" | "primary";
-}) {
-  return (
-    <form method="post" action={action} className="inline">
-      <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-      <input type="hidden" name="id" value={id} />
-      {status ? <input type="hidden" name="status" value={status} /> : null}
-      <button
-        type="submit"
-        className={
-          variant === "primary"
-            ? "rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
-            : "rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-slate-50"
-        }
-      >
-        {label}
-      </button>
-    </form>
-  );
-}
-
-function Conversation({
-  message,
-  replies,
-  csrfToken,
-  fromAddress,
-}: {
-  message: ContactMessageRow;
-  replies: ContactReplyRow[];
-  csrfToken: string;
-  fromAddress: string;
-}) {
-  return (
-    <div className="mt-5 border-t border-border pt-5">
-      {/* Original submission */}
-      <div className="rounded-lg bg-slate-50 p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-sm font-semibold">{message.name}</p>
-          <time
-            dateTime={message.createdAt.toISOString()}
-            className="text-xs text-muted-foreground"
-          >
-            {formatDateTime(message.createdAt)}
-          </time>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {message.email}
-          {message.phone ? <> · {message.phone}</> : null}
-          {message.organisation ? <> · {message.organisation}</> : null}
-        </p>
-        {/* Plain text only — never rendered as HTML. */}
-        <p className="mt-3 whitespace-pre-wrap text-sm">{message.message}</p>
-      </div>
-
-      {/* Correspondence, oldest first */}
-      {replies.map((reply) => (
-        <div
-          key={reply.id}
-          className={
-            reply.direction === "outbound"
-              ? "mt-3 rounded-lg border border-primary/30 bg-primary/5 p-4 md:ml-8"
-              : "mt-3 rounded-lg bg-slate-50 p-4"
-          }
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="text-sm font-semibold">
-              {reply.direction === "outbound"
-                ? "Vantage Foundation Uganda"
-                : message.name}
-            </p>
-            <div className="flex items-center gap-2">
-              {reply.sendStatus === "failed" && (
-                <Badge variant="destructive">Not sent</Badge>
-              )}
-              {reply.sendStatus === "pending" && (
-                <Badge variant="warning">Sending</Badge>
-              )}
-              <time
-                dateTime={(reply.sentAt ?? reply.createdAt).toISOString()}
-                className="text-xs text-muted-foreground"
-              >
-                {formatDateTime(reply.sentAt ?? reply.createdAt)}
-              </time>
-            </div>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            to {reply.recipientEmail}
-            {reply.adminActorId ? <> · sent by {reply.adminActorId}</> : null}
-          </p>
-          <p className="mt-3 whitespace-pre-wrap text-sm">{reply.body}</p>
-          {reply.sendStatus === "failed" && reply.errorDetail && (
-            <p className="mt-2 text-xs text-destructive">
-              Delivery failed: {reply.errorDetail}. Send a new reply to retry.
-            </p>
-          )}
-        </div>
-      ))}
-
-      <ReplyComposer
-        messageId={message.id}
-        recipientName={message.name}
-        recipientEmail={message.email}
-        fromAddress={fromAddress}
-        csrfToken={csrfToken}
-        csrfFieldName={CSRF_FIELD_NAME}
-        maxLength={REPLY_MAX_LENGTH}
-      />
-    </div>
   );
 }
 
@@ -232,10 +99,16 @@ export default async function AdminMessagesPage({
   const query = (params.q ?? "").slice(0, 100);
   const openId = Number(params.open) || null;
 
+  // Preserve filter and search in all links so navigation never silently
+  // discards the current context.
+  const preserveParams = `filter=${filter}${
+    query ? `&q=${encodeURIComponent(query)}` : ""
+  }`;
+
+  // Fetch list summaries and counts in parallel.
   let messages: ContactMessageRow[] = [];
   let counts: Record<InboxFilter, number> | null = null;
-  let repliesByMessage = new Map<number, ContactReplyRow[]>();
-  let dbError = "";
+  let dbError = false;
 
   try {
     const [found, tallies] = await Promise.all([
@@ -244,260 +117,279 @@ export default async function AdminMessagesPage({
     ]);
     messages = found;
     counts = tallies;
-    repliesByMessage = await getRepliesForMessages(messages.map((m) => m.id));
   } catch {
-    dbError =
-      "Could not load messages. Check that DATABASE_URL is set and that the contact tables exist.";
+    dbError = true;
+  }
+
+  // Fetch the selected conversation's replies and the selected message
+  // itself (to get full details even if it's not in the current filtered list).
+  // Also batch-resolve admin names for actor attribution.
+  let selectedMessage: ContactMessageRow | null = null;
+  let replies: ContactReplyRow[] = [];
+  let adminNames: Record<string, string> = {};
+
+  if (openId) {
+    try {
+      const [msg, reps, admins] = await Promise.all([
+        getContactMessageById(openId),
+        getRepliesForMessage(openId),
+        getAdmins()
+          .then((list) =>
+            Object.fromEntries(list.map((a) => [String(a.id), a.username])),
+          )
+          .catch(() => ({})),
+      ]);
+      selectedMessage = msg;
+      replies = reps;
+      adminNames = admins;
+    } catch {
+      // If the selected conversation fails to load, the list still renders.
+      selectedMessage = null;
+    }
   }
 
   const fromAddress = getReplyFromAddress();
-  const keepParams = `filter=${filter}${
-    query ? `&q=${encodeURIComponent(query)}` : ""
-  }`;
+
+  // Build tab config for StatusTabs.
+  const tabs = TABS.map((tab) => ({
+    label: tab.label,
+    params: `filter=${tab.key}${
+      query ? `&q=${encodeURIComponent(query)}` : ""
+    }`,
+    active: tab.key === filter,
+    count: counts?.[tab.key],
+  }));
+
+  // Reply counts for list items — derived from the loaded replies only for
+  // the selected message. For unselected messages we don't fetch replies,
+  // so we show no count. This is a deliberate trade-off: the list stays
+  // lightweight, and the count appears when a conversation is opened.
+  const selectedReplyCount = replies.filter(
+    (r) => r.sendStatus === "sent",
+  ).length;
 
   return (
-    <section className="py-12">
-      <Container>
+    <Container>
+      <PageHeader
+        title="Contact messages"
+        description="Read enquiries from the website and reply directly. Every submission is stored before any email is sent, so nothing is lost if delivery fails."
+      />
 
-
-        <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Contact messages</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Read enquiries from the website and reply to them directly. Every
-              submission is stored before any email is sent, so nothing is lost
-              if delivery fails.
-            </p>
-          </div>
-          <form method="get" className="flex gap-2">
-            <input type="hidden" name="filter" value={filter} />
-            <label htmlFor="q" className="sr-only">
-              Search messages
-            </label>
-            <input
-              id="q"
-              name="q"
-              type="search"
-              defaultValue={query}
-              placeholder="Search name, email, topic…"
-              className="w-56 rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-            >
-              Search
-            </button>
-          </form>
-        </div>
-
-        <nav className="mt-6 flex flex-wrap gap-2" aria-label="Message filters">
-          {TABS.map((tab) => {
-            const isCurrent = tab.key === filter;
-            const count = counts?.[tab.key];
-            return (
-              <Link
-                key={tab.key}
-                href={`/admin/messages?filter=${tab.key}${
-                  query ? `&q=${encodeURIComponent(query)}` : ""
-                }`}
-                aria-current={isCurrent ? "page" : undefined}
-                className={
-                  isCurrent
-                    ? "rounded-lg border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white"
-                    : "rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-                }
-              >
-                {tab.label}
-                {typeof count === "number" ? (
-                  <span
-                    className={
-                      isCurrent ? "ml-2 opacity-80" : "ml-2 text-muted-foreground"
-                    }
-                  >
-                    {count}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {dbError && (
-          <p className="mt-6 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            {dbError}
-          </p>
-        )}
+      {/* Flash messages */}
+      <div className="mt-4 space-y-2">
         {params.replied && (
-          <p className="mt-6 rounded-md border border-success/30 bg-success/5 p-4 text-sm">
+          <Alert variant="success">
             Reply sent. It is saved in the conversation below.
-          </p>
+          </Alert>
         )}
         {params.resent && (
-          <p className="mt-6 rounded-md border border-success/30 bg-success/5 p-4 text-sm">
-            Internal notification re-sent to the team inbox.
-          </p>
+          <Alert variant="success">
+            Team notification re-sent to the internal inbox.
+          </Alert>
         )}
         {params.status && (
-          <p className="mt-6 rounded-md border border-border bg-slate-50 p-4 text-sm">
-            Message updated.
-          </p>
+          <Alert variant="info">Message status updated.</Alert>
         )}
         {params.error && (
-          <p className="mt-6 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-            {ERRORS[params.error] ?? ERRORS.server}
-          </p>
+          <Alert variant="error">
+            {ERROR_MESSAGES[params.error] ?? ERROR_MESSAGES.server}
+          </Alert>
         )}
+      </div>
 
-        {!dbError && messages.length === 0 && (
-          <p className="mt-8 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            {query
-              ? `Nothing matches “${query}” in ${
-                  TABS.find((t) => t.key === filter)?.label ?? filter
-                }.`
-              : EMPTY_STATE[filter]}
-          </p>
-        )}
+      {/* Filters + search */}
+      <div className="mt-6 space-y-4">
+        <StatusTabs
+          tabs={tabs}
+          basePath="/admin/messages"
+          aria-label="Message filters"
+        />
+        <SearchInput
+          defaultValue={query}
+          action="/admin/messages"
+          hiddenFields={[{ name: "filter", value: filter }]}
+          placeholder="Search name, email, topic, message…"
+          ariaLabel="Search messages"
+          className="max-w-md"
+        />
+      </div>
 
-        <div className="mt-6 space-y-4">
-          {messages.map((m) => {
-            const isOpen = openId === m.id;
-            const replies = repliesByMessage.get(m.id) ?? [];
-            const sentCount = replies.filter(
-              (r) => r.sendStatus === "sent",
-            ).length;
-            const badge = STATUS_BADGE[m.status];
+      {dbError && (
+        <Alert variant="error" className="mt-6">
+          Messages could not be loaded. Please try again.
+        </Alert>
+      )}
 
-            return (
-              <article
-                key={m.id}
-                id={`message-${m.id}`}
-                className="rounded-xl border border-border bg-white p-5 shadow-sm"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                  <Badge variant="default">{getCategoryLabel(m.category)}</Badge>
-                  {sentCount > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {sentCount} {sentCount === 1 ? "reply" : "replies"}
-                    </span>
-                  )}
-                  {!m.emailSent && (
-                    <span className="text-xs text-muted-foreground">
-                      team not notified
-                    </span>
-                  )}
-                  <time
-                    dateTime={m.createdAt.toISOString()}
-                    className="ml-auto text-xs text-muted-foreground"
-                  >
-                    {formatDateTime(m.createdAt)}
-                  </time>
-                </div>
+      {/* Inbox body */}
+      {!dbError && messages.length === 0 && !selectedMessage && (
+        <EmptyState
+          className="mt-6"
+          title={
+            query
+              ? `No messages match “${query}”`
+              : EMPTY_STATE[filter]
+          }
+        />
+      )}
 
-                <h2 className="mt-3 font-semibold">
-                  {m.name}
-                  {m.organisation ? (
-                    <span className="font-normal text-muted-foreground">
-                      {" "}
-                      — {m.organisation}
-                    </span>
-                  ) : null}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  <a
-                    href={`mailto:${encodeURIComponent(m.email)}`}
-                    className="text-primary underline"
-                  >
-                    {m.email}
-                  </a>
-                  {m.lastRepliedAt ? (
-                    <> · last replied {formatDateTime(m.lastRepliedAt)}</>
-                  ) : null}
-                </p>
+      {/* Desktop: two-pane master/detail. Mobile: list or conversation. */}
+      {!dbError && messages.length > 0 && (
+        <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border lg:grid-cols-[380px_1fr]">
+          {/* MESSAGE LIST PANE */}
+          <div
+            className="border-b border-border bg-white lg:border-b-0 lg:border-r"
+            aria-label="Message list"
+          >
+            {/* On mobile, hide the list when a conversation is open */}
+            <ul
+              role="listbox"
+              aria-label="Conversations"
+              className={
+                selectedMessage
+                  ? "hidden lg:block max-h-[70vh] overflow-y-auto"
+                  : "block max-h-[70vh] overflow-y-auto"
+              }
+            >
+              {messages.map((m) => (
+                <MessageListItem
+                  key={m.id}
+                  message={m}
+                  selected={selectedMessage?.id === m.id}
+                  preserveParams={preserveParams}
+                  replyCount={
+                    selectedMessage?.id === m.id ? selectedReplyCount : 0
+                  }
+                />
+              ))}
+            </ul>
+          </div>
 
-                {!isOpen && (
-                  <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                    {m.message}
-                  </p>
-                )}
-
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* CONVERSATION PANE */}
+          <div className="bg-white">
+            {selectedMessage ? (
+              <div className="flex flex-col max-h-[70vh]">
+                {/* Mobile back link */}
+                <div className="border-b border-border p-3 lg:hidden">
                   <Link
-                    href={
-                      isOpen
-                        ? `/admin/messages?${keepParams}#message-${m.id}`
-                        : `/admin/messages?${keepParams}&open=${m.id}#message-${m.id}`
-                    }
-                    className={
-                      isOpen
-                        ? "rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-slate-50"
-                        : "rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
-                    }
+                    href={`/admin/messages?${preserveParams}`}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
                   >
-                    {isOpen ? "Close conversation" : "Reply / view conversation"}
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    Back to messages
                   </Link>
-
-                  {m.status === "archived" ? (
-                    <ActionButton
-                      action="/api/admin/messages/status"
-                      csrfToken={csrfToken}
-                      id={m.id}
-                      status="new"
-                      label="Unarchive"
-                    />
-                  ) : (
-                    <>
-                      {m.status !== "new" && (
-                        <ActionButton
-                          action="/api/admin/messages/status"
-                          csrfToken={csrfToken}
-                          id={m.id}
-                          status="new"
-                          label="Mark as new"
-                        />
-                      )}
-                      {m.status === "new" && (
-                        <ActionButton
-                          action="/api/admin/messages/status"
-                          csrfToken={csrfToken}
-                          id={m.id}
-                          status="awaiting_response"
-                          label="Mark as awaiting response"
-                        />
-                      )}
-                      <ActionButton
-                        action="/api/admin/messages/status"
-                        csrfToken={csrfToken}
-                        id={m.id}
-                        status="archived"
-                        label="Archive"
-                      />
-                    </>
-                  )}
-
-                  {/* Secondary: internal team notification, NOT a reply to the sender. */}
-                  <ActionButton
-                    action="/api/admin/messages/resend"
-                    csrfToken={csrfToken}
-                    id={m.id}
-                    label="Resend internal notification"
-                  />
                 </div>
 
-                {isOpen && (
-                  <Conversation
-                    message={m}
-                    replies={replies}
-                    csrfToken={csrfToken}
-                    fromAddress={fromAddress}
-                  />
-                )}
-              </article>
-            );
-          })}
+                {/* Scrollable conversation content */}
+                <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+                  <ConversationHeader message={selectedMessage} />
+
+                  <div className="mt-6">
+                    <ConversationTimeline
+                      message={selectedMessage}
+                      replies={replies}
+                      adminNames={adminNames}
+                    />
+                  </div>
+
+                  {/* Reply composer — primary action */}
+                  <div className="mt-6 border-t border-border pt-5">
+                    <ReplyComposer
+                      messageId={selectedMessage.id}
+                      recipientName={selectedMessage.name}
+                      recipientEmail={selectedMessage.email}
+                      fromAddress={fromAddress}
+                      csrfToken={csrfToken}
+                      csrfFieldName={CSRF_FIELD_NAME}
+                      maxLength={REPLY_MAX_LENGTH}
+                    />
+                  </div>
+
+                  {/* Workflow actions — secondary/tertiary */}
+                  <div className="mt-6 border-t border-border pt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Workflow
+                    </p>
+                    <MessageWorkflowActions
+                      messageId={selectedMessage.id}
+                      status={selectedMessage.status}
+                      csrfToken={csrfToken}
+                      preserveParams={preserveParams}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* No conversation selected — desktop shows prompt, mobile shows nothing (list is visible) */
+              <div className="hidden items-center justify-center p-12 lg:flex">
+                <EmptyState
+                  title="Select a message to view the conversation"
+                  description="Choose a conversation from the list to read and reply."
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </Container>
-    </section>
+      )}
+
+      {/* Edge case: list is empty but a conversation is selected (e.g. filter excludes it) */}
+      {!dbError && messages.length === 0 && selectedMessage && (
+        <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border lg:grid-cols-[380px_1fr]">
+          <div className="border-b border-border bg-white lg:border-b-0 lg:border-r">
+            <EmptyState
+              title={
+                query
+                  ? `No messages match “${query}”`
+                  : EMPTY_STATE[filter]
+              }
+            />
+          </div>
+          <div className="bg-white">
+            <div className="flex flex-col max-h-[70vh]">
+              <div className="border-b border-border p-3 lg:hidden">
+                <Link
+                  href={`/admin/messages?${preserveParams}`}
+                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+                >
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  Back to messages
+                </Link>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+                <ConversationHeader message={selectedMessage} />
+                <div className="mt-6">
+                  <ConversationTimeline
+                    message={selectedMessage}
+                    replies={replies}
+                    adminNames={adminNames}
+                  />
+                </div>
+                <div className="mt-6 border-t border-border pt-5">
+                  <ReplyComposer
+                    messageId={selectedMessage.id}
+                    recipientName={selectedMessage.name}
+                    recipientEmail={selectedMessage.email}
+                    fromAddress={fromAddress}
+                    csrfToken={csrfToken}
+                    csrfFieldName={CSRF_FIELD_NAME}
+                    maxLength={REPLY_MAX_LENGTH}
+                  />
+                </div>
+                <div className="mt-6 border-t border-border pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Workflow
+                  </p>
+                  <MessageWorkflowActions
+                    messageId={selectedMessage.id}
+                    status={selectedMessage.status}
+                    csrfToken={csrfToken}
+                    preserveParams={preserveParams}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </Container>
   );
 }

@@ -16,6 +16,8 @@ interface StatusTabsProps {
   tabs: StatusTab[];
   /** Base path for tab links, e.g. "/admin/donations". */
   basePath: string;
+  /** Accessible label for the nav element. Defaults to "Filter by status". */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -29,10 +31,10 @@ interface StatusTabsProps {
  * The active tab is identified by aria-current="page" and a visual
  * indicator (background + text colour), not by colour alone.
  */
-export function StatusTabs({ tabs, basePath, className }: StatusTabsProps) {
+export function StatusTabs({ tabs, basePath, ariaLabel, className }: StatusTabsProps) {
   return (
     <nav
-      aria-label="Filter by status"
+      aria-label={ariaLabel ?? "Filter by status"}
       className={cn(
         "flex flex-wrap gap-1 rounded-xl border border-border bg-white p-1",
         className,
