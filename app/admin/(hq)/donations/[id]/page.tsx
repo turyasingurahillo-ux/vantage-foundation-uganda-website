@@ -301,14 +301,13 @@ export default async function DonationReviewPage({
                           className="block text-sm font-medium text-foreground"
                           htmlFor="correct-notes"
                         >
-                          Reason for correction
+                          Update notes for this correction
                         </label>
                         <textarea
                           id="correct-notes"
                           name="adminNotes"
                           rows={2}
                           defaultValue={donation.adminNotes ?? ""}
-                          required
                           className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         />
                         <button
@@ -351,14 +350,13 @@ export default async function DonationReviewPage({
                           className="block text-sm font-medium text-foreground"
                           htmlFor="correct-notes-2"
                         >
-                          Reason for correction
+                          Update notes for this correction
                         </label>
                         <textarea
                           id="correct-notes-2"
                           name="adminNotes"
                           rows={2}
                           defaultValue={donation.adminNotes ?? ""}
-                          required
                           className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         />
                         <button

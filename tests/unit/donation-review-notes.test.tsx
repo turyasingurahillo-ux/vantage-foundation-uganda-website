@@ -119,7 +119,7 @@ describe("Donation review page — admin notes preservation", () => {
     const summary = screen.getByText("Need to correct this?");
     summary.click();
     const correctTextarea = screen.getByRole("textbox", {
-      name: /reason for correction/i,
+      name: /update notes for this correction/i,
     });
     expect(correctTextarea).toHaveValue("Verified on Aug 19");
   });
@@ -131,8 +131,25 @@ describe("Donation review page — admin notes preservation", () => {
     const summary = screen.getByText("Need to correct this?");
     summary.click();
     const correctTextarea = screen.getByRole("textbox", {
-      name: /reason for correction/i,
+      name: /update notes for this correction/i,
     });
     expect(correctTextarea).toHaveValue("No matching txn");
+  });
+
+  it("correction forms are not falsely required — existing notes satisfy the field", async () => {
+    // The correction forms use "Update notes for this correction" as the
+    // label, NOT "Reason for correction", and do not have `required`.
+    // This avoids the semantic mismatch where a pre-filled existing note
+    // would pass HTML `required` without the admin entering anything new.
+    await renderDonationReview(
+      makeDonation({ status: "verified", adminNotes: "Old note" }),
+    );
+    const summary = screen.getByText("Need to correct this?");
+    summary.click();
+    const correctTextarea = screen.getByRole("textbox", {
+      name: /update notes for this correction/i,
+    });
+    expect(correctTextarea).not.toHaveAttribute("required");
+    expect(correctTextarea).toHaveValue("Old note");
   });
 });
