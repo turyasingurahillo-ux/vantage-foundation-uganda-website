@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import {
+  MessageSquare,
+  Wallet,
+  FileText,
+  Image as ImageIcon,
+  ArrowRight,
+} from "lucide-react";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getDonations } from "@/lib/db";
-import { getContactMessageCounts } from "@/lib/db/contact";
+import { getDashboardAttention, getRecentActivity } from "@/lib/db/dashboard";
+import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
-import { Badge } from "@/components/ui/Badge";
 import { ContentPerformanceCard } from "@/components/admin/ContentPerformanceCard";
+import { PageHeader } from "@/components/admin/hq/PageHeader";
+import { AttentionCard } from "@/components/admin/hq/AttentionCard";
+import { QuickAction } from "@/components/admin/hq/QuickAction";
+import { ActivityFeed } from "@/components/admin/hq/ActivityFeed";
 
 export const metadata: Metadata = {
-  title: "Admin dashboard",
+  title: "Dashboard",
   robots: { index: false, follow: false },
 };
 
@@ -22,100 +31,191 @@ export default async function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  // Quick stats for the dashboard: pending donations count.
-  let pendingDonations = 0;
-  let donationsAvailable = true;
+  // Attention counts — each source degrades gracefully to 0 if the DB
+  // or a specific table is unavailable.
+  const { attention, sources } = await getDashboardAttention().catch(() => ({
+    attention: {
+      pendingDonations: 0,
+      newMessages: 0,
+      awaitingResponseMessages: 0,
+      draftStories: 0,
+      mediaPendingConsent: 0,
+    },
+    sources: {
+      donations: false,
+      contactMessages: false,
+      stories: false,
+      media: false,
+    },
+  }));
+
+  // Recent activity from the audit log.
+  let activityEntries: Awaited<ReturnType<typeof getRecentActivity>> = [];
+  let adminNames: Record<string, string> = {};
   try {
-    const donations = await getDonations();
-    pendingDonations = donations.filter((d) => d.status === "pending").length;
+    [activityEntries, adminNames] = await Promise.all([
+      getRecentActivity(8),
+      getAdmins()
+        .then((admins) =>
+          Object.fromEntries(admins.map((a) => [String(a.id), a.username])),
+        )
+        .catch(() => ({})),
+    ]);
   } catch {
-    donationsAvailable = false;
+    // Activity feed is a nice-to-have; show empty state if unavailable.
   }
 
-  // Contact enquiries. Until SMTP is configured no notification email goes out,
-  // so this dashboard is the only place an unanswered enquiry becomes visible.
-  let unhandledMessages = 0;
-  let notEmailedMessages = 0;
-  let contactMessagesAvailable = true;
-  try {
-    const counts = await getContactMessageCounts();
-    unhandledMessages = counts.unhandled;
-    notEmailedMessages = counts.notEmailed;
-  } catch {
-    contactMessagesAvailable = false;
-  }
+  const hasAttention =
+    attention.pendingDonations > 0 ||
+    attention.newMessages > 0 ||
+    attention.awaitingResponseMessages > 0 ||
+    attention.draftStories > 0 ||
+    attention.mediaPendingConsent > 0;
 
   return (
-    <section className="py-12 md:py-16">
-      <Container>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Admin dashboard</h1>
-            <p className="text-sm text-muted-foreground">Overview of Vantage Foundation Uganda operations.</p>
-          </div>
+    <Container>
+      <PageHeader
+        title="Vantage HQ"
+        description="Overview of activity requiring attention."
+      />
 
+      {/* ATTENTION */}
+      <section aria-labelledby="attention-heading" className="mt-8">
+        <h2
+          id="attention-heading"
+          className="text-lg font-semibold text-foreground"
+        >
+          {hasAttention ? "Needs attention" : "All clear"}
+        </h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {hasAttention
+            ? "Items below are waiting for an administrator to act."
+            : "Nothing is waiting for you right now."}
+        </p>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <AttentionCard
+            href="/admin/donations?status=pending"
+            label="Pending donations"
+            description="Awaiting verification against the bank statement"
+            count={attention.pendingDonations}
+            urgent={attention.pendingDonations > 0}
+            unavailable={!sources.donations}
+            countLabel={`${attention.pendingDonations} pending`}
+          />
+          <AttentionCard
+            href="/admin/messages?filter=new"
+            label="New messages"
+            description="Contact enquiries that nobody has actioned yet"
+            count={attention.newMessages}
+            urgent={attention.newMessages > 0}
+            unavailable={!sources.contactMessages}
+            countLabel={`${attention.newMessages} new`}
+          />
+          <AttentionCard
+            href="/admin/messages?filter=awaiting_response"
+            label="Awaiting response"
+            description="Conversations waiting for a reply to be sent"
+            count={attention.awaitingResponseMessages}
+            urgent={attention.awaitingResponseMessages > 0}
+            unavailable={!sources.contactMessages}
+            countLabel={`${attention.awaitingResponseMessages} awaiting`}
+          />
+          <AttentionCard
+            href="/admin/stories"
+            label="Draft stories"
+            description="Stories saved but not yet published"
+            count={attention.draftStories}
+            urgent={attention.draftStories > 0}
+            unavailable={!sources.stories}
+            countLabel={`${attention.draftStories} drafts`}
+          />
+          <AttentionCard
+            href="/admin/media"
+            label="Media awaiting consent"
+            description="Uploaded photos pending consent classification"
+            count={attention.mediaPendingConsent}
+            urgent={attention.mediaPendingConsent > 0}
+            unavailable={!sources.media}
+            countLabel={`${attention.mediaPendingConsent} pending consent`}
+          />
         </div>
+      </section>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          {/* Content Performance card */}
+      {/* QUICK ACTIONS + RECENT ACTIVITY */}
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        <section aria-labelledby="quick-actions-heading">
+          <h2
+            id="quick-actions-heading"
+            className="text-lg font-semibold text-foreground"
+          >
+            Quick actions
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <QuickAction
+              href="/admin/donations?status=pending"
+              label="Review donations"
+              description="Verify pending donor submissions"
+              icon={Wallet}
+            />
+            <QuickAction
+              href="/admin/messages?filter=new"
+              label="Open inbox"
+              description="Read and reply to contact enquiries"
+              icon={MessageSquare}
+            />
+            <QuickAction
+              href="/admin/stories"
+              label="Write story"
+              description="Create or publish a Stories & Insights entry"
+              icon={FileText}
+            />
+            <QuickAction
+              href="/admin/media"
+              label="Upload media"
+              description="Add photos or documents to the library"
+              icon={ImageIcon}
+            />
+          </div>
+        </section>
+
+        <section aria-labelledby="recent-activity-heading">
+          <div className="flex items-center justify-between">
+            <h2
+              id="recent-activity-heading"
+              className="text-lg font-semibold text-foreground"
+            >
+              Recent activity
+            </h2>
+            <a
+              href="/admin/audit"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
+            >
+              View all
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </div>
+          <div className="mt-4 rounded-xl border border-border bg-white p-2">
+            <ActivityFeed entries={activityEntries} adminNames={adminNames} />
+          </div>
+        </section>
+      </div>
+
+      {/* CONTENT PERFORMANCE */}
+      <section aria-labelledby="performance-heading" className="mt-10">
+        <h2
+          id="performance-heading"
+          className="text-lg font-semibold text-foreground"
+        >
+          Content performance
+        </h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          This month&apos;s content KPIs and top performing article.
+        </p>
+        <div className="mt-4">
           <ContentPerformanceCard />
-
-          {/* Quick actions / status */}
-          <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">Operations</h2>
-            <div className="mt-4 space-y-3">
-              {donationsAvailable ? (
-                <Link href="/admin/donations" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
-                  <div>
-                    <div className="font-medium">Donation verifications</div>
-                    <div className="text-sm text-muted-foreground">Review pending donor submissions</div>
-                  </div>
-                  <Badge variant={pendingDonations > 0 ? "warning" : "success"}>
-                    {pendingDonations} pending
-                  </Badge>
-                </Link>
-              ) : (
-                <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Donations database not configured.
-                </div>
-              )}
-              {contactMessagesAvailable ? (
-                <Link href="/admin/messages" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
-                  <div>
-                    <div className="font-medium">Contact messages</div>
-                    <div className="text-sm text-muted-foreground">
-                      {notEmailedMessages > 0
-                        ? "Nobody was emailed about these — reply from here"
-                        : "Enquiries submitted through the website"}
-                    </div>
-                  </div>
-                  <Badge variant={unhandledMessages > 0 ? "warning" : "success"}>
-                    {unhandledMessages} unhandled
-                  </Badge>
-                </Link>
-              ) : (
-                <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Contact messages database not configured.
-                </div>
-              )}
-              <Link href="/admin/stories" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
-                <div>
-                  <div className="font-medium">Stories &amp; Insights</div>
-                  <div className="text-sm text-muted-foreground">Write, publish and analyse content</div>
-                </div>
-                <span className="text-sm font-semibold text-primary">Manage →</span>
-              </Link>
-              <Link href="/admin/media" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
-                <div>
-                  <div className="font-medium">Media library</div>
-                  <div className="text-sm text-muted-foreground">Upload and manage photos and documents</div>
-                </div>
-                <span className="text-sm font-semibold text-primary">Manage →</span>
-              </Link>
-            </div>
-          </div>
         </div>
-      </Container>
-    </section>
+      </section>
+    </Container>
   );
 }

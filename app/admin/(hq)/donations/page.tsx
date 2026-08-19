@@ -1,217 +1,324 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { ChevronRight } from "lucide-react";
 import { getDonations, DonationRow } from "@/lib/db";
-import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
+import { getDonationCounts } from "@/lib/db/dashboard";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { Container } from "@/components/shared/Container";
-import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/admin/hq/PageHeader";
+import { StatusTabs, type StatusTab } from "@/components/admin/hq/StatusTabs";
+import { StatusBadge } from "@/components/admin/hq/StatusBadge";
+import { SearchInput } from "@/components/admin/hq/SearchInput";
+import { EmptyState } from "@/components/admin/hq/EmptyState";
+import { Alert } from "@/components/admin/hq/Alert";
+import { DonationCard } from "@/components/admin/hq/DonationCard";
+import { formatMoneyCompact, formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Donation Verifications",
+  title: "Donations",
   robots: { index: false, follow: false },
+};
+
+export const dynamic = "force-dynamic";
+
+type StatusFilter = "pending" | "verified" | "rejected" | "all";
+
+function isStatus(value: string | undefined): value is StatusFilter {
+  return value === "pending" || value === "verified" || value === "rejected" || value === "all";
+}
+
+const EMPTY_STATE_MESSAGES: Record<StatusFilter, { title: string; description: string }> = {
+  pending: {
+    title: "No donations are waiting for verification",
+    description: "New donor submissions will appear here for review.",
+  },
+  verified: {
+    title: "No verified donations yet",
+    description: "Verified donations will appear here as historical records.",
+  },
+  rejected: {
+    title: "No rejected donations",
+    description: "Rejected donations will appear here as historical records.",
+  },
+  all: {
+    title: "No donations recorded yet",
+    description: "Donations submitted through the public form will appear here.",
+  },
 };
 
 export default async function AdminDonationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ updated?: string; error?: string; noop?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    q?: string;
+    updated?: string;
+    error?: string;
+    noop?: string;
+  }>;
 }) {
-  const { updated, error, noop } = await searchParams;
-  const cookieStore = await cookies();
+  const params = await searchParams;
+  const status: StatusFilter = isStatus(params.status) ? params.status : "pending";
+  const query = params.q?.trim() ?? "";
+  const { updated, error, noop } = params;
 
-  // Verify the signed session token (HMAC-based, not the raw secret).
+  const cookieStore = await cookies();
   if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
     redirect("/admin/login");
   }
 
-  const csrfToken = await getCsrfTokenFromRequest();
-
+  // Fetch counts and donations in parallel. Counts drive the tab badges;
+  // donations drive the list. Both degrade gracefully on DB errors.
   let donations: DonationRow[] = [];
-  let dbError = "";
+  let counts = { pending: 0, verified: 0, rejected: 0, all: 0 };
+  let dbError = false;
 
   try {
+    // Load donations and counts in parallel. If the count query fails
+    // but the donation list succeeds, derive exact counts from the
+    // loaded rows so we never show wrong zero counts.
+    const countsResult = await getDonationCounts().then(
+      (c) => c,
+      () => null,
+    );
     donations = await getDonations();
+    if (countsResult) {
+      counts = countsResult;
+    } else {
+      // Fallback: derive counts from the loaded rows.
+      counts = {
+        pending: donations.filter((d) => d.status === "pending").length,
+        verified: donations.filter((d) => d.status === "verified").length,
+        rejected: donations.filter((d) => d.status === "rejected").length,
+        all: donations.length,
+      };
+    }
   } catch {
-    dbError = "Could not load donations. Please check that DATABASE_URL is set correctly.";
+    dbError = true;
   }
 
-  const statusVariant = (
-    status: DonationRow["status"]
-  ): "success" | "warning" | "destructive" => {
-    switch (status) {
-      case "verified":
-        return "success";
-      case "rejected":
-        return "destructive";
-      default:
-        return "warning";
-    }
-  };
+  // Filter by status tab.
+  const filtered = donations.filter((d) =>
+    status === "all" ? true : d.status === status,
+  );
+
+  // Filter by search query across donor, reference, campaign, and id.
+  const searched = query
+    ? filtered.filter((d) => {
+        const haystack = [
+          d.name,
+          d.email,
+          d.campaign,
+          d.transactionReference ?? "",
+          `#${d.id}`,
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(query.toLowerCase());
+      })
+    : filtered;
+
+  // Build tab definitions with counts.
+  const tabs: StatusTab[] = [
+    {
+      label: "Pending",
+      params: "status=pending",
+      active: status === "pending",
+      count: counts.pending,
+    },
+    {
+      label: "Verified",
+      params: "status=verified",
+      active: status === "verified",
+      count: counts.verified,
+    },
+    {
+      label: "Rejected",
+      params: "status=rejected",
+      active: status === "rejected",
+      count: counts.rejected,
+    },
+    {
+      label: "All",
+      params: "status=all",
+      active: status === "all",
+      count: counts.all,
+    },
+  ];
+
+  // Preserve the current status in the search form.
+  const searchHiddenFields = [{ name: "status", value: status }];
+  const searchAction = "/admin/donations";
+
+  const emptyState = EMPTY_STATE_MESSAGES[status];
 
   return (
-    <section className="py-12 md:py-16">
-      <Container>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Donation verifications</h1>
-            <p className="text-sm text-muted-foreground">
-              Verify each donation against the official bank statement before marking it successful.
-            </p>
-          </div>
+    <Container>
+      <PageHeader
+        title="Donations"
+        description="Verify each donation against the official bank statement before marking it successful."
+      />
 
+      {/* Flash messages */}
+      {(updated || noop || error) && (
+        <div className="mt-4 space-y-2">
+          {updated && (
+            <Alert variant="success">
+              Donation status updated successfully.
+            </Alert>
+          )}
+          {noop && (
+            <Alert variant="info">
+              No changes were needed — the status was already set.
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="error">
+              Could not update donation status.{" "}
+              {error === "invalid" && "Invalid input."}{" "}
+              {error === "db" && "Database error."}{" "}
+              {error === "notfound" && "Donation not found."}{" "}
+              {error === "rate-limited" &&
+                "Too many requests. Please wait a minute."}{" "}
+              {error === "csrf" &&
+                "Security check failed. Please reload the page."}
+            </Alert>
+          )}
         </div>
+      )}
 
-        {updated && (
-          <div
-            role="status"
-            className="mt-4 rounded-lg bg-green-50 p-4 text-sm text-green-800"
-          >
-            Donation status updated successfully.
-          </div>
-        )}
-        {noop && (
-          <div
-            role="status"
-            className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-slate-700"
-          >
-            No changes were needed — the status was already set.
-          </div>
-        )}
-        {error && (
-          <div
-            role="alert"
-            className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-800"
-          >
-            Could not update donation status. {error === "invalid" && "Invalid input."}{" "}
-            {error === "db" && "Database error."}{" "}
-            {error === "notfound" && "Donation not found."}{" "}
-            {error === "rate-limited" && "Too many requests. Please wait a minute."}{" "}
-            {error === "csrf" && "Security check failed. Please reload the page."}
-          </div>
-        )}
-        {dbError && (
-          <div
-            role="alert"
-            className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900"
-          >
-            {dbError}
-          </div>
-        )}
+      {dbError && (
+        <Alert variant="warning" className="mt-4">
+          Could not load donations. Please check that the database is
+          configured correctly.
+        </Alert>
+      )}
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Donor
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Campaign
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Reference
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {donations.map((donation) => (
-                <tr key={donation.id} className="align-top">
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">#{donation.id}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
-                    {new Date(donation.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="font-medium">{donation.name}</div>
-                    <div className="text-muted-foreground">{donation.email}</div>
-                    {donation.phone && (
-                      <div className="text-muted-foreground">{donation.phone}</div>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">
-                    {Math.round(donation.amount).toLocaleString()} {donation.currency}
-                    <div className="text-xs text-muted-foreground">{donation.frequency}</div>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{donation.campaign}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {donation.transactionReference || "—"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">
-                    <Badge variant={statusVariant(donation.status)}>{donation.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <form method="post" action="/api/admin/verify" className="space-y-2">
-                      <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
-                      <input type="hidden" name="id" value={donation.id} />
-                      <label
-                        className="sr-only"
-                        htmlFor={`status-${donation.id}`}
-                      >
-                        Status for donation #{donation.id}
-                      </label>
-                      <select
-                        id={`status-${donation.id}`}
-                        name="status"
-                        defaultValue={donation.status}
-                        className="block w-full rounded-lg border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="verified">Verified</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
-                      <label
-                        className="sr-only"
-                        htmlFor={`notes-${donation.id}`}
-                      >
-                        Admin notes for donation #{donation.id}
-                      </label>
-                      <input
-                        id={`notes-${donation.id}`}
-                        name="adminNotes"
-                        type="text"
-                        placeholder="Admin notes"
-                        defaultValue={donation.adminNotes || ""}
-                        className="block w-full rounded-lg border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                      >
-                        Update
-                      </button>
-                    </form>
-                  </td>
-                </tr>
+      {/* Status tabs */}
+      <div className="mt-6">
+        <StatusTabs tabs={tabs} basePath="/admin/donations" />
+      </div>
+
+      {/* Search */}
+      <div className="mt-4 max-w-md">
+        <SearchInput
+          action={searchAction}
+          hiddenFields={searchHiddenFields}
+          defaultValue={query}
+          placeholder="Search donor, reference, campaign, or ID…"
+          ariaLabel="Search donations"
+        />
+      </div>
+
+      {/* Results count */}
+      <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
+        {searched.length} {searched.length === 1 ? "donation" : "donations"}
+        {status !== "all" && ` · ${status}`}
+        {query && ` · matching "${query}"`}
+      </p>
+
+      {/* Donation list */}
+      <div className="mt-4">
+        {searched.length === 0 && !dbError ? (
+          query ? (
+            <EmptyState
+              title="No donations match these filters"
+              description={`Try a different search term or clear the search to see all ${status} donations.`}
+            />
+          ) : (
+            <EmptyState
+              title={emptyState.title}
+              description={emptyState.description}
+            />
+          )
+        ) : (
+          <>
+            {/* Desktop table — hidden on mobile, cards shown instead */}
+            <div className="hidden overflow-hidden rounded-xl border border-border bg-white shadow-sm md:block">
+              <table className="min-w-full divide-y divide-border">
+                <caption className="sr-only">
+                  Donations queue — {status} tab
+                </caption>
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Donor
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Amount
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Campaign
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Reference
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Date
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Status
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {searched.map((donation) => (
+                    <tr key={donation.id} className="align-top hover:bg-surface">
+                      <td className="px-4 py-3 text-sm">
+                        <div className="font-medium text-foreground">
+                          {donation.name}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {donation.email}
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold tabular-nums text-foreground">
+                        {formatMoneyCompact(donation.amount, donation.currency)}
+                        <div className="text-xs font-normal text-muted-foreground">
+                          {donation.frequency}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-foreground">
+                        {donation.campaign}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
+                        {donation.transactionReference || "—"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
+                        {formatDateTime(donation.createdAt)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm">
+                        <StatusBadge status={donation.status} />
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <Link
+                          href={`/admin/donations/${donation.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        >
+                          Review
+                          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards — shown below md breakpoint */}
+            <div className="grid gap-3 md:hidden">
+              {searched.map((donation) => (
+                <DonationCard key={donation.id} donation={donation} />
               ))}
-              {donations.length === 0 && !dbError && (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-8 text-center text-sm text-muted-foreground"
-                  >
-                    No donations yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Container>
-    </section>
+            </div>
+          </>
+        )}
+      </div>
+    </Container>
   );
 }
