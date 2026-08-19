@@ -75,10 +75,19 @@ export function ReplyComposer({
         maxLength={maxLength}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        disabled={pending}
+        // A `disabled` control is omitted from FormData, so disabling the
+        // textarea while a reply is in flight caused the submitted `body` to
+        // become null and the server to reject the reply with a raw Zod
+        // error. `readOnly` keeps the value in the form (readOnly controls
+        // are still submitted) while still blocking edits during submission;
+        // `aria-disabled` communicates the inactive state to assistive tech.
+        readOnly={pending}
+        aria-disabled={pending}
         placeholder={`Write your reply to ${recipientName}…`}
         aria-describedby={`${textareaId}-hint`}
-        className="mt-2 w-full rounded-lg border border-border p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60"
+        className={`mt-2 w-full rounded-lg border border-border p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary${
+          pending ? " opacity-60" : ""
+        }`}
       />
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
