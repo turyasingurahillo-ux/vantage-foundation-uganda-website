@@ -6,8 +6,6 @@ interface MessageWorkflowActionsProps {
   messageId: number;
   status: ContactMessageStatus;
   csrfToken: string;
-  /** URL params to preserve on redirect, e.g. "filter=new&open=42". */
-  preserveParams: string;
 }
 
 /**
@@ -22,8 +20,9 @@ interface MessageWorkflowActionsProps {
  * recovery action, not a reply to the enquirer.
  *
  * Note: the status and resend APIs redirect back to /admin/messages with
- * their own params. The preserveParams prop is kept for future use if
- * the APIs are updated to accept a redirect target.
+ * their own params. They do not preserve the open/search state. That can
+ * be addressed later only if we intentionally design a safe allow-listed
+ * return-state mechanism. Do not add arbitrary returnTo URLs.
  */
 export function MessageWorkflowActions({
   messageId,
