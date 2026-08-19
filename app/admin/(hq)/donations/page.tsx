@@ -76,10 +76,25 @@ export default async function AdminDonationsPage({
   let dbError = false;
 
   try {
-    [donations, counts] = await Promise.all([
-      getDonations(),
-      getDonationCounts().catch(() => counts),
-    ]);
+    // Load donations and counts in parallel. If the count query fails
+    // but the donation list succeeds, derive exact counts from the
+    // loaded rows so we never show wrong zero counts.
+    const countsResult = await getDonationCounts().then(
+      (c) => c,
+      () => null,
+    );
+    donations = await getDonations();
+    if (countsResult) {
+      counts = countsResult;
+    } else {
+      // Fallback: derive counts from the loaded rows.
+      counts = {
+        pending: donations.filter((d) => d.status === "pending").length,
+        verified: donations.filter((d) => d.status === "verified").length,
+        rejected: donations.filter((d) => d.status === "rejected").length,
+        all: donations.length,
+      };
+    }
   } catch {
     dbError = true;
   }

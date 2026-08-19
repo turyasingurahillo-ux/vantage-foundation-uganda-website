@@ -36,8 +36,8 @@ export default async function AdminDashboardPage() {
   const { attention, sources } = await getDashboardAttention().catch(() => ({
     attention: {
       pendingDonations: 0,
-      unhandledMessages: 0,
-      notEmailedMessages: 0,
+      newMessages: 0,
+      awaitingResponseMessages: 0,
       draftStories: 0,
       mediaPendingConsent: 0,
     },
@@ -67,7 +67,8 @@ export default async function AdminDashboardPage() {
 
   const hasAttention =
     attention.pendingDonations > 0 ||
-    attention.unhandledMessages > 0 ||
+    attention.newMessages > 0 ||
+    attention.awaitingResponseMessages > 0 ||
     attention.draftStories > 0 ||
     attention.mediaPendingConsent > 0;
 
@@ -92,7 +93,7 @@ export default async function AdminDashboardPage() {
             : "Nothing is waiting for you right now."}
         </p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <AttentionCard
             href="/admin/donations?status=pending"
             label="Pending donations"
@@ -106,10 +107,19 @@ export default async function AdminDashboardPage() {
             href="/admin/messages?filter=new"
             label="New messages"
             description="Contact enquiries that nobody has actioned yet"
-            count={attention.unhandledMessages}
-            urgent={attention.unhandledMessages > 0}
+            count={attention.newMessages}
+            urgent={attention.newMessages > 0}
             unavailable={!sources.contactMessages}
-            countLabel={`${attention.unhandledMessages} unhandled`}
+            countLabel={`${attention.newMessages} new`}
+          />
+          <AttentionCard
+            href="/admin/messages?filter=awaiting_response"
+            label="Awaiting response"
+            description="Conversations waiting for a reply to be sent"
+            count={attention.awaitingResponseMessages}
+            urgent={attention.awaitingResponseMessages > 0}
+            unavailable={!sources.contactMessages}
+            countLabel={`${attention.awaitingResponseMessages} awaiting`}
           />
           <AttentionCard
             href="/admin/stories"

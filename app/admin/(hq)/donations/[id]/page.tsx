@@ -44,13 +44,10 @@ function DetailRow({
 
 export default async function DonationReviewPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ updated?: string; error?: string; noop?: string }>;
 }) {
   const { id: idParam } = await params;
-  const { updated, error, noop } = await searchParams;
   const id = Number(idParam);
 
   const cookieStore = await cookies();
@@ -105,40 +102,6 @@ export default async function DonationReviewPage({
             actions={<StatusBadge status={donation.status} />}
           />
 
-          {/* Flash messages */}
-          {(updated || noop || error) && (
-            <div className="mt-4 space-y-2">
-              {updated && (
-                <Alert variant="success">
-                  Donation status updated successfully.{" "}
-                  <Link
-                    href="/admin/donations"
-                    className="font-semibold underline"
-                  >
-                    Back to queue
-                  </Link>
-                </Alert>
-              )}
-              {noop && (
-                <Alert variant="info">
-                  No changes were needed — the status was already set.
-                </Alert>
-              )}
-              {error && (
-                <Alert variant="error">
-                  Could not update donation status.{" "}
-                  {error === "invalid" && "Invalid input."}{" "}
-                  {error === "db" && "Database error."}{" "}
-                  {error === "notfound" && "Donation not found."}{" "}
-                  {error === "rate-limited" &&
-                    "Too many requests. Please wait a minute."}{" "}
-                  {error === "csrf" &&
-                    "Security check failed. Please reload the page."}
-                </Alert>
-              )}
-            </div>
-          )}
-
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {/* Donation details — spans 2 columns on desktop */}
             <section
@@ -176,7 +139,7 @@ export default async function DonationReviewPage({
                     value={formatDateTime(donation.createdAt)}
                   />
                   <DetailRow
-                    label="Verified at"
+                    label="Last verified"
                     value={
                       donation.verifiedAt
                         ? formatDateTime(donation.verifiedAt)
@@ -237,6 +200,7 @@ export default async function DonationReviewPage({
                         id="verify-notes"
                         name="adminNotes"
                         rows={3}
+                        defaultValue={donation.adminNotes ?? ""}
                         placeholder="e.g. Confirmed against bank statement ref TXN-2026-0819"
                         className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       />
@@ -284,6 +248,7 @@ export default async function DonationReviewPage({
                         id="reject-notes"
                         name="adminNotes"
                         rows={3}
+                        defaultValue={donation.adminNotes ?? ""}
                         placeholder="e.g. No matching transaction found on bank statement"
                         className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       />
@@ -342,6 +307,7 @@ export default async function DonationReviewPage({
                           id="correct-notes"
                           name="adminNotes"
                           rows={2}
+                          defaultValue={donation.adminNotes ?? ""}
                           required
                           className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         />
@@ -391,6 +357,7 @@ export default async function DonationReviewPage({
                           id="correct-notes-2"
                           name="adminNotes"
                           rows={2}
+                          defaultValue={donation.adminNotes ?? ""}
                           required
                           className="block w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         />

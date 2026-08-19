@@ -72,6 +72,38 @@ describe("AttentionCard", () => {
     );
     expect(screen.getByText("Data unavailable")).toBeInTheDocument();
   });
+
+  it("renders contextual count text visible to assistive technology", () => {
+    render(
+      <AttentionCard
+        href="/admin/donations?status=pending"
+        label="Pending donations"
+        description="Awaiting verification"
+        count={3}
+        urgent
+        countLabel="3 pending"
+      />,
+    );
+    // The countLabel text is rendered as visible text in the badge,
+    // so assistive technology reads it naturally.
+    expect(screen.getByText("3 pending")).toBeInTheDocument();
+  });
+
+  it("does not pass unsupported aria-label prop to Badge", () => {
+    render(
+      <AttentionCard
+        href="/admin/donations"
+        label="Pending donations"
+        description="Awaiting verification"
+        count={3}
+        countLabel="3 pending"
+      />,
+    );
+    // The badge span should not have an aria-label attribute —
+    // the visible text is already contextual.
+    const badge = screen.getByText("3 pending");
+    expect(badge).not.toHaveAttribute("aria-label");
+  });
 });
 
 describe("StatusBadge", () => {

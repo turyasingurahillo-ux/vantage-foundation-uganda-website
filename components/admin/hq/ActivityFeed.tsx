@@ -20,9 +20,9 @@ const ACTION_LABELS: Record<string, string> = {
   "story.deleted": "Deleted a story",
   "admin.created": "Created an admin account",
   "admin.disabled": "Disabled an admin account",
-  "contact.replied": "Replied to a contact message",
-  "contact.archived": "Archived a contact message",
-  "contact.status_changed": "Updated a contact message status",
+  "contact_message.reply": "Replied to a contact message",
+  "contact_message.status": "Updated a contact message",
+  "contact_message.resend": "Resent an internal message notification",
 };
 
 function actorLabel(
@@ -44,6 +44,8 @@ function resourceLink(entry: AuditLogEntry): string | null {
       return `/admin/stories/${entry.resourceId}`;
     case "media":
       return `/admin/media`;
+    case "contact_message":
+      return `/admin/messages?open=${entry.resourceId}`;
     default:
       return null;
   }

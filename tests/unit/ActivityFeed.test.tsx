@@ -80,4 +80,59 @@ describe("ActivityFeed", () => {
     expect(screen.getByText("Uploaded media")).toBeInTheDocument();
     expect(screen.getByText("Updated a story")).toBeInTheDocument();
   });
+
+  it("renders contact_message.reply with human-readable label", () => {
+    const entries = [
+      makeEntry({
+        id: 1,
+        action: "contact_message.reply",
+        resourceType: "contact_message",
+        resourceId: "77",
+      }),
+    ];
+    render(<ActivityFeed entries={entries} adminNames={{ "1": "Hillary" }} />);
+    expect(screen.getByText("Replied to a contact message")).toBeInTheDocument();
+  });
+
+  it("renders contact_message.status with human-readable label", () => {
+    const entries = [
+      makeEntry({
+        id: 1,
+        action: "contact_message.status",
+        resourceType: "contact_message",
+        resourceId: "77",
+      }),
+    ];
+    render(<ActivityFeed entries={entries} adminNames={{ "1": "Hillary" }} />);
+    expect(screen.getByText("Updated a contact message")).toBeInTheDocument();
+  });
+
+  it("renders contact_message.resend with human-readable label", () => {
+    const entries = [
+      makeEntry({
+        id: 1,
+        action: "contact_message.resend",
+        resourceType: "contact_message",
+        resourceId: "77",
+      }),
+    ];
+    render(<ActivityFeed entries={entries} adminNames={{ "1": "Hillary" }} />);
+    expect(
+      screen.getByText("Resent an internal message notification"),
+    ).toBeInTheDocument();
+  });
+
+  it("links contact_message resources to the messages inbox with open param", () => {
+    const entries = [
+      makeEntry({
+        id: 1,
+        action: "contact_message.reply",
+        resourceType: "contact_message",
+        resourceId: "77",
+      }),
+    ];
+    render(<ActivityFeed entries={entries} adminNames={{ "1": "Hillary" }} />);
+    const link = screen.getByRole("link", { name: "#77" });
+    expect(link).toHaveAttribute("href", "/admin/messages?open=77");
+  });
 });

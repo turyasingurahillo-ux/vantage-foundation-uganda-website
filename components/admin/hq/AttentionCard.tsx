@@ -75,12 +75,7 @@ export function AttentionCard({
           {resolved ? "All caught up" : description}
         </div>
       </div>
-      <Badge
-        variant={badgeVariant}
-        aria-label={countLabel ?? `${count} ${label.toLowerCase()}`}
-      >
-        {badgeText}
-      </Badge>
+      <Badge variant={badgeVariant}>{badgeText}</Badge>
     </Link>
   );
 }

@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import type { AuditLogEntry } from "./audit";
+import { getInboxCounts } from "./contact";
 
 /**
  * Efficient count queries and recent-activity fetches for the Vantage HQ
@@ -48,8 +49,8 @@ export async function getDonationCounts(): Promise<DonationCounts> {
 
 export interface DashboardAttention {
   pendingDonations: number;
-  unhandledMessages: number;
-  notEmailedMessages: number;
+  newMessages: number;
+  awaitingResponseMessages: number;
   draftStories: number;
   mediaPendingConsent: number;
 }
@@ -72,8 +73,8 @@ export async function getDashboardAttention(): Promise<{
 
   const attention: DashboardAttention = {
     pendingDonations: 0,
-    unhandledMessages: 0,
-    notEmailedMessages: 0,
+    newMessages: 0,
+    awaitingResponseMessages: 0,
     draftStories: 0,
     mediaPendingConsent: 0,
   };
@@ -81,7 +82,7 @@ export async function getDashboardAttention(): Promise<{
   const [donationsResult, contactResult, storiesResult, mediaResult] =
     await Promise.allSettled([
       getDonationCounts(),
-      getContactCountsForDashboard(),
+      getInboxCounts(),
       getDraftStoryCount(),
       getMediaPendingConsentCount(),
     ]);
@@ -93,8 +94,8 @@ export async function getDashboardAttention(): Promise<{
   }
 
   if (contactResult.status === "fulfilled") {
-    attention.unhandledMessages = contactResult.value.unhandled;
-    attention.notEmailedMessages = contactResult.value.notEmailed;
+    attention.newMessages = contactResult.value.new;
+    attention.awaitingResponseMessages = contactResult.value.awaiting_response;
   } else {
     sources.contactMessages = false;
   }
@@ -112,26 +113,6 @@ export async function getDashboardAttention(): Promise<{
   }
 
   return { attention, sources };
-}
-
-async function getContactCountsForDashboard(): Promise<{
-  unhandled: number;
-  notEmailed: number;
-}> {
-  const sql = getSql();
-  const rows = await sql`
-    SELECT
-      COUNT(*) FILTER (WHERE status IN ('new', 'awaiting_response'))::int AS unhandled,
-      COUNT(*) FILTER (
-        WHERE status IN ('new', 'awaiting_response') AND email_sent = false
-      )::int AS not_emailed
-    FROM contact_messages
-    WHERE deleted_at IS NULL
-  `;
-  return {
-    unhandled: Number(rows[0].unhandled),
-    notEmailed: Number(rows[0].not_emailed),
-  };
 }
 
 async function getDraftStoryCount(): Promise<number> {
