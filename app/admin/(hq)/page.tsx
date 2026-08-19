@@ -3,11 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getDonations } from "@/lib/db";
 import { getContactMessageCounts } from "@/lib/db/contact";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 import { ContentPerformanceCard } from "@/components/admin/ContentPerformanceCard";
 
@@ -23,7 +21,6 @@ export default async function AdminDashboardPage() {
   if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
     redirect("/admin/login");
   }
-  const csrfToken = await getCsrfTokenFromRequest();
 
   // Quick stats for the dashboard: pending donations count.
   let pendingDonations = 0;
@@ -56,7 +53,7 @@ export default async function AdminDashboardPage() {
             <h1 className="text-2xl font-bold">Admin dashboard</h1>
             <p className="text-sm text-muted-foreground">Overview of Vantage Foundation Uganda operations.</p>
           </div>
-          <AdminNav current="/admin" csrfToken={csrfToken} />
+
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

@@ -5,7 +5,6 @@ import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminsManager } from "@/components/admin/AdminsManager";
 
 export const metadata: Metadata = {
@@ -56,7 +55,7 @@ export default async function AdminAdminsPage() {
               history.
             </p>
           </div>
-          <AdminNav current="/admin/admins" csrfToken={csrfToken} />
+
         </div>
 
         {dbError && (

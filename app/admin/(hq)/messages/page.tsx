@@ -16,7 +16,6 @@ import {
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import { Badge } from "@/components/ui/Badge";
 import { getCategoryLabel } from "@/lib/contact-categories";
@@ -259,7 +258,7 @@ export default async function AdminMessagesPage({
   return (
     <section className="py-12">
       <Container>
-        <AdminNav current="/admin/messages" csrfToken={csrfToken} />
+
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>

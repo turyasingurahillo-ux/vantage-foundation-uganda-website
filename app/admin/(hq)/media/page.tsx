@@ -5,7 +5,6 @@ import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getMediaObjects } from "@/lib/db/media";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 import { MediaManager } from "@/components/admin/MediaManager";
 
@@ -66,7 +65,7 @@ export default async function AdminMediaPage({
               <strong> unpublished</strong> — set both before publishing.
             </p>
           </div>
-          <AdminNav current="/admin/media" csrfToken={csrfToken} />
+
         </div>
 
         {created && (

@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getAuditLogs, AuditLogEntry } from "@/lib/db/audit";
 import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
@@ -63,7 +61,6 @@ export default async function AdminAuditPage({
     redirect("/admin/login");
   }
 
-  const csrfToken = await getCsrfTokenFromRequest();
 
   // Build a lookup of admin usernames for resolving actor_id.
   let adminUsernames: Record<string, string> = {};
@@ -101,7 +98,7 @@ export default async function AdminAuditPage({
               is logged with the actor, before/after state, and IP address.
             </p>
           </div>
-          <AdminNav current="/admin/audit" csrfToken={csrfToken} />
+
         </div>
 
         {/* Filters */}
