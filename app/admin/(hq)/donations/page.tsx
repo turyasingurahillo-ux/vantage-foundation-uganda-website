@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { ChevronRight } from "lucide-react";
 import { getDonations, DonationRow } from "@/lib/db";
 import { getDonationCounts } from "@/lib/db/dashboard";
-import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { Container } from "@/components/shared/Container";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
