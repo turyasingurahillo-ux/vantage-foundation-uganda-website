@@ -51,6 +51,10 @@ export interface AnalyticsOverview {
   totalShares: number;
   organicClicks: number;
   ctaActions: number;
+  /** Whether Google Search Console is connected. When false, organicClicks
+   *  is structurally zero (no write path) and the dashboard should show the
+   *  metric as unavailable, not as a measured zero. */
+  searchConsoleConnected: boolean;
 }
 
 export interface ArticlePerformanceRow {
@@ -444,7 +448,9 @@ export async function ingestEvent(input: IngestEventInput): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Overview KPIs across all published articles for a date range.
+ * Overview KPIs across all published articles for a date range. Includes
+ * Search Console connection status so the dashboard can distinguish
+ * "0 measured Google clicks" from "Google clicks unavailable".
  */
 export async function getOverview(range: DateRange): Promise<AnalyticsOverview> {
   const sql = getSql();
@@ -464,6 +470,7 @@ export async function getOverview(range: DateRange): Promise<AnalyticsOverview> 
   const uniqueReaders = Number(r.unique_readers ?? 0);
   const completions = Number(r.completions ?? 0);
   const engagementTotal = Number(r.engagement_total ?? 0);
+  const status = await getSearchConsoleStatus();
   return {
     totalViews: Number(r.total_views ?? 0),
     uniqueReaders,
@@ -472,25 +479,25 @@ export async function getOverview(range: DateRange): Promise<AnalyticsOverview> 
     totalShares: Number(r.shares ?? 0),
     organicClicks: Number(r.organic_clicks ?? 0),
     ctaActions: Number(r.cta_clicks ?? 0),
+    searchConsoleConnected: status.connected,
   };
 }
 
 /**
  * Per-article performance for the sortable admin table. Joins analytics to the
- * stories table so drafts can be listed (with zero metrics) and orphaned
- * analytics rows (deleted articles) are labelled. Includes the Impact Score.
+ * analytics_articles registry (which covers both static-manifest and DB-backed
+ * published stories) so every trackable article appears in the table, including
+ * those with zero views. Includes the Impact Score.
  */
 export async function getArticlePerformance(range: DateRange): Promise<ArticlePerformanceRow[]> {
   const sql = getSql();
   const rows = await sql`
     SELECT
-      s.id AS article_id,
-      s.slug,
-      s.title,
-      s.published,
-      s.published_date,
-      s.author,
-      s.category,
+      a.id AS article_id,
+      a.slug,
+      a.title,
+      a.category,
+      a.published_date,
       COALESCE(SUM(d.views), 0) AS views,
       COALESCE(SUM(d.unique_readers), 0) AS readers,
       COALESCE(SUM(d.engagement_seconds_total), 0) AS engagement_total,
@@ -498,11 +505,10 @@ export async function getArticlePerformance(range: DateRange): Promise<ArticlePe
       COALESCE(SUM(d.shares), 0) AS shares,
       COALESCE(SUM(d.organic_clicks), 0) AS google_clicks,
       COALESCE(SUM(d.cta_clicks), 0) AS cta_actions
-    FROM stories s
+    FROM analytics_articles a
     LEFT JOIN article_analytics_daily d
-      ON d.article_id = s.id AND d.day >= ${range.start}::date AND d.day <= ${range.end}::date
-    WHERE s.deleted_at IS NULL
-    GROUP BY s.id, s.slug, s.title, s.published, s.published_date, s.author, s.category
+      ON d.article_id = a.id AND d.day >= ${range.start}::date AND d.day <= ${range.end}::date
+    GROUP BY a.id, a.slug, a.title, a.category, a.published_date
     ORDER BY views DESC
   `;
   return rows.map((r) => {
@@ -517,9 +523,9 @@ export async function getArticlePerformance(range: DateRange): Promise<ArticlePe
       articleId: r.article_id as number,
       slug: r.slug as string,
       title: r.title as string,
-      status: (r.published ? "published" : "draft") as "published" | "draft",
-      publishedDate: String(r.published_date),
-      author: (r.author as string | null) ?? null,
+      status: "published" as "published" | "draft",
+      publishedDate: r.published_date ? String(r.published_date) : "",
+      author: null,
       category: r.category as string,
       views,
       readers,
@@ -750,19 +756,18 @@ export async function getCategoryIntelligence(range: DateRange): Promise<Categor
   const sql = getSql();
   const rows = await sql`
     SELECT
-      s.category,
-      COUNT(DISTINCT s.id) AS article_count,
+      a.category,
+      COUNT(DISTINCT a.id) AS article_count,
       COALESCE(SUM(d.unique_readers), 0) AS total_readers,
       COALESCE(SUM(d.engagement_seconds_total), 0) AS engagement_total,
       COALESCE(SUM(d.scroll_90), 0) AS completions,
       COALESCE(SUM(d.organic_clicks), 0) AS search_clicks,
       COALESCE(SUM(d.shares), 0) AS shares,
       COALESCE(SUM(d.cta_clicks), 0) AS cta_clicks
-    FROM stories s
+    FROM analytics_articles a
     LEFT JOIN article_analytics_daily d
-      ON d.article_id = s.id AND d.day >= ${range.start}::date AND d.day <= ${range.end}::date
-    WHERE s.deleted_at IS NULL AND s.published = true
-    GROUP BY s.category
+      ON d.article_id = a.id AND d.day >= ${range.start}::date AND d.day <= ${range.end}::date
+    GROUP BY a.category
     ORDER BY total_readers DESC
   `;
   return rows.map((r) => {
@@ -1005,4 +1010,37 @@ export async function setSearchConsoleStatus(status: {
       last_error = ${status.lastError ?? null}
     WHERE id = 1
   `;
+}
+
+/**
+ * Backfills organic_clicks and organic_impressions in article_analytics_daily
+ * from the article_search_queries cache. Called after a Search Console sync so
+ * the overview KPI and per-article "Google Clicks" reflect real Search Console
+ * data rather than being structurally zero.
+ *
+ * Aggregates total clicks/impressions per article into today's rollup row
+ * (source_group = 'google'). This is a simplification — Search Console data is
+ * not daily-partitioned in the cache, so we write the cumulative total to the
+ * current day. A future enhancement could store per-day Search Console data.
+ */
+export async function backfillOrganicClicks(): Promise<void> {
+  const sql = getSql();
+  const today = new Date().toISOString().slice(0, 10);
+  // Aggregate per article from the search queries cache.
+  const rows = await sql`
+    SELECT article_id, SUM(clicks) AS total_clicks, SUM(impressions) AS total_impressions
+    FROM article_search_queries
+    GROUP BY article_id
+  `;
+  for (const row of rows) {
+    const clicks = Number(row.total_clicks ?? 0);
+    const impressions = Number(row.total_impressions ?? 0);
+    await sql`
+      INSERT INTO article_analytics_daily (article_id, day, source_group, organic_clicks, organic_impressions)
+      VALUES (${row.article_id}, ${today}::date, 'google', ${clicks}, ${impressions})
+      ON CONFLICT (article_id, day, source_group) DO UPDATE SET
+        organic_clicks = EXCLUDED.organic_clicks,
+        organic_impressions = EXCLUDED.organic_impressions
+    `;
+  }
 }

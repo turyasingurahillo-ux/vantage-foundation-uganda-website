@@ -33,8 +33,9 @@ import {
   setSearchConsoleStatus,
   getSearchConsoleStatus,
   getArticleSearchQueries,
+  backfillOrganicClicks,
 } from "@/lib/db/analytics";
-import { getStories } from "@/lib/db/stories";
+import { getAllAnalyticsArticles } from "@/lib/db/analytics-articles";
 import { logError, logInfo } from "@/lib/logger";
 
 interface SearchConsoleConfig {
@@ -196,9 +197,9 @@ export async function syncSearchConsoleData(days: number = 28): Promise<{
     const data = (await response.json()) as { rows?: SearchConsoleRow[] };
     const rows = data.rows ?? [];
 
-    // Build a slug → articleId lookup from published stories.
-    const stories = await getStories({ published: true });
-    const slugToId = new Map(stories.map((s) => [s.slug, s.id]));
+    // Build a slug → analyticsArticleId lookup from the analytics registry.
+    const articles = await getAllAnalyticsArticles();
+    const slugToId = new Map(articles.map((a) => [a.slug, a.id]));
 
     // Map Search Console rows to articles by matching the page URL to /stories/<slug>.
     let synced = 0;
@@ -220,6 +221,9 @@ export async function syncSearchConsoleData(days: number = 28): Promise<{
       siteUrl: config.siteUrl,
       lastError: null,
     });
+    // Backfill organic_clicks into the daily rollup so the overview KPI
+    // and per-article "Google Clicks" reflect real Search Console data.
+    await backfillOrganicClicks();
     logInfo("search_console_synced", { synced, days });
     return { synced, error: null };
   } catch (error) {

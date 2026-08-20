@@ -29,6 +29,7 @@ interface OverviewData {
   totalShares: number;
   organicClicks: number;
   ctaActions: number;
+  searchConsoleConnected?: boolean;
 }
 
 interface ArticleRow {
@@ -133,23 +134,32 @@ function KpiCard({
   previousValue,
   format = "number",
   sparkData,
+  unavailable,
+  unavailableNote,
 }: {
   label: string;
   value: number;
   previousValue?: number;
   format?: "number" | "duration" | "percent";
   sparkData?: number[];
+  /** When true, show "—" instead of the value and a note explaining why. */
+  unavailable?: boolean;
+  unavailableNote?: string;
 }) {
-  const formatted =
-    format === "duration" ? formatDuration(value) :
+  const formatted = unavailable
+    ? "—"
+    : format === "duration" ? formatDuration(value) :
     format === "percent" ? formatPct(value) :
     formatNumber(value);
-  const change = previousValue !== undefined ? changePct(value, previousValue) : null;
+  const change = !unavailable && previousValue !== undefined ? changePct(value, previousValue) : null;
   return (
     <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
       <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-bold text-foreground">{formatted}</div>
       <div className="mt-1 flex items-center gap-2">
+        {unavailable && unavailableNote && (
+          <span className="text-xs text-muted-foreground">{unavailableNote}</span>
+        )}
         {change && !change.neutral && (
           <span className={`text-xs font-semibold ${change.up ? "text-success-fg" : "text-destructive-fg"}`}>
             {change.up ? "↑" : "↓"} {change.value}% vs previous
@@ -451,9 +461,19 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
             <KpiCard label="Avg. engagement" value={overview.avgEngagementSeconds} previousValue={previousOverview?.avgEngagementSeconds} format="duration" />
             <KpiCard label="Avg. completion" value={overview.avgCompletionRate} previousValue={previousOverview?.avgCompletionRate} format="percent" />
             <KpiCard label="Total shares" value={overview.totalShares} previousValue={previousOverview?.totalShares} />
-            <KpiCard label="Google clicks" value={overview.organicClicks} previousValue={previousOverview?.organicClicks} />
+            <KpiCard
+              label="Google clicks"
+              value={overview.organicClicks}
+              previousValue={previousOverview?.organicClicks}
+              unavailable={overview.searchConsoleConnected === false}
+              unavailableNote="Search Console not connected"
+            />
             <KpiCard label="CTA actions" value={overview.ctaActions} previousValue={previousOverview?.ctaActions} />
           </div>
+
+          {overview.totalViews === 0 && overview.uniqueReaders === 0 && overview.totalShares === 0 && overview.ctaActions === 0 && (
+            <EmptyState message="No activity recorded for this period. Analytics will appear here once readers start viewing published stories." />
+          )}
 
           {/* Trend chart */}
           <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
