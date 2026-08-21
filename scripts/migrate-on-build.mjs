@@ -8,23 +8,24 @@
  * before the notification email is attempted, so if the table is absent AND
  * SMTP is unconfigured, the form has no working delivery path at all.
  *
- * Also seeds the analytics_articles registry from all published stories
- * (static manifest + DB) so the admin dashboard lists every trackable article
- * from the first deployment.
+ * Also synchronizes the analytics_articles registry from currently published
+ * stories (static manifest + DB) so the admin dashboard lists every trackable
+ * article while retaining historical analytics for content that later becomes
+ * inactive.
  *
  * DEPLOYMENT SAFETY: This script mutates the database (schema + registry
- * rows). To prevent a preview build from accidentally mutating the production
- * database, the script uses an explicit isolation-confirmation flag:
+ * rows). For preview deployments it requires an explicit operator confirmation:
  *
- *   production                        → migrations allowed
- *   preview + PREVIEW_DATABASE_ISOLATED=true  → migrations allowed (preview DB)
- *   preview without isolation flag    → migrations refused (safety skip)
- *   local/CI (VERCEL_ENV unset)       → migrations allowed (existing behavior)
+ *   production                              → migrations allowed
+ *   preview + PREVIEW_DATABASE_ISOLATED=true → migrations allowed
+ *   preview without confirmation             → migrations refused
+ *   local/CI (VERCEL_ENV unset)               → migrations allowed
  *
- * The PREVIEW_DATABASE_ISOLATED flag is set in the Vercel Preview environment
- * only, and only for branches whose DATABASE_URL points at an isolated Neon
- * preview branch — never the production database. If the flag is absent on a
- * preview build, the script refuses to migrate and logs a clear safety message.
+ * IMPORTANT: PREVIEW_DATABASE_ISOLATED=true is a safety/confirmation gate. The
+ * boolean does not mathematically prove that DATABASE_URL is non-production.
+ * Isolation must be established operationally by verifying that the Preview
+ * DATABASE_URL points to the intended isolated database/branch. If the flag is
+ * absent on a preview build, this script refuses to mutate any database.
  *
  * Deliberately NON-FATAL. A database blip must not break a deployment of a
  * mostly-static marketing site — the app already degrades gracefully when the
@@ -43,16 +44,9 @@ if (!process.env.DATABASE_URL) {
   process.exit(0);
 }
 
-// DEPLOYMENT SAFETY GATE: Prevent preview builds from mutating a database
-// unless the deployment has explicitly confirmed it is using an isolated
-// (non-production) database via PREVIEW_DATABASE_ISOLATED=true.
-//
-// Vercel sets VERCEL_ENV to "preview" for preview deployments. If that flag
-// is present but PREVIEW_DATABASE_ISOLATED is not "true", the script refuses
-// to migrate — this protects against accidental shared-DB configuration.
-//
-// Production builds ("production") and local/CI builds (VERCEL_ENV unset)
-// always proceed normally.
+// OPERATOR CONFIRMATION GATE: preview builds are allowed to mutate the configured
+// database only when PREVIEW_DATABASE_ISOLATED=true. The flag is not itself an
+// isolation proof; operators must separately verify the Preview DATABASE_URL.
 if (
   process.env.VERCEL_ENV === "preview" &&
   process.env.PREVIEW_DATABASE_ISOLATED !== "true"
@@ -60,18 +54,21 @@ if (
   console.warn(
     "[migrate] VERCEL_ENV=preview but PREVIEW_DATABASE_ISOLATED is not 'true'.\n" +
       "  Refusing to run schema migration or analytics registry seeding to " +
-      "protect against accidentally mutating a shared production database.\n" +
+      "protect against accidental preview writes to an unconfirmed database.\n" +
       "  To enable preview migrations, set PREVIEW_DATABASE_ISOLATED=true in " +
-      "the Vercel Preview environment AND ensure DATABASE_URL points at an " +
-      "isolated Neon preview branch — never the production database."
+      "the Vercel Preview environment only after verifying DATABASE_URL points " +
+      "to the intended isolated preview database."
   );
   process.exit(0);
 }
 
-if (process.env.VERCEL_ENV === "preview" && process.env.PREVIEW_DATABASE_ISOLATED === "true") {
+if (
+  process.env.VERCEL_ENV === "preview" &&
+  process.env.PREVIEW_DATABASE_ISOLATED === "true"
+) {
   console.log(
     "[migrate] VERCEL_ENV=preview, PREVIEW_DATABASE_ISOLATED=true — " +
-      "proceeding with migration and seeding against the isolated preview database."
+      "operator confirmation present; proceeding against the configured Preview DATABASE_URL."
   );
 }
 
@@ -89,8 +86,8 @@ if (result.status !== 0) {
   );
 }
 
-// Seed the analytics registry after the schema is in place. Uses tsx to run
-// the TypeScript seeding script (which imports content modules).
+// Synchronize the analytics registry after the schema is in place. Uses tsx to
+// run the TypeScript script (which imports content modules).
 const seedResult = spawnSync(
   "npx",
   ["tsx", join(__dirname, "seed-analytics-registry.ts")],
@@ -99,9 +96,9 @@ const seedResult = spawnSync(
 
 if (seedResult.status !== 0) {
   console.warn(
-    "[migrate] Analytics registry seeding did not complete. The build will " +
-      "continue, but the analytics dashboard may not list all published " +
-      "articles until the next successful build.",
+    "[migrate] Analytics registry synchronization did not complete. The build " +
+      "will continue; the script is designed to skip the inactive sweep when " +
+      "the active-content snapshot cannot be completed safely.",
   );
 }
 
