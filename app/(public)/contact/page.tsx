@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/Card";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { createPublicMetadata } from "@/lib/metadata";
 import { resolveCategoryFromQuery } from "@/lib/contact-categories";
-import { buildWhatsAppUrl, DEFAULT_WHATSAPP_MESSAGE } from "@/lib/whatsapp";
 
 export const metadata: Metadata = createPublicMetadata({
   title: "Contact",
@@ -25,11 +24,6 @@ export default async function ContactPage({
   // Accepts current category values and the legacy ?subject= values still used
   // by older CTAs elsewhere on the site.
   const defaultSubject = resolveCategoryFromQuery(subject);
-
-  const whatsappUrl = buildWhatsAppUrl(
-    site.contact.whatsapp,
-    DEFAULT_WHATSAPP_MESSAGE,
-  );
 
   return (
     <>

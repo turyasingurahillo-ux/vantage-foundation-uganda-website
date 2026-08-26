@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { ArrowLeft } from "lucide-react";
 import {
   searchCaseSummaries,
   getCaseCounts,
@@ -24,7 +22,6 @@ import { getAdmins } from "@/lib/db/admins";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
-import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
 import { StatusTabs } from "@/components/admin/hq/StatusTabs";
 import { SearchInput } from "@/components/admin/hq/SearchInput";
