@@ -416,17 +416,24 @@ export function AnalyticsDashboard({
     return (stories ?? []).find((story) => story.id === article.storyId) ?? null;
   }
 
-  function handleEdit(article: ArticleRow) {
-    if (!onEditStory) return;
-    const story = resolveEditorialStory(article);
-    if (story) onEditStory(story);
-  }
+  // When the host route does not supply edit/delete callbacks (e.g. the
+  // standalone /admin/analytics page), pass `undefined` to RowMenu so it
+  // falls back to a link-based Edit action and hides Delete entirely.
+  // Returning `undefined` (rather than a no-op function) is what lets
+  // RowMenu's `if (onEdit)` / `if (onDelete)` branches work correctly.
+  const handleEdit = onEditStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onEditStory(story);
+      }
+    : undefined;
 
-  function handleDelete(article: ArticleRow) {
-    if (!onDeleteStory) return;
-    const story = resolveEditorialStory(article);
-    if (story) onDeleteStory(story);
-  }
+  const handleDelete = onDeleteStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onDeleteStory(story);
+      }
+    : undefined;
 
   const donutData: DonutSlice[] = traffic.map((source) => ({
     label: SOURCE_LABELS[source.sourceGroup] ?? source.sourceGroup,
