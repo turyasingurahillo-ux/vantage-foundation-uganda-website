@@ -3,6 +3,7 @@ import { z } from "zod";
 import { processInboundEmail } from "@/lib/db/inbound-email";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo } from "@/lib/logger";
+import { safeSecretEqual, parseBearerToken } from "@/lib/safe-compare";
 
 /**
  * Inbound email endpoint — receives parsed email from Cloudflare Email Worker.
@@ -40,8 +41,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "not configured" }, { status: 503 });
   }
 
-  if (!authHeader || authHeader !== `Bearer ${expectedSecret}`) {
-    logWarn("inbound_email_unauthorized", {});
+  if (!authHeader) {
+    logWarn("inbound_email_unauthorized", { reason: "missing_header" });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const providedToken = parseBearerToken(authHeader);
+  if (!providedToken || !safeSecretEqual(providedToken, expectedSecret)) {
+    logWarn("inbound_email_unauthorized", { reason: "invalid_token" });
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

@@ -83,6 +83,7 @@ export interface CaseRow {
   organisationId?: number;
   personId?: number;
   triagedAt?: Date;
+  receivedAt?: Date;
 }
 
 export interface CaseNoteRow {
@@ -156,6 +157,9 @@ function mapCase(row: Record<string, unknown>): CaseRow {
     triagedAt: row.triaged_at
       ? new Date(row.triaged_at as string)
       : undefined,
+    receivedAt: row.received_at
+      ? new Date(row.received_at as string)
+      : undefined,
   };
 }
 
@@ -193,6 +197,7 @@ export async function seedCaseFromContactSubmission(
     UPDATE contact_messages
     SET source = 'website_form',
         case_type = ${suggestedCaseType},
+        received_at = COALESCE(received_at, created_at),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = ${id} AND deleted_at IS NULL
   `;
@@ -237,13 +242,13 @@ export async function createManualCase(
     INSERT INTO contact_messages (
       name, email, phone, organisation, category, message,
       source, case_type, programme, priority, owner_id, workflow_status,
-      created_at, updated_at
+      created_at, received_at, updated_at
     ) VALUES (
       ${input.name}, ${email}, ${input.phone || null},
       ${input.organisation || null}, ${input.category}, ${input.message},
       ${input.source}, ${input.caseType || null}, ${input.programme || null},
-      ${input.priority || "normal"}, ${input.ownerId || null}, "triage",
-      ${receivedAt}, CURRENT_TIMESTAMP
+      ${input.priority || "normal"}, ${input.ownerId || null}, ${"triage"},
+      ${receivedAt}, ${receivedAt}, CURRENT_TIMESTAMP
     )
     RETURNING id
   `;
@@ -261,7 +266,8 @@ const CASE_COLUMNS = `
   next_action, next_action_due_at, outcome, decline_reason, decline_detail,
   referral_org, referral_date, referral_link, referral_followup_date,
   referral_outcome, referral_detail, first_response_at, closed_at,
-  last_replied_at, archived_at, organisation_id, person_id, triaged_at
+  last_replied_at, archived_at, organisation_id, person_id, triaged_at,
+  received_at
 `;
 
 /** Returns one case by id, or null. */
@@ -306,6 +312,7 @@ export interface CaseSummary {
   nextActionDueAt?: Date;
   outcome?: CaseOutcome;
   lastRepliedAt?: Date;
+  receivedAt?: Date;
 }
 
 function mapSummary(row: Record<string, unknown>): CaseSummary {
@@ -336,6 +343,9 @@ function mapSummary(row: Record<string, unknown>): CaseSummary {
     outcome: (row.outcome as CaseOutcome) ?? undefined,
     lastRepliedAt: row.last_replied_at
       ? new Date(row.last_replied_at as string)
+      : undefined,
+    receivedAt: row.received_at
+      ? new Date(row.received_at as string)
       : undefined,
   };
 }
@@ -375,7 +385,7 @@ export async function searchCaseSummaries(options: {
       LEFT(message, ${CASE_PREVIEW_LENGTH}) AS message_preview,
       email_sent, status, workflow_status, source, case_type, programme,
       priority, risk_level, strategic_value, owner_id,
-      next_action, next_action_due_at, outcome, last_replied_at
+      next_action, next_action_due_at, outcome, last_replied_at, received_at
     FROM contact_messages
     WHERE deleted_at IS NULL
       AND (
@@ -645,7 +655,11 @@ export async function updateCase(
       referral_followup_date = ${next.referralFollowupDate},
       referral_outcome = ${next.referralOutcome},
       referral_detail = ${next.referralDetail},
-      closed_at = ${isTerminal ? "now()" : null}::timestamptz,
+      closed_at =
+        CASE
+          WHEN ${isTerminal} THEN CURRENT_TIMESTAMP
+          ELSE NULL
+        END,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${id} AND deleted_at IS NULL
   `;

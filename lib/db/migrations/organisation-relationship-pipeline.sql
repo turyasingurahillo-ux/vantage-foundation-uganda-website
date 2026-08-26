@@ -135,10 +135,40 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- triaged_at — SLA timestamp for first triage (distinct from first_response_at
 -- which records the first OUTBOUND reply).
+--
+-- received_at — when Vantage actually received the enquiry. For website form
+-- submissions this equals created_at (the row creation time). For manual
+-- intake (WhatsApp, phone, walk-in, etc.) this is the staff-supplied timestamp
+-- of when the person originally contacted Vantage, which may differ from
+-- created_at (when the staff member entered the record into Vantage HQ).
+--
+-- SLA response-time calculations use received_at (falling back to created_at
+-- for historical rows that predate this column) rather than created_at alone,
+-- so that manually logged cases do not contaminate response-time statistics
+-- with data-entry delay.
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE contact_messages
   ADD COLUMN IF NOT EXISTS triaged_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE contact_messages
+  ADD COLUMN IF NOT EXISTS received_at TIMESTAMP WITH TIME ZONE;
+
+-- Backfill received_at for existing website-form submissions where
+-- received_at is NULL. These rows have source = 'website_form' and their
+-- created_at is a reliable proxy for when the enquiry was received.
+-- Manual-intake rows are NOT backfilled because their created_at reflects
+-- data-entry time, not contact time, and fabricating an earlier timestamp
+-- would contaminate SLA metrics.
+UPDATE contact_messages
+  SET received_at = created_at
+  WHERE received_at IS NULL
+    AND source = 'website_form'
+    AND deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_contact_messages_received_at
+  ON contact_messages(received_at)
+  WHERE received_at IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- case_actions — action / follow-up history.
