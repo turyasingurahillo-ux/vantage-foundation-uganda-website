@@ -7,10 +7,8 @@ import {
   FileText,
   Image as ImageIcon,
   ArrowRight,
-  ShieldAlert,
   Clock,
   AlertTriangle,
-  Users,
 } from "lucide-react";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import {
@@ -26,8 +24,6 @@ import { AttentionCard } from "@/components/admin/hq/AttentionCard";
 import { QuickAction } from "@/components/admin/hq/QuickAction";
 import { ActivityFeed } from "@/components/admin/hq/ActivityFeed";
 import { UpcomingActionsList } from "@/components/admin/hq/UpcomingActionsList";
-import { formatDate } from "@/lib/format";
-import { getWorkflowStatusLabel } from "@/lib/case-types";
 
 export const metadata: Metadata = {
   title: "Dashboard",

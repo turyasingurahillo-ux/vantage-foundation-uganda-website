@@ -42,7 +42,6 @@ import { appendAuditLog } from "@/lib/db/audit";
  * before/after snapshots.
  */
 
-const nullableString = z.string().nullable().optional();
 const nullableDate = z.string().datetime().nullable().optional();
 
 const updateSchema = z.object({

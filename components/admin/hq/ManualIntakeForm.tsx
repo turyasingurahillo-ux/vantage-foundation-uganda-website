@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   CASE_SOURCES,
   CASE_TYPES,
-  CASE_PROGRAMMES,
   CASE_PRIORITIES,
 } from "@/lib/case-types";
 import { CONTACT_CATEGORIES } from "@/lib/contact-categories";

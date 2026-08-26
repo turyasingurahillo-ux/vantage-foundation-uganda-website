@@ -9,12 +9,6 @@ import {
   CASE_STRATEGIC_VALUES,
   CASE_TYPES,
   CASE_PROGRAMMES,
-  type CaseWorkflowStatus,
-  type CasePriority,
-  type CaseRiskLevel,
-  type CaseStrategicValue,
-  type CaseType,
-  type CaseProgramme,
 } from "@/lib/case-types";
 import type { CaseRow } from "@/lib/db/cases";
 
