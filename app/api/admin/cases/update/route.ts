@@ -22,6 +22,7 @@ import {
   type ReferralOutcome,
 } from "@/lib/case-types";
 import { updateCase, getCaseById } from "@/lib/db/cases";
+import { stampTriagedIfFirst } from "@/lib/db/case-history";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -173,6 +174,19 @@ export async function POST(request: Request) {
     const after = await updateCase(id, input);
     if (!after) {
       return back(request, id, "error=notfound");
+    }
+
+    // Stamp triaged_at when the case moves from 'new' to any triaged state
+    if (
+      before.workflowStatus === "new" &&
+      after.workflowStatus !== "new" &&
+      after.workflowStatus !== "archived"
+    ) {
+      try {
+        await stampTriagedIfFirst(id);
+      } catch {
+        // Non-fatal — the update still succeeded
+      }
     }
 
     await appendAuditLog({

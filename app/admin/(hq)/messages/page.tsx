@@ -18,6 +18,24 @@ import {
   getSentReplyCountsForMessages,
   type ContactReplyRow,
 } from "@/lib/db/contact-replies";
+import {
+  getCaseActions,
+  getCaseDecisions,
+  getCaseCommunications,
+  getCaseReferrals,
+} from "@/lib/db/case-history";
+import {
+  getOrganisationById,
+  getPersonById,
+} from "@/lib/db/organisations";
+import type {
+  CaseActionRow,
+  CaseDecisionRow,
+  CaseCommunicationRow,
+  CaseReferralRow,
+  OrganisationRow,
+  PersonRow,
+} from "@/lib/organisation-types";
 import { getAdmins } from "@/lib/db/admins";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
@@ -142,24 +160,46 @@ export default async function AdminMessagesPage({
   let selectedCase: Awaited<ReturnType<typeof getCaseById>> = null;
   let replies: ContactReplyRow[] = [];
   let notes: Awaited<ReturnType<typeof getCaseNotes>> = [];
+  let actions: CaseActionRow[] = [];
+  let decisions: CaseDecisionRow[] = [];
+  let communications: CaseCommunicationRow[] = [];
+  let referrals: CaseReferralRow[] = [];
+  let linkedOrganisation: OrganisationRow | null = null;
+  let linkedPerson: PersonRow | null = null;
   let adminNames: Record<string, string> = {};
   let admins: { id: number; username: string }[] = [];
 
   if (openId) {
     try {
-      const [c, reps, noteList, adminList] = await Promise.all([
+      const [c, reps, noteList, adminList, actionList, decisionList, commList, referralList] = await Promise.all([
         getCaseById(openId),
         getRepliesForMessage(openId),
         getCaseNotes(openId),
         getAdmins(),
+        getCaseActions(openId),
+        getCaseDecisions(openId),
+        getCaseCommunications(openId),
+        getCaseReferrals(openId),
       ]);
       selectedCase = c;
       replies = reps;
       notes = noteList;
+      actions = actionList;
+      decisions = decisionList;
+      communications = commList;
+      referrals = referralList;
       admins = adminList.map((a) => ({ id: a.id, username: a.username }));
       adminNames = Object.fromEntries(
         adminList.map((a) => [String(a.id), a.username]),
       );
+
+      // Fetch linked organisation and person if the case has them
+      if (c?.organisationId) {
+        linkedOrganisation = await getOrganisationById(c.organisationId).catch(() => null);
+      }
+      if (c?.personId) {
+        linkedPerson = await getPersonById(c.personId).catch(() => null);
+      }
     } catch {
       selectedCase = null;
     }
@@ -291,6 +331,12 @@ export default async function AdminMessagesPage({
                 caseRow={selectedCase}
                 replies={replies}
                 notes={notes}
+                actions={actions}
+                decisions={decisions}
+                communications={communications}
+                referrals={referrals}
+                linkedOrganisation={linkedOrganisation}
+                linkedPerson={linkedPerson}
                 admins={admins}
                 adminNames={adminNames}
                 csrfToken={csrfToken}
@@ -327,6 +373,12 @@ export default async function AdminMessagesPage({
               caseRow={selectedCase}
               replies={replies}
               notes={notes}
+              actions={actions}
+              decisions={decisions}
+              communications={communications}
+              referrals={referrals}
+              linkedOrganisation={linkedOrganisation}
+              linkedPerson={linkedPerson}
               admins={admins}
               adminNames={adminNames}
               csrfToken={csrfToken}

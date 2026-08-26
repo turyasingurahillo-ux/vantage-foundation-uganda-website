@@ -53,6 +53,8 @@ export default async function AdminDashboardPage() {
       safeguardingCases: 0,
       highPriorityCases: 0,
       activeCases: 0,
+      referralFollowupsDue: 0,
+      dueDiligenceConcerns: 0,
     },
     sources: {
       donations: false,
@@ -60,6 +62,8 @@ export default async function AdminDashboardPage() {
       stories: false,
       media: false,
       cases: false,
+      referrals: false,
+      dueDiligence: false,
     },
   }));
 
@@ -96,7 +100,9 @@ export default async function AdminDashboardPage() {
     attention.awaitingVantageCases > 0 ||
     attention.overdueCases > 0 ||
     attention.safeguardingCases > 0 ||
-    attention.highPriorityCases > 0;
+    attention.highPriorityCases > 0 ||
+    attention.referralFollowupsDue > 0 ||
+    attention.dueDiligenceConcerns > 0;
 
   return (
     <Container>
@@ -174,6 +180,24 @@ export default async function AdminDashboardPage() {
             urgent={false}
             unavailable={!sources.cases}
             countLabel={`${attention.activeCases} active`}
+          />
+          <AttentionCard
+            href="/admin/messages?filter=active"
+            label="Referral follow-ups due"
+            description="Referrals with follow-up dates due within 7 days"
+            count={attention.referralFollowupsDue}
+            urgent={attention.referralFollowupsDue > 0}
+            unavailable={!sources.referrals}
+            countLabel={`${attention.referralFollowupsDue} due`}
+          />
+          <AttentionCard
+            href="/admin/organisations"
+            label="Due-diligence concerns"
+            description="Organisations with failed or concerning checks"
+            count={attention.dueDiligenceConcerns}
+            urgent={attention.dueDiligenceConcerns > 0}
+            unavailable={!sources.dueDiligence}
+            countLabel={`${attention.dueDiligenceConcerns} concerns`}
           />
         </div>
 
@@ -296,6 +320,12 @@ export default async function AdminDashboardPage() {
               label="Upload media"
               description="Add photos or documents to the library"
               icon={ImageIcon}
+            />
+            <QuickAction
+              href="/admin/analytics/service"
+              label="Service performance"
+              description="Response times, triage and case-flow metrics"
+              icon={Clock}
             />
           </div>
         </section>

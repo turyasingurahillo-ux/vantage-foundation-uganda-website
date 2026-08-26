@@ -29,6 +29,8 @@ describe("DashboardAttention data shape", () => {
       safeguardingCases: 0,
       highPriorityCases: 3,
       activeCases: 12,
+          referralFollowupsDue: 0,
+          dueDiligenceConcerns: 0,
     };
     expect(attention.newMessages).toBe(5);
     expect(attention.awaitingResponseMessages).toBe(3);
@@ -48,6 +50,8 @@ describe("DashboardAttention data shape", () => {
       safeguardingCases: 0,
       highPriorityCases: 0,
       activeCases: 0,
+          referralFollowupsDue: 0,
+          dueDiligenceConcerns: 0,
     };
     // The old combined field must not exist on the type.
     expect("unhandledMessages" in attention).toBe(false);
@@ -66,6 +70,8 @@ describe("DashboardAttention data shape", () => {
       safeguardingCases: 0,
       highPriorityCases: 0,
       activeCases: 0,
+          referralFollowupsDue: 0,
+          dueDiligenceConcerns: 0,
     };
     expect("notEmailedMessages" in attention).toBe(false);
   });
@@ -83,6 +89,8 @@ describe("DashboardAttention data shape", () => {
       safeguardingCases: 1,
       highPriorityCases: 4,
       activeCases: 15,
+          referralFollowupsDue: 0,
+          dueDiligenceConcerns: 0,
     };
     expect(attention.untriagedCases).toBe(5);
     expect(attention.awaitingVantageCases).toBe(3);
@@ -90,5 +98,25 @@ describe("DashboardAttention data shape", () => {
     expect(attention.safeguardingCases).toBe(1);
     expect(attention.highPriorityCases).toBe(4);
     expect(attention.activeCases).toBe(15);
+  });
+
+  it("has relationship-layer attention fields", () => {
+    const attention: DashboardAttention = {
+      pendingDonations: 0,
+      newMessages: 0,
+      awaitingResponseMessages: 0,
+      draftStories: 0,
+      mediaPendingConsent: 0,
+      untriagedCases: 0,
+      awaitingVantageCases: 0,
+      overdueCases: 0,
+      safeguardingCases: 0,
+      highPriorityCases: 0,
+      activeCases: 0,
+      referralFollowupsDue: 3,
+      dueDiligenceConcerns: 1,
+    };
+    expect(attention.referralFollowupsDue).toBe(3);
+    expect(attention.dueDiligenceConcerns).toBe(1);
   });
 });
