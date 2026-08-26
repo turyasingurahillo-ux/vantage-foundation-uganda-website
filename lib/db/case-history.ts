@@ -281,6 +281,7 @@ export async function getCaseSlaData(caseId: number): Promise<CaseSlaData | null
     SELECT
       id,
       created_at,
+      received_at,
       triaged_at,
       first_response_at,
       closed_at,
@@ -288,11 +289,9 @@ export async function getCaseSlaData(caseId: number): Promise<CaseSlaData | null
       next_action_due_at,
       CASE
         WHEN workflow_status IN ('awaiting_vantage', 'decision_required') THEN 'vantage'
-        WHEN workflow_status IN ('awaiting_external', 'information_requested'::text)
-          OR (workflow_status = 'triage' AND first_response_at IS NOT NULL)
-        THEN 'external'
-        WHEN workflow_status IN ('accepted', 'completed', 'archived', 'declined')
-        THEN NULL
+        WHEN workflow_status = 'awaiting_external' THEN 'external'
+        WHEN workflow_status IN ('accepted', 'completed', 'archived', 'declined', 'referred') THEN NULL
+        WHEN workflow_status IN ('new', 'triage', 'under_review', 'due_diligence', 'meeting_scheduled') THEN 'vantage'
         ELSE NULL
       END AS current_waiting_party
     FROM contact_messages
@@ -300,7 +299,9 @@ export async function getCaseSlaData(caseId: number): Promise<CaseSlaData | null
   `;
   if (rows.length === 0) return null;
   const row = rows[0];
-  const receivedAt = new Date(row.created_at as string);
+  const receivedAt = row.received_at
+    ? new Date(row.received_at as string)
+    : new Date(row.created_at as string);
   const triagedAt = row.triaged_at ? new Date(row.triaged_at as string) : null;
   const firstResponseAt = row.first_response_at
     ? new Date(row.first_response_at as string)
@@ -336,6 +337,13 @@ export async function getCaseSlaData(caseId: number): Promise<CaseSlaData | null
   };
 }
 
+export interface SlaSourceBreakdown {
+  source: string;
+  caseCount: number;
+  respondedCount: number;
+  medianFirstResponseMs: number | null;
+}
+
 export interface SlaSummary {
   medianFirstResponseMs: number | null;
   averageFirstResponseMs: number | null;
@@ -347,27 +355,32 @@ export interface SlaSummary {
   withinTargetCount: number;
   sampleSize: number;
   periodLabel: string;
+  sourceBreakdown: SlaSourceBreakdown[];
 }
 
 export type SlaPeriod = "30d" | "90d" | "all";
 
 /**
- * Target first-response time: 2 business days expressed in milliseconds.
+ * Target first-response time: 48 elapsed hours expressed in milliseconds.
  * This is a configurable operational target, not a hard SLA contract.
  * Cases responded to within this window count as "within target".
+ *
+ * Note: this is 48 elapsed hours, NOT 2 business days. Business-day
+ * calculation would require excluding weekends and holidays, which is
+ * not implemented at this scope.
  */
-const SLA_TARGET_MS = 2 * 24 * 60 * 60 * 1000;
+const SLA_TARGET_MS = 48 * 60 * 60 * 1000;
 
 export async function getSlaSummary(
   period: SlaPeriod = "90d",
 ): Promise<SlaSummary> {
   const sql = getSql();
-  const intervalClause =
+  const since =
     period === "30d"
-      ? sql`CURRENT_DATE - INTERVAL '30 days'`
+      ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       : period === "90d"
-        ? sql`CURRENT_DATE - INTERVAL '90 days'`
-        : sql`TIMESTAMP '-infinity'`;
+        ? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+        : null;
 
   const periodLabel =
     period === "30d" ? "Last 30 days" : period === "90d" ? "Last 90 days" : "All time";
@@ -377,7 +390,7 @@ export async function getSlaSummary(
       COUNT(*) FILTER (WHERE first_response_at IS NOT NULL)::int AS responded,
       COUNT(*) FILTER (
         WHERE first_response_at IS NOT NULL
-          AND EXTRACT(EPOCH FROM (first_response_at - created_at)) * 1000 <= ${SLA_TARGET_MS}
+          AND EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000 <= ${SLA_TARGET_MS}
       )::int AS within_target,
       COUNT(*) FILTER (WHERE workflow_status = 'new')::int AS untriaged,
       COUNT(*) FILTER (
@@ -389,13 +402,36 @@ export async function getSlaSummary(
       COUNT(*) FILTER (WHERE workflow_status = 'awaiting_external')::int AS awaiting_external,
       COUNT(*)::int AS total,
       PERCENTILE_CONT(0.5) WITHIN GROUP (
-        ORDER BY EXTRACT(EPOCH FROM (first_response_at - created_at)) * 1000
+        ORDER BY EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000
       ) AS median_response_ms,
-      AVG(EXTRACT(EPOCH FROM (first_response_at - created_at)) * 1000) AS avg_response_ms
+      AVG(EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000) AS avg_response_ms
     FROM contact_messages
     WHERE deleted_at IS NULL
-      AND created_at > ${intervalClause}
+      AND (${since}::timestamptz IS NULL OR created_at >= ${since})
   `;
+
+  // Source breakdown for SLA segmentation
+  const sourceRows = await sql`
+    SELECT
+      source,
+      COUNT(*)::int AS case_count,
+      COUNT(*) FILTER (WHERE first_response_at IS NOT NULL)::int AS responded,
+      PERCENTILE_CONT(0.5) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000
+      ) AS median_response_ms
+    FROM contact_messages
+    WHERE deleted_at IS NULL
+      AND (${since}::timestamptz IS NULL OR created_at >= ${since})
+    GROUP BY source
+    ORDER BY case_count DESC
+  `;
+  const sourceBreakdown: SlaSourceBreakdown[] = sourceRows.map((r) => ({
+    source: (r.source as string) ?? "unknown",
+    caseCount: (r.case_count as number) ?? 0,
+    respondedCount: (r.responded as number) ?? 0,
+    medianFirstResponseMs:
+      r.median_response_ms != null ? Number(r.median_response_ms) : null,
+  }));
   const row = rows[0];
   return {
     medianFirstResponseMs:
@@ -412,6 +448,7 @@ export async function getSlaSummary(
     withinTargetCount: (row.within_target as number) ?? 0,
     sampleSize: (row.total as number) ?? 0,
     periodLabel,
+    sourceBreakdown,
   };
 }
 
@@ -432,12 +469,12 @@ export async function getSlaByCaseType(
   period: SlaPeriod = "90d",
 ): Promise<SlaByCaseTypeRow[]> {
   const sql = getSql();
-  const intervalClause =
+  const since =
     period === "30d"
-      ? sql`CURRENT_DATE - INTERVAL '30 days'`
+      ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       : period === "90d"
-        ? sql`CURRENT_DATE - INTERVAL '90 days'`
-        : sql`TIMESTAMP '-infinity'`;
+        ? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+        : null;
 
   const rows = await sql`
     SELECT
@@ -445,15 +482,15 @@ export async function getSlaByCaseType(
       COUNT(*)::int AS case_count,
       COUNT(*) FILTER (WHERE first_response_at IS NOT NULL)::int AS responded,
       PERCENTILE_CONT(0.5) WITHIN GROUP (
-        ORDER BY EXTRACT(EPOCH FROM (first_response_at - created_at)) * 1000
+        ORDER BY EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000
       ) AS median_response_ms,
       COUNT(*) FILTER (
         WHERE first_response_at IS NOT NULL
-          AND EXTRACT(EPOCH FROM (first_response_at - created_at)) * 1000 <= ${SLA_TARGET_MS}
+          AND EXTRACT(EPOCH FROM (first_response_at - COALESCE(received_at, created_at))) * 1000 <= ${SLA_TARGET_MS}
       )::int AS within_target
     FROM contact_messages
     WHERE deleted_at IS NULL
-      AND created_at > ${intervalClause}
+      AND (${since}::timestamptz IS NULL OR created_at >= ${since})
     GROUP BY case_type
     ORDER BY case_count DESC
   `;
@@ -610,23 +647,36 @@ export async function updateCaseReferral(
   input: Partial<CaseReferralInput>,
 ): Promise<CaseReferralRow | null> {
   const sql = getSql();
-  const rows = await sql`
-    UPDATE case_referrals SET
-      organisation_id = COALESCE(${input.organisationId ?? null}, organisation_id),
-      opportunity_name = COALESCE(${input.opportunityName ?? null}, opportunity_name),
-      referred_to_name = COALESCE(${input.referredToName ?? null}, referred_to_name),
-      description = COALESCE(${input.description ?? null}, description),
-      url_reference = COALESCE(${input.urlReference ?? null}, url_reference),
-      referred_by = COALESCE(${input.referredBy ?? null}, referred_by),
-      referred_at = COALESCE(${input.referredAt ?? null}::date, referred_at),
-      follow_up_at = COALESCE(${input.followUpAt ?? null}::date, follow_up_at),
-      status = COALESCE(${input.status ?? null}, status),
-      notes = COALESCE(${input.notes ?? null}, notes),
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = ${referralId}
-    RETURNING *
-  `;
-  return rows.length > 0 ? mapCaseReferral(rows[0]) : null;
+
+  // Build SET clauses only for fields that were explicitly provided.
+  // This allows clearing nullable fields by passing null, while leaving
+  // absent (undefined) fields unchanged.
+  const sets: string[] = ["updated_at = CURRENT_TIMESTAMP"];
+  const values: unknown[] = [referralId];
+  let paramIdx = 1;
+
+  function addSet(column: string, value: unknown, cast?: string) {
+    sets.push(`${column} = $${paramIdx}${cast ?? ""}`);
+    values.push(value);
+    paramIdx++;
+  }
+
+  if (input.organisationId !== undefined) addSet("organisation_id", input.organisationId);
+  if (input.opportunityName !== undefined) addSet("opportunity_name", input.opportunityName);
+  if (input.referredToName !== undefined) addSet("referred_to_name", input.referredToName);
+  if (input.description !== undefined) addSet("description", input.description);
+  if (input.urlReference !== undefined) addSet("url_reference", input.urlReference);
+  if (input.referredBy !== undefined) addSet("referred_by", input.referredBy);
+  if (input.referredAt !== undefined) addSet("referred_at", input.referredAt, "::date");
+  if (input.followUpAt !== undefined) addSet("follow_up_at", input.followUpAt, "::date");
+  if (input.status !== undefined) addSet("status", input.status);
+  if (input.notes !== undefined) addSet("notes", input.notes);
+
+  const rows = await sql.query(
+    `UPDATE case_referrals SET ${sets.join(", ")} WHERE id = $1 RETURNING *`,
+    values,
+  );
+  return rows.length > 0 ? mapCaseReferral(rows[0] as Record<string, unknown>) : null;
 }
 
 export async function setCaseReferralOutcome(

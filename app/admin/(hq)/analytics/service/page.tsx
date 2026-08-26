@@ -10,6 +10,7 @@ import {
   type SlaPeriod,
 } from "@/lib/db/case-history";
 import { getCaseTypeLabel } from "@/lib/case-types";
+import { logWarn } from "@/lib/logger";
 import { Container } from "@/components/shared/Container";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
 
@@ -49,9 +50,18 @@ export default async function ServicePerformancePage({
     : "90d";
 
   const [summary, byCaseType, referralSummary] = await Promise.all([
-    getSlaSummary(period).catch(() => null),
-    getSlaByCaseType(period).catch(() => []),
-    getReferralAnalyticsSummary().catch(() => null),
+    getSlaSummary(period).catch((e) => {
+      logWarn("sla_summary_error", { error: String(e), period });
+      return null;
+    }),
+    getSlaByCaseType(period).catch((e) => {
+      logWarn("sla_by_case_type_error", { error: String(e), period });
+      return [];
+    }),
+    getReferralAnalyticsSummary().catch((e) => {
+      logWarn("referral_analytics_error", { error: String(e) });
+      return null;
+    }),
   ]);
 
   const withinTargetPercent =
@@ -123,7 +133,7 @@ export default async function ServicePerformancePage({
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Within target (2 days)
+                Within target (48 hours)
               </p>
               <p className="mt-1 text-2xl font-bold">
                 {withinTargetPercent != null ? `${withinTargetPercent}%` : "—"}
@@ -170,6 +180,45 @@ export default async function ServicePerformancePage({
                 <p className="text-xs text-muted-foreground">Awaiting external</p>
                 <p className="text-xl font-bold">{summary.awaitingExternalCount}</p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* SLA by source */}
+        {summary && summary.sourceBreakdown.length > 0 && (
+          <div className="mt-6 rounded-lg border border-border p-6">
+            <h2 className="mb-4 text-lg font-semibold">By intake source</h2>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Response times segmented by how the case was received. Manual
+              intake cases may have different timing characteristics than
+              website form submissions.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b border-border">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Source</th>
+                    <th className="px-3 py-2 text-right font-medium">Cases</th>
+                    <th className="px-3 py-2 text-right font-medium">Responded</th>
+                    <th className="px-3 py-2 text-right font-medium">Median first response</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.sourceBreakdown.map((row) => (
+                    <tr
+                      key={row.source}
+                      className="border-b border-border last:border-0"
+                    >
+                      <td className="px-3 py-2">{row.source}</td>
+                      <td className="px-3 py-2 text-right">{row.caseCount}</td>
+                      <td className="px-3 py-2 text-right">{row.respondedCount}</td>
+                      <td className="px-3 py-2 text-right">
+                        {formatDuration(row.medianFirstResponseMs)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
