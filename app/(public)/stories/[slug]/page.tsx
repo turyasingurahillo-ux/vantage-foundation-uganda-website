@@ -123,13 +123,11 @@ export default async function StoryPage({
 
   return (
     <>
-      {story.dbId && (
-        <ArticleAnalytics
-          articleId={story.dbId}
-          articleSlug={story.slug}
-          articleTitle={story.title}
-        />
-      )}
+      <ArticleAnalytics
+        articleSlug={story.slug}
+        articleTitle={story.title}
+        articleId={story.dbId}
+      />
       <JsonLd
         data={buildBreadcrumbJsonLd(
           [

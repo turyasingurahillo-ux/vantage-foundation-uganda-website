@@ -4,11 +4,11 @@ import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 import {
-  getArticlePerformance,
   getArticleSearchPerformance,
   resolveDateRange,
   type DatePreset,
 } from "@/lib/db/analytics";
+import { getFoundationArticlePerformance } from "@/lib/db/analytics-foundation";
 
 /**
  * CSV export of article performance for donor/board/grant reporting.
@@ -51,11 +51,11 @@ export async function GET(request: Request) {
 
   try {
     const range = resolveDateRange(rangeParam, { start: customStart, end: customEnd });
-    const articles = await getArticlePerformance(range);
+    const articles = await getFoundationArticlePerformance(range);
 
     // Fetch search performance per article for the CSV (best-effort).
     const searchPerf = await Promise.all(
-      articles.map((a) => getArticleSearchPerformance(a.articleId).catch(() => ({ impressions: 0, clicks: 0, ctr: 0, avgPosition: 0, available: false })))
+      articles.map((a) => getArticleSearchPerformance(a.analyticsArticleId).catch(() => ({ impressions: 0, clicks: 0, ctr: 0, avgPosition: 0, available: false })))
     );
 
     const headers = [
