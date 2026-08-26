@@ -1,0 +1,49 @@
+## Summary
+
+- **Canonical `StoryEditorForm`**: Consolidates the previously duplicated form logic from `StoriesManager` (create + edit) and `ArticleEditorForm` (edit-only) into one component at `components/admin/stories/StoryEditorForm.tsx`. Handles both creation and editing modes, preserves all existing fields and API behavior.
+- **Redesigned `/admin/stories`**: Now a focused content-management workspace with summary strip (total/published/drafts/static counts), search, status/source filters, sortable table, and correct identity-namespace row actions. Static stories are listed but show no bogus editor actions.
+- **First-class `/admin/analytics` route**: Dedicated analytics page at `app/admin/(hq)/analytics/page.tsx` using the existing `AnalyticsDashboard` component in standalone mode (link-based navigation instead of in-place callbacks).
+- **Admin navigation**: Added Analytics as a first-class item in the Content group, distinct from Stories.
+- **Legacy removal**: `StoriesManager.tsx` and `ArticleEditorForm.tsx` deleted after full migration to the canonical components. No source file imports them.
+
+### Identity architecture (preserved from PR #63)
+
+- `analyticsArticleId` → analytics queries
+- `storyId` → editorial routes (`/admin/stories/[id]`), `null` for static stories
+- `slug` → public URLs (`/stories/[slug]`)
+
+Static stories remain viewable and measurable but expose no edit/delete actions.
+
+### Files added
+- `app/admin/(hq)/analytics/page.tsx`
+- `components/admin/stories/StoriesWorkspace.tsx`
+- `components/admin/stories/StoryEditorForm.tsx`
+- `tests/unit/admin-navigation-redesign.test.ts`
+- `tests/unit/legacy-removal.test.ts`
+- `tests/unit/stories-identity-redesign.test.ts`
+- `tests/unit/stories-workspace.test.tsx`
+- `tests/unit/story-editor-form.test.tsx`
+
+### Files removed
+- `components/admin/StoriesManager.tsx`
+- `components/admin/ArticleEditorForm.tsx`
+
+### Files changed
+- `app/admin/(hq)/stories/page.tsx` — uses `StoriesWorkspace` instead of `StoriesManager`
+- `app/admin/(hq)/stories/[id]/page.tsx` — uses `StoryEditorForm` instead of `ArticleEditorForm`
+- `components/admin/AnalyticsDashboard.tsx` — `onEditStory`/`onDeleteStory` now optional; link-based edit when callbacks omitted
+- `components/admin/ContentPerformanceCard.tsx` — links to `/admin/analytics` instead of `/admin/stories`
+- `lib/admin-navigation.ts` — added Analytics nav item
+
+#### Test plan
+- [x] Lint passes (0 errors, 0 warnings)
+- [x] Type-check passes
+- [x] Unit tests: 522/522 pass (53 test files, including 5 new redesign test files with 43 new tests)
+- [x] Production build passes (69 pages, `/admin/analytics` route confirmed)
+- [ ] E2E/accessibility (runs on CI)
+- [ ] Targeted analytics Preview E2E (to be verified on Preview deployment)
+- [ ] Production receives no test analytics events
+
+**This PR is a DRAFT and must not be merged without explicit authorization.**
+
+Generated with [Devin](https://devin.ai)

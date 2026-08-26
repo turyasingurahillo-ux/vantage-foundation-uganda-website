@@ -31,6 +31,14 @@ export interface ContactInfo {
    */
   publicEmail?: string;
   phone: string;
+  /**
+   * WhatsApp quick-contact number, displayed as the prominent quick-contact
+   * CTA across the public site. Stored in E.164-ish display form
+   * (e.g. "+256 786 585 216"); the WhatsApp helper normalises it to digits
+   * for the wa.me URL. This is a public contact channel — it is NOT the
+   * protected operational mailbox.
+   */
+  whatsapp: string;
   address: string;
   city: string;
   country: string;

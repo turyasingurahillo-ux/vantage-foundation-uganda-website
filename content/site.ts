@@ -22,6 +22,10 @@ export const site: SiteConfig = {
     // displayed automatically.
     publicEmail: resolvePublicContactEmail(),
     phone: "+256 786 585 216",
+    // WhatsApp quick-contact number. This is the prominent quick-contact
+    // channel on the public site — not the protected operational mailbox.
+    // The helper in lib/whatsapp.ts normalises this to digits for wa.me.
+    whatsapp: "+256 786 585 216",
     address: "Jinja, Uganda",
     city: "Jinja",
     country: "Uganda",
