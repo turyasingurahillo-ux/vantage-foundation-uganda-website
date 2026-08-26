@@ -8,7 +8,7 @@ import { getStoryById } from "@/lib/db/stories";
 import { getAnalyticsArticleBySlug } from "@/lib/db/analytics-articles";
 import { Container } from "@/components/shared/Container";
 import { ArticleAnalyticsDetail } from "@/components/admin/ArticleAnalyticsDetail";
-import { ArticleEditorForm } from "@/components/admin/ArticleEditorForm";
+import { StoryEditorForm } from "@/components/admin/stories/StoryEditorForm";
 
 export const metadata: Metadata = {
   title: "Article analytics",
@@ -144,7 +144,7 @@ export default async function AdminArticleDetailPage({
                   </div>
                 )
               ) : (
-                <ArticleEditorForm csrfToken={csrfToken} story={story} />
+                <StoryEditorForm csrfToken={csrfToken} story={story} />
               )}
             </div>
           </>

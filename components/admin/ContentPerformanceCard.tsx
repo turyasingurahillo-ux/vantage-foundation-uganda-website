@@ -161,7 +161,7 @@ export function ContentPerformanceCard() {
           )}
 
           <Link
-            href="/admin/stories"
+            href="/admin/analytics"
             className="mt-4 inline-block text-sm font-semibold text-primary hover:underline"
           >
             View Content Analytics →

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getStories } from "@/lib/db/stories";
+import { getPublishedStories } from "@/content/stories";
 import { Container } from "@/components/shared/Container";
-import { StoriesManager } from "@/components/admin/StoriesManager";
+import { StoriesWorkspace } from "@/components/admin/stories/StoriesWorkspace";
 
 export const metadata: Metadata = {
   title: "Stories & Insights",
@@ -25,18 +27,43 @@ export default async function AdminStoriesPage() {
   } catch {
     dbError = "Could not load Stories & Insights. Run the database setup so the stories table exists.";
   }
+
+  // Static stories are always available from the code manifest.
+  const staticStories = getPublishedStories().map((s) => ({
+    slug: s.slug,
+    title: s.title,
+    category: s.category,
+    author: s.author ?? null,
+    date: s.date,
+  }));
+
   return (
     <section className="py-12 md:py-16">
       <Container>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Stories & Insights</h1>
-            <p className="text-sm text-muted-foreground">Write, edit, schedule and publish the public Stories & Insights content.</p>
+            <h1 className="text-2xl font-bold">Stories &amp; Insights</h1>
+            <p className="text-sm text-muted-foreground">
+              Write, edit, schedule and publish the public Stories &amp; Insights content.
+            </p>
           </div>
-
+          <Link
+            href="/admin/analytics"
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            View analytics →
+          </Link>
         </div>
-        {dbError && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">{dbError}</p>}
-        <StoriesManager csrfToken={csrfToken} initialItems={items} />
+        {dbError && (
+          <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+            {dbError}
+          </p>
+        )}
+        <StoriesWorkspace
+          csrfToken={csrfToken}
+          initialItems={items}
+          staticStories={staticStories}
+        />
       </Container>
     </section>
   );
