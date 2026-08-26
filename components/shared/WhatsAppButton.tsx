@@ -24,11 +24,11 @@ interface WhatsAppButtonProps {
 
 const VARIANT_CLASSES = {
   primary:
-    "bg-[#25D366] text-white hover:bg-[#1ebe5d] focus-visible:ring-[#25D366]",
+    "bg-[#0e7a5f] text-white hover:bg-[#0a5c45] focus-visible:ring-[#0e7a5f]",
   outline:
-    "border border-[#25D366] text-[#1ebe5d] hover:bg-[#25D366]/10 focus-visible:ring-[#25D366]",
+    "border border-[#0e7a5f] text-[#0e7a5f] hover:bg-[#0e7a5f]/10 focus-visible:ring-[#0e7a5f]",
   ghost:
-    "text-[#1ebe5d] hover:bg-[#25D366]/10 focus-visible:ring-[#25D366]",
+    "text-[#0e7a5f] hover:bg-[#0e7a5f]/10 focus-visible:ring-[#0e7a5f]",
 };
 
 const SIZE_CLASSES = {
