@@ -2,6 +2,8 @@ import { neon } from "@neondatabase/serverless";
 import type { AuditLogEntry } from "./audit";
 import { getInboxCounts } from "./contact";
 import { getCaseCounts, getUpcomingActions } from "./cases";
+import { getCaseReferralFollowupsDue } from "./case-history";
+import { getDueDiligenceConcernCount } from "./organisations";
 
 /**
  * Efficient count queries and recent-activity fetches for the Vantage HQ
@@ -61,6 +63,9 @@ export interface DashboardAttention {
   safeguardingCases: number;
   highPriorityCases: number;
   activeCases: number;
+  // Relationship-layer attention counts
+  referralFollowupsDue: number;
+  dueDiligenceConcerns: number;
 }
 
 export interface DashboardUpcomingActions {
@@ -84,6 +89,8 @@ export async function getDashboardAttention(): Promise<{
     stories: true,
     media: true,
     cases: true,
+    referrals: true,
+    dueDiligence: true,
   };
 
   const attention: DashboardAttention = {
@@ -98,6 +105,8 @@ export async function getDashboardAttention(): Promise<{
     safeguardingCases: 0,
     highPriorityCases: 0,
     activeCases: 0,
+    referralFollowupsDue: 0,
+    dueDiligenceConcerns: 0,
   };
 
   const [
@@ -106,12 +115,16 @@ export async function getDashboardAttention(): Promise<{
     storiesResult,
     mediaResult,
     caseCountsResult,
+    referralResult,
+    ddConcernResult,
   ] = await Promise.allSettled([
     getDonationCounts(),
     getInboxCounts(),
     getDraftStoryCount(),
     getMediaPendingConsentCount(),
     getCaseCounts(),
+    getCaseReferralFollowupsDue(1),
+    getDueDiligenceConcernCount(),
   ]);
 
   if (donationsResult.status === "fulfilled") {
@@ -149,6 +162,18 @@ export async function getDashboardAttention(): Promise<{
     attention.activeCases = cc.active;
   } else {
     sources.cases = false;
+  }
+
+  if (referralResult.status === "fulfilled") {
+    attention.referralFollowupsDue = referralResult.value.length;
+  } else {
+    sources.referrals = false;
+  }
+
+  if (ddConcernResult.status === "fulfilled") {
+    attention.dueDiligenceConcerns = ddConcernResult.value;
+  } else {
+    sources.dueDiligence = false;
   }
 
   return { attention, sources };

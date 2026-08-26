@@ -80,6 +80,9 @@ export interface CaseRow {
   closedAt?: Date;
   lastRepliedAt?: Date;
   archivedAt?: Date;
+  organisationId?: number;
+  personId?: number;
+  triagedAt?: Date;
 }
 
 export interface CaseNoteRow {
@@ -145,6 +148,13 @@ function mapCase(row: Record<string, unknown>): CaseRow {
       : undefined,
     archivedAt: row.archived_at
       ? new Date(row.archived_at as string)
+      : undefined,
+    organisationId: row.organisation_id
+      ? Number(row.organisation_id)
+      : undefined,
+    personId: row.person_id ? Number(row.person_id) : undefined,
+    triagedAt: row.triaged_at
+      ? new Date(row.triaged_at as string)
       : undefined,
   };
 }
@@ -251,7 +261,7 @@ const CASE_COLUMNS = `
   next_action, next_action_due_at, outcome, decline_reason, decline_detail,
   referral_org, referral_date, referral_link, referral_followup_date,
   referral_outcome, referral_detail, first_response_at, closed_at,
-  last_replied_at, archived_at
+  last_replied_at, archived_at, organisation_id, person_id, triaged_at
 `;
 
 /** Returns one case by id, or null. */
