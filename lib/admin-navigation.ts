@@ -4,6 +4,7 @@ import {
   Inbox,
   CircleDollarSign,
   BookOpen,
+  BarChart3,
   Image,
   Users,
   Shield,
@@ -36,6 +37,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     title: "Content",
     items: [
       { href: "/admin/stories", label: "Stories", icon: BookOpen },
+      { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
       { href: "/admin/media", label: "Media", icon: Image },
     ],
   },

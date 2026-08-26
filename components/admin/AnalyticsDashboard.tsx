@@ -176,8 +176,8 @@ function RowMenu({
   onDelete,
 }: {
   article: ArticleRow;
-  onEdit: (article: ArticleRow) => void;
-  onDelete: (article: ArticleRow) => void;
+  onEdit?: (article: ArticleRow) => void;
+  onDelete?: (article: ArticleRow) => void;
 }) {
   const [open, setOpen] = useState(false);
   const adminHref = adminStoryHref(article);
@@ -213,13 +213,22 @@ function RowMenu({
               >
                 View analytics
               </a>
-              <button
-                type="button"
-                onMouseDown={() => onEdit(article)}
-                className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
-              >
-                Edit
-              </button>
+              {onEdit ? (
+                <button
+                  type="button"
+                  onMouseDown={() => onEdit(article)}
+                  className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                >
+                  Edit
+                </button>
+              ) : (
+                <a
+                  href={`${adminHref}?tab=edit`}
+                  className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+                >
+                  Edit
+                </a>
+              )}
             </>
           ) : (
             <div className="px-3 py-1.5 text-xs text-muted-foreground">
@@ -235,7 +244,7 @@ function RowMenu({
           >
             Copy public link
           </button>
-          {adminHref && (
+          {adminHref && onDelete && (
             <>
               <div className="my-1 border-t border-border" />
               <button
@@ -254,9 +263,11 @@ function RowMenu({
 }
 
 interface AnalyticsDashboardProps {
-  stories: StoryRow[];
-  onEditStory: (story: StoryRow) => void;
-  onDeleteStory: (story: StoryRow) => void;
+  stories?: StoryRow[];
+  /** Called when the user clicks "Edit" on a row. If omitted, a link to the edit page is used instead. */
+  onEditStory?: (story: StoryRow) => void;
+  /** Called when the user clicks "Delete" on a row. If omitted, the delete action is hidden. */
+  onDeleteStory?: (story: StoryRow) => void;
 }
 
 export function AnalyticsDashboard({
@@ -402,18 +413,27 @@ export function AnalyticsDashboard({
 
   function resolveEditorialStory(article: ArticleRow): StoryRow | null {
     if (article.storyId == null) return null;
-    return stories.find((story) => story.id === article.storyId) ?? null;
+    return (stories ?? []).find((story) => story.id === article.storyId) ?? null;
   }
 
-  function handleEdit(article: ArticleRow) {
-    const story = resolveEditorialStory(article);
-    if (story) onEditStory(story);
-  }
+  // When the host route does not supply edit/delete callbacks (e.g. the
+  // standalone /admin/analytics page), pass `undefined` to RowMenu so it
+  // falls back to a link-based Edit action and hides Delete entirely.
+  // Returning `undefined` (rather than a no-op function) is what lets
+  // RowMenu's `if (onEdit)` / `if (onDelete)` branches work correctly.
+  const handleEdit = onEditStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onEditStory(story);
+      }
+    : undefined;
 
-  function handleDelete(article: ArticleRow) {
-    const story = resolveEditorialStory(article);
-    if (story) onDeleteStory(story);
-  }
+  const handleDelete = onDeleteStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onDeleteStory(story);
+      }
+    : undefined;
 
   const donutData: DonutSlice[] = traffic.map((source) => ({
     label: SOURCE_LABELS[source.sourceGroup] ?? source.sourceGroup,
