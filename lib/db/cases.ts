@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import type { ContactCategory } from "@/lib/contact-categories";
+import type { ContactMessageStatus } from "@/lib/db/contact";
 import type {
   CaseWorkflowStatus,
   CaseSource,
@@ -53,7 +54,7 @@ export interface CaseRow {
   message: string;
   emailSent: boolean;
   /** Legacy message delivery state: new / awaiting_response / replied / archived. */
-  status: string;
+  status: ContactMessageStatus;
   /** Case workflow state (the rich enum). */
   workflowStatus: CaseWorkflowStatus;
   source: CaseSource;
@@ -106,7 +107,7 @@ function mapCase(row: Record<string, unknown>): CaseRow {
     category: row.category as ContactCategory,
     message: row.message as string,
     emailSent: Boolean(row.email_sent),
-    status: (row.status as string) ?? "new",
+    status: (row.status as ContactMessageStatus) ?? "new",
     workflowStatus: (row.workflow_status as CaseWorkflowStatus) ?? "new",
     source: (row.source as CaseSource) ?? "website_form",
     caseType: (row.case_type as CaseType) ?? undefined,
@@ -282,7 +283,7 @@ export interface CaseSummary {
   category: ContactCategory;
   messagePreview: string;
   emailSent: boolean;
-  status: string;
+  status: ContactMessageStatus;
   workflowStatus: CaseWorkflowStatus;
   source: CaseSource;
   caseType?: CaseType;
@@ -309,7 +310,7 @@ function mapSummary(row: Record<string, unknown>): CaseSummary {
     category: row.category as ContactCategory,
     messagePreview: row.message_preview as string,
     emailSent: Boolean(row.email_sent),
-    status: (row.status as string) ?? "new",
+    status: (row.status as ContactMessageStatus) ?? "new",
     workflowStatus: (row.workflow_status as CaseWorkflowStatus) ?? "new",
     source: (row.source as CaseSource) ?? "website_form",
     caseType: (row.case_type as CaseType) ?? undefined,

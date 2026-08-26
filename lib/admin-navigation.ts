@@ -29,7 +29,7 @@ export const adminNavGroups: AdminNavGroup[] = [
   {
     title: "Work",
     items: [
-      { href: "/admin/messages", label: "Messages", icon: Inbox },
+      { href: "/admin/messages", label: "Cases & Enquiries", icon: Inbox },
       { href: "/admin/donations", label: "Donations", icon: CircleDollarSign },
     ],
   },
