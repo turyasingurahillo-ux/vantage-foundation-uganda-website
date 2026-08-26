@@ -1,6 +1,9 @@
 import { neon } from "@neondatabase/serverless";
 import type { AuditLogEntry } from "./audit";
 import { getInboxCounts } from "./contact";
+import { getCaseCounts, getUpcomingActions } from "./cases";
+import { getCaseReferralFollowupsDue } from "./case-history";
+import { getDueDiligenceConcernCount } from "./organisations";
 
 /**
  * Efficient count queries and recent-activity fetches for the Vantage HQ
@@ -53,6 +56,22 @@ export interface DashboardAttention {
   awaitingResponseMessages: number;
   draftStories: number;
   mediaPendingConsent: number;
+  // Case-management pipeline attention counts
+  untriagedCases: number;
+  awaitingVantageCases: number;
+  overdueCases: number;
+  safeguardingCases: number;
+  highPriorityCases: number;
+  activeCases: number;
+  // Relationship-layer attention counts
+  referralFollowupsDue: number;
+  dueDiligenceConcerns: number;
+}
+
+export interface DashboardUpcomingActions {
+  overdue: Awaited<ReturnType<typeof getUpcomingActions>>;
+  today: Awaited<ReturnType<typeof getUpcomingActions>>;
+  upcoming: Awaited<ReturnType<typeof getUpcomingActions>>;
 }
 
 /**
@@ -69,6 +88,9 @@ export async function getDashboardAttention(): Promise<{
     contactMessages: true,
     stories: true,
     media: true,
+    cases: true,
+    referrals: true,
+    dueDiligence: true,
   };
 
   const attention: DashboardAttention = {
@@ -77,15 +99,33 @@ export async function getDashboardAttention(): Promise<{
     awaitingResponseMessages: 0,
     draftStories: 0,
     mediaPendingConsent: 0,
+    untriagedCases: 0,
+    awaitingVantageCases: 0,
+    overdueCases: 0,
+    safeguardingCases: 0,
+    highPriorityCases: 0,
+    activeCases: 0,
+    referralFollowupsDue: 0,
+    dueDiligenceConcerns: 0,
   };
 
-  const [donationsResult, contactResult, storiesResult, mediaResult] =
-    await Promise.allSettled([
-      getDonationCounts(),
-      getInboxCounts(),
-      getDraftStoryCount(),
-      getMediaPendingConsentCount(),
-    ]);
+  const [
+    donationsResult,
+    contactResult,
+    storiesResult,
+    mediaResult,
+    caseCountsResult,
+    referralResult,
+    ddConcernResult,
+  ] = await Promise.allSettled([
+    getDonationCounts(),
+    getInboxCounts(),
+    getDraftStoryCount(),
+    getMediaPendingConsentCount(),
+    getCaseCounts(),
+    getCaseReferralFollowupsDue(1),
+    getDueDiligenceConcernCount(),
+  ]);
 
   if (donationsResult.status === "fulfilled") {
     attention.pendingDonations = donationsResult.value.pending;
@@ -112,7 +152,59 @@ export async function getDashboardAttention(): Promise<{
     sources.media = false;
   }
 
+  if (caseCountsResult.status === "fulfilled") {
+    const cc = caseCountsResult.value;
+    attention.untriagedCases = cc.new + cc.triage;
+    attention.awaitingVantageCases = cc.awaiting_vantage;
+    attention.overdueCases = cc.overdue;
+    attention.safeguardingCases = cc.safeguarding;
+    attention.highPriorityCases = cc.high_priority;
+    attention.activeCases = cc.active;
+  } else {
+    sources.cases = false;
+  }
+
+  if (referralResult.status === "fulfilled") {
+    attention.referralFollowupsDue = referralResult.value.length;
+  } else {
+    sources.referrals = false;
+  }
+
+  if (ddConcernResult.status === "fulfilled") {
+    attention.dueDiligenceConcerns = ddConcernResult.value;
+  } else {
+    sources.dueDiligence = false;
+  }
+
   return { attention, sources };
+}
+
+/**
+ * Fetches upcoming/overdue actions for the dashboard attention centre.
+ * Each bucket is fetched independently so a failure in one doesn't block
+ * the others.
+ */
+export async function getDashboardUpcomingActions(): Promise<{
+  actions: DashboardUpcomingActions;
+  available: boolean;
+}> {
+  const [overdueResult, todayResult, upcomingResult] = await Promise.allSettled([
+    getUpcomingActions("overdue", 10),
+    getUpcomingActions("today", 10),
+    getUpcomingActions("upcoming", 10),
+  ]);
+
+  return {
+    actions: {
+      overdue: overdueResult.status === "fulfilled" ? overdueResult.value : [],
+      today: todayResult.status === "fulfilled" ? todayResult.value : [],
+      upcoming: upcomingResult.status === "fulfilled" ? upcomingResult.value : [],
+    },
+    available:
+      overdueResult.status === "fulfilled" ||
+      todayResult.status === "fulfilled" ||
+      upcomingResult.status === "fulfilled",
+  };
 }
 
 async function getDraftStoryCount(): Promise<number> {

@@ -4,6 +4,7 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ContactForm } from "@/components/shared/ContactForm";
+import { WhatsAppButtonClient } from "@/components/shared/WhatsAppButtonClient";
 import {
   Heart,
   HandHelping,
@@ -13,6 +14,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { createPublicMetadata } from "@/lib/metadata";
+import { site } from "@/content/site";
 
 export const metadata: Metadata = createPublicMetadata({
   title: "Get Involved",
@@ -103,8 +105,25 @@ export default function GetInvolvedPage() {
       <section className="bg-surface py-16 md:py-24">
         <Container>
           <div className="mx-auto max-w-2xl">
+            {/* WhatsApp quick-contact */}
+            <Card className="mb-8 p-6 text-center">
+              <h2 className="text-lg font-bold">Quick question?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Chat to us on WhatsApp — the fastest way to reach Vantage
+                Foundation Uganda.
+              </p>
+              <div className="mt-4">
+                <WhatsAppButtonClient
+                  number={site.contact.whatsapp}
+                  size="lg"
+                  context="get involved page"
+                  position="quick-contact"
+                />
+              </div>
+            </Card>
+
             <SectionHeader
-              title="Reach out"
+              title="Send a formal enquiry"
               description="Tell us how you would like to be involved and we will follow up."
             />
             <div className="mt-8 rounded-xl bg-white p-6 shadow-sm md:p-8">

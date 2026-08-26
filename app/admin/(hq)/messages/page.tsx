@@ -1,80 +1,94 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { ArrowLeft } from "lucide-react";
 import {
-  getInboxCounts,
-  searchContactMessageSummaries,
-  getContactMessageById,
-  type ContactMessageSummary,
-  type ContactMessageRow,
-  type InboxFilter,
-} from "@/lib/db/contact";
+  searchCaseSummaries,
+  getCaseCounts,
+  getCaseById,
+  getCaseNotes,
+  type CaseSummary,
+} from "@/lib/db/cases";
+import {
+  CASE_FILTERS,
+  isCaseFilter,
+  type CaseFilter,
+} from "@/lib/case-types";
 import {
   getRepliesForMessage,
   getSentReplyCountsForMessages,
   type ContactReplyRow,
 } from "@/lib/db/contact-replies";
+import {
+  getCaseActions,
+  getCaseDecisions,
+  getCaseCommunications,
+  getCaseReferrals,
+} from "@/lib/db/case-history";
+import {
+  getOrganisationById,
+  getPersonById,
+} from "@/lib/db/organisations";
+import type {
+  CaseActionRow,
+  CaseDecisionRow,
+  CaseCommunicationRow,
+  CaseReferralRow,
+  OrganisationRow,
+  PersonRow,
+} from "@/lib/organisation-types";
 import { getAdmins } from "@/lib/db/admins";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
-import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
 import { StatusTabs } from "@/components/admin/hq/StatusTabs";
 import { SearchInput } from "@/components/admin/hq/SearchInput";
 import { Alert } from "@/components/admin/hq/Alert";
 import { EmptyState } from "@/components/admin/hq/EmptyState";
-import { MessageListItem } from "@/components/admin/hq/MessageListItem";
-import { ConversationHeader } from "@/components/admin/hq/ConversationHeader";
-import { ConversationTimeline } from "@/components/admin/hq/ConversationTimeline";
-import { MessageWorkflowActions } from "@/components/admin/hq/MessageWorkflowActions";
+import { CaseListItem } from "@/components/admin/hq/CaseListItem";
+import { CaseDetail } from "@/components/admin/hq/CaseDetail";
+import { ManualIntakeForm } from "@/components/admin/hq/ManualIntakeForm";
 import { REPLY_MAX_LENGTH, getReplyFromAddress } from "@/lib/contact-reply";
 
 export const metadata: Metadata = {
-  title: "Contact Messages",
+  title: "Cases & Enquiries",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
-const TABS: { key: InboxFilter; label: string }[] = [
-  { key: "new", label: "New" },
-  { key: "awaiting_response", label: "Awaiting response" },
-  { key: "replied", label: "Replied" },
-  { key: "archived", label: "Archived" },
-  { key: "all", label: "All" },
-];
-
-const EMPTY_STATE: Record<InboxFilter, string> = {
-  new: "No new messages.",
-  awaiting_response: "Nothing is waiting on a response.",
-  replied: "No replied conversations yet.",
-  archived: "No archived messages.",
-  all: "No messages yet.",
-};
-
 const ERROR_MESSAGES: Record<string, string> = {
   "rate-limited": "Too many attempts. Wait a minute and try again.",
   csrf: "Security check failed. Reload the page and try again.",
   invalid: "That request could not be understood.",
-  notfound: "That message no longer exists.",
+  notfound: "That case no longer exists.",
   empty: "Write something before sending.",
   "too-long": `Replies are limited to ${REPLY_MAX_LENGTH} characters.`,
   send: "The reply could not be sent. The failed attempt is saved in the conversation — check the email settings, then try again.",
   server: "Something went wrong. Please try again.",
 };
 
-function isFilter(value: string | undefined): value is InboxFilter {
-  return (
-    value === "new" ||
-    value === "awaiting_response" ||
-    value === "replied" ||
-    value === "archived" ||
-    value === "all"
-  );
-}
+const EMPTY_STATE: Record<string, string> = {
+  new: "No new cases.",
+  triage: "Nothing in triage.",
+  awaiting_vantage: "Nothing waiting on Vantage.",
+  awaiting_external: "Nothing waiting on an external party.",
+  under_review: "Nothing under review.",
+  due_diligence: "Nothing in due diligence.",
+  meeting_scheduled: "No meetings scheduled.",
+  decision_required: "No decisions pending.",
+  accepted: "No accepted cases.",
+  referred: "No referred cases.",
+  declined: "No declined cases.",
+  completed: "No completed cases.",
+  archived: "No archived cases.",
+  active: "No active cases.",
+  my_cases: "You have no assigned cases.",
+  overdue: "No overdue actions. ",
+  safeguarding: "No safeguarding cases.",
+  high_priority: "No high-priority cases.",
+  all: "No cases yet.",
+};
 
 export default async function AdminMessagesPage({
   searchParams,
@@ -86,109 +100,137 @@ export default async function AdminMessagesPage({
     replied?: string;
     resent?: string;
     status?: string;
+    updated?: string;
+    noted?: string;
+    created?: string;
     error?: string;
   }>;
 }) {
   const params = await searchParams;
   const cookieStore = await cookies();
 
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  const session = verifySessionToken(
+    cookieStore.get(sessionCookieName)?.value,
+  );
+  if (!session) {
     redirect("/admin/login");
   }
+  const actorId = session.actorId;
 
   const csrfToken = await getCsrfTokenFromRequest();
-  const filter: InboxFilter = isFilter(params.filter) ? params.filter : "new";
+  const filter: CaseFilter = isCaseFilter(params.filter)
+    ? params.filter
+    : "active";
   const query = (params.q ?? "").slice(0, 100);
   const openId = Number(params.open) || null;
 
-  // Preserve filter and search in all links so navigation never silently
-  // discards the current context.
   const preserveParams = `filter=${filter}${
     query ? `&q=${encodeURIComponent(query)}` : ""
   }`;
 
-  // Fetch list summaries (bounded previews, no full message bodies) and
-  // canonical counts in parallel.
-  let messages: ContactMessageSummary[] = [];
-  let counts: Record<InboxFilter, number> | null = null;
+  // Fetch case summaries (with case workflow fields) and counts in parallel.
+  let cases: CaseSummary[] = [];
+  let counts: Awaited<ReturnType<typeof getCaseCounts>> | null = null;
   let dbError = false;
 
   try {
     const [found, tallies] = await Promise.all([
-      searchContactMessageSummaries({ filter, query }),
-      getInboxCounts(),
+      searchCaseSummaries({ filter, query, actorId }),
+      getCaseCounts(),
     ]);
-    messages = found;
+    cases = found;
     counts = tallies;
   } catch {
     dbError = true;
   }
 
-  // Fetch lightweight grouped reply counts for all list messages.
-  // This returns only counts — no reply bodies, error details, or
-  // recipient addresses — so the list can show reply counts without
-  // loading full reply rows.
+  // Fetch lightweight grouped reply counts for all list cases.
   let replyCounts = new Map<number, number>();
-  if (!dbError && messages.length > 0) {
+  if (!dbError && cases.length > 0) {
     try {
       replyCounts = await getSentReplyCountsForMessages(
-        messages.map((m) => m.id),
+        cases.map((c) => c.id),
       );
     } catch {
-      // Reply counts are a nice-to-have; list still renders without them.
+      // Reply counts are a nice-to-have.
     }
   }
 
-  // Fetch the selected conversation's full message + replies + admin names.
-  // The full message body is only loaded for the selected conversation.
-  let selectedMessage: ContactMessageRow | null = null;
+  // Fetch the selected case's full detail + replies + notes + admin names.
+  let selectedCase: Awaited<ReturnType<typeof getCaseById>> = null;
   let replies: ContactReplyRow[] = [];
+  let notes: Awaited<ReturnType<typeof getCaseNotes>> = [];
+  let actions: CaseActionRow[] = [];
+  let decisions: CaseDecisionRow[] = [];
+  let communications: CaseCommunicationRow[] = [];
+  let referrals: CaseReferralRow[] = [];
+  let linkedOrganisation: OrganisationRow | null = null;
+  let linkedPerson: PersonRow | null = null;
   let adminNames: Record<string, string> = {};
+  let admins: { id: number; username: string }[] = [];
 
   if (openId) {
     try {
-      const [msg, reps, admins] = await Promise.all([
-        getContactMessageById(openId),
+      const [c, reps, noteList, adminList, actionList, decisionList, commList, referralList] = await Promise.all([
+        getCaseById(openId),
         getRepliesForMessage(openId),
-        getAdmins()
-          .then((list) =>
-            Object.fromEntries(list.map((a) => [String(a.id), a.username])),
-          )
-          .catch(() => ({})),
+        getCaseNotes(openId),
+        getAdmins(),
+        getCaseActions(openId),
+        getCaseDecisions(openId),
+        getCaseCommunications(openId),
+        getCaseReferrals(openId),
       ]);
-      selectedMessage = msg;
+      selectedCase = c;
       replies = reps;
-      adminNames = admins;
+      notes = noteList;
+      actions = actionList;
+      decisions = decisionList;
+      communications = commList;
+      referrals = referralList;
+      admins = adminList.map((a) => ({ id: a.id, username: a.username }));
+      adminNames = Object.fromEntries(
+        adminList.map((a) => [String(a.id), a.username]),
+      );
+
+      // Fetch linked organisation and person if the case has them
+      if (c?.organisationId) {
+        linkedOrganisation = await getOrganisationById(c.organisationId).catch(() => null);
+      }
+      if (c?.personId) {
+        linkedPerson = await getPersonById(c.personId).catch(() => null);
+      }
     } catch {
-      // If the selected conversation fails to load, the list still renders.
-      selectedMessage = null;
+      selectedCase = null;
     }
   }
 
   const fromAddress = getReplyFromAddress();
 
-  // Build tab config for StatusTabs.
-  const tabs = TABS.map((tab) => ({
+  // Build tab config — show the most useful filters first, then operational slices.
+  const visibleFilters = CASE_FILTERS;
+  const tabs = visibleFilters.map((tab) => ({
     label: tab.label,
-    params: `filter=${tab.key}${
+    params: `filter=${tab.value}${
       query ? `&q=${encodeURIComponent(query)}` : ""
     }`,
-    active: tab.key === filter,
-    count: counts?.[tab.key],
+    active: tab.value === filter,
+    count: counts ? getCountForFilter(counts, tab.value) : undefined,
   }));
 
   return (
     <Container>
       <PageHeader
-        title="Contact messages"
-        description="Read enquiries from the website and reply directly. Every submission is stored before any email is sent, so nothing is lost if delivery fails."
+        title="Cases & Enquiries"
+        description="Track every relationship and enquiry through triage to outcome. A reply by email does not complete a case — decide what happens next."
       />
 
       {/* Flash messages */}
       <div className="mt-4 space-y-2">
         {params.replied && (
           <Alert variant="success">
-            Reply sent. It is saved in the conversation below.
+            Reply sent. It is saved in the conversation below. The case
+            workflow status is unchanged — decide what happens next.
           </Alert>
         )}
         {params.resent && (
@@ -199,6 +241,17 @@ export default async function AdminMessagesPage({
         {params.status && (
           <Alert variant="info">Message status updated.</Alert>
         )}
+        {params.updated && (
+          <Alert variant="success">Case updated.</Alert>
+        )}
+        {params.noted && (
+          <Alert variant="success">Internal note added.</Alert>
+        )}
+        {params.created && (
+          <Alert variant="success">
+            Case created from external enquiry. It is now in triage.
+          </Alert>
+        )}
         {params.error && (
           <Alert variant="error">
             {ERROR_MESSAGES[params.error] ?? ERROR_MESSAGES.server}
@@ -206,125 +259,96 @@ export default async function AdminMessagesPage({
         )}
       </div>
 
-      {/* Filters + search */}
+      {/* Manual intake + filters + search */}
       <div className="mt-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ManualIntakeForm
+            csrfToken={csrfToken}
+            csrfFieldName={CSRF_FIELD_NAME}
+          />
+        </div>
         <StatusTabs
           tabs={tabs}
           basePath="/admin/messages"
-          ariaLabel="Message filters"
+          ariaLabel="Case filters"
         />
         <SearchInput
           defaultValue={query}
           action="/admin/messages"
           hiddenFields={[{ name: "filter", value: filter }]}
-          placeholder="Search name, email, topic, message…"
-          ariaLabel="Search messages"
+          placeholder="Search name, email, topic, case type, message…"
+          ariaLabel="Search cases"
           className="max-w-md"
         />
       </div>
 
       {dbError && (
         <Alert variant="error" className="mt-6">
-          Messages could not be loaded. Please try again.
+          Cases could not be loaded. Please try again.
         </Alert>
       )}
 
-      {/* Inbox body */}
-      {!dbError && messages.length === 0 && !selectedMessage && (
+      {/* Case workspace body */}
+      {!dbError && cases.length === 0 && !selectedCase && (
         <EmptyState
           className="mt-6"
           title={
             query
-              ? `No messages match “${query}”`
-              : EMPTY_STATE[filter]
+              ? `No cases match “${query}”`
+              : EMPTY_STATE[filter] ?? "No cases."
           }
         />
       )}
 
       {/* Desktop: two-pane master/detail. Mobile: list or conversation. */}
-      {!dbError && messages.length > 0 && (
+      {!dbError && cases.length > 0 && (
         <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border lg:grid-cols-[380px_1fr]">
-          {/* MESSAGE LIST PANE — navigation semantics, not a listbox widget.
-              These are navigation links driven by URL state. */}
+          {/* CASE LIST PANE */}
           <nav
-            aria-label="Conversations"
+            aria-label="Cases"
             className={
               "border-b border-border bg-white lg:border-b-0 lg:border-r " +
-              (selectedMessage ? "hidden lg:block" : "block")
+              (selectedCase ? "hidden lg:block" : "block")
             }
           >
             <ul className="max-h-[70vh] overflow-y-auto">
-              {messages.map((m) => (
-                <MessageListItem
-                  key={m.id}
-                  message={m}
-                  selected={selectedMessage?.id === m.id}
+              {cases.map((c) => (
+                <CaseListItem
+                  key={c.id}
+                  case={c}
+                  selected={selectedCase?.id === c.id}
                   preserveParams={preserveParams}
-                  replyCount={replyCounts.get(m.id) ?? 0}
+                  replyCount={replyCounts.get(c.id) ?? 0}
                 />
               ))}
             </ul>
           </nav>
 
-          {/* CONVERSATION PANE */}
+          {/* CASE DETAIL PANE */}
           <div className="bg-white">
-            {selectedMessage ? (
-              <div className="flex flex-col max-h-[70vh]">
-                {/* Mobile back link */}
-                <div className="border-b border-border p-3 lg:hidden">
-                  <Link
-                    href={`/admin/messages?${preserveParams}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
-                  >
-                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                    Back to messages
-                  </Link>
-                </div>
-
-                {/* Scrollable conversation content */}
-                <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-                  <ConversationHeader message={selectedMessage} />
-
-                  <div className="mt-6">
-                    <ConversationTimeline
-                      message={selectedMessage}
-                      replies={replies}
-                      adminNames={adminNames}
-                    />
-                  </div>
-
-                  {/* Reply composer — primary action */}
-                  <div className="mt-6 border-t border-border pt-5">
-                    <ReplyComposer
-                      messageId={selectedMessage.id}
-                      recipientName={selectedMessage.name}
-                      recipientEmail={selectedMessage.email}
-                      fromAddress={fromAddress}
-                      csrfToken={csrfToken}
-                      csrfFieldName={CSRF_FIELD_NAME}
-                      maxLength={REPLY_MAX_LENGTH}
-                    />
-                  </div>
-
-                  {/* Workflow actions — secondary/tertiary */}
-                  <div className="mt-6 border-t border-border pt-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Workflow
-                    </p>
-                    <MessageWorkflowActions
-                      messageId={selectedMessage.id}
-                      status={selectedMessage.status}
-                      csrfToken={csrfToken}
-                    />
-                  </div>
-                </div>
-              </div>
+            {selectedCase ? (
+              <CaseDetail
+                caseRow={selectedCase}
+                replies={replies}
+                notes={notes}
+                actions={actions}
+                decisions={decisions}
+                communications={communications}
+                referrals={referrals}
+                linkedOrganisation={linkedOrganisation}
+                linkedPerson={linkedPerson}
+                admins={admins}
+                adminNames={adminNames}
+                csrfToken={csrfToken}
+                csrfFieldName={CSRF_FIELD_NAME}
+                fromAddress={fromAddress}
+                preserveParams={preserveParams}
+              />
             ) : (
-              /* No conversation selected — desktop shows prompt, mobile shows nothing (list is visible) */
               <div className="hidden items-center justify-center p-12 lg:flex">
                 <EmptyState
-                  title="Select a message to view the conversation"
-                  description="Choose a conversation from the list to read and reply."
+                  title="Select a case to view the conversation"
+                  description="Choose a case from the list to read, reply and manage the workflow."
                 />
               </div>
             )}
@@ -332,64 +356,67 @@ export default async function AdminMessagesPage({
         </div>
       )}
 
-      {/* Edge case: list is empty but a conversation is selected (e.g. filter excludes it) */}
-      {!dbError && messages.length === 0 && selectedMessage && (
+      {/* Edge case: list is empty but a case is selected */}
+      {!dbError && cases.length === 0 && selectedCase && (
         <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border lg:grid-cols-[380px_1fr]">
           <div className="border-b border-border bg-white lg:border-b-0 lg:border-r">
             <EmptyState
               title={
                 query
-                  ? `No messages match “${query}”`
-                  : EMPTY_STATE[filter]
+                  ? `No cases match “${query}”`
+                  : EMPTY_STATE[filter] ?? "No cases."
               }
             />
           </div>
           <div className="bg-white">
-            <div className="flex flex-col max-h-[70vh]">
-              <div className="border-b border-border p-3 lg:hidden">
-                <Link
-                  href={`/admin/messages?${preserveParams}`}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
-                >
-                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                  Back to messages
-                </Link>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-                <ConversationHeader message={selectedMessage} />
-                <div className="mt-6">
-                  <ConversationTimeline
-                    message={selectedMessage}
-                    replies={replies}
-                    adminNames={adminNames}
-                  />
-                </div>
-                <div className="mt-6 border-t border-border pt-5">
-                  <ReplyComposer
-                    messageId={selectedMessage.id}
-                    recipientName={selectedMessage.name}
-                    recipientEmail={selectedMessage.email}
-                    fromAddress={fromAddress}
-                    csrfToken={csrfToken}
-                    csrfFieldName={CSRF_FIELD_NAME}
-                    maxLength={REPLY_MAX_LENGTH}
-                  />
-                </div>
-                <div className="mt-6 border-t border-border pt-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Workflow
-                  </p>
-                  <MessageWorkflowActions
-                    messageId={selectedMessage.id}
-                    status={selectedMessage.status}
-                    csrfToken={csrfToken}
-                  />
-                </div>
-              </div>
-            </div>
+            <CaseDetail
+              caseRow={selectedCase}
+              replies={replies}
+              notes={notes}
+              actions={actions}
+              decisions={decisions}
+              communications={communications}
+              referrals={referrals}
+              linkedOrganisation={linkedOrganisation}
+              linkedPerson={linkedPerson}
+              admins={admins}
+              adminNames={adminNames}
+              csrfToken={csrfToken}
+              csrfFieldName={CSRF_FIELD_NAME}
+              fromAddress={fromAddress}
+              preserveParams={preserveParams}
+            />
           </div>
         </div>
       )}
     </Container>
   );
+}
+
+function getCountForFilter(
+  counts: Awaited<ReturnType<typeof getCaseCounts>>,
+  filter: CaseFilter,
+): number {
+  const map: Record<CaseFilter, number> = {
+    new: counts.new,
+    triage: counts.triage,
+    awaiting_vantage: counts.awaiting_vantage,
+    awaiting_external: counts.awaiting_external,
+    under_review: counts.under_review,
+    due_diligence: counts.due_diligence,
+    meeting_scheduled: counts.meeting_scheduled,
+    decision_required: counts.decision_required,
+    accepted: counts.accepted,
+    referred: counts.referred,
+    declined: counts.declined,
+    completed: counts.completed,
+    archived: counts.archived,
+    active: counts.active,
+    all: counts.all,
+    overdue: counts.overdue,
+    safeguarding: counts.safeguarding,
+    high_priority: counts.high_priority,
+    my_cases: 0, // my_cases count requires actorId; not shown in tab counts
+  };
+  return map[filter] ?? 0;
 }

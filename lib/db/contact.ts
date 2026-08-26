@@ -309,7 +309,11 @@ export async function setContactMessageStatus(
   await sql`
     UPDATE contact_messages
     SET status = ${status},
-        archived_at = ${status === "archived" ? "now()" : null}::timestamptz,
+        archived_at =
+          CASE
+            WHEN ${status} = 'archived' THEN CURRENT_TIMESTAMP
+            ELSE NULL
+          END,
         handled_at = CASE
           WHEN ${status} = 'new' THEN NULL
           ELSE COALESCE(handled_at, CURRENT_TIMESTAMP)

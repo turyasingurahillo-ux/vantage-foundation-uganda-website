@@ -119,9 +119,33 @@ async function main() {
     ),
     "utf8",
   );
+  const casePipeline = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "case-management-pipeline.sql",
+    ),
+    "utf8",
+  );
+  const orgPipeline = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "organisation-relationship-pipeline.sql",
+    ),
+    "utf8",
+  );
 
   await executeScript(sql, schema, "schema");
   await executeScript(sql, analyticsLifecycle, "phase2c-analytics-lifecycle");
+  await executeScript(sql, casePipeline, "case-management-pipeline");
+  await executeScript(sql, orgPipeline, "organisation-relationship-pipeline");
 
   console.log("Database setup complete.");
 }

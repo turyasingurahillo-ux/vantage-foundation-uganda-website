@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { BrandPattern } from "@/components/shared/BrandPattern";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/shared/SocialIcons";
+import { WhatsAppButtonClient } from "@/components/shared/WhatsAppButtonClient";
 
 export function Footer() {
   const programmeLinks = [
@@ -160,6 +161,16 @@ export function Footer() {
                 </a>
               </li>
             </ul>
+            <div className="mt-4">
+              <WhatsAppButtonClient
+                number={site.contact.whatsapp}
+                size="sm"
+                variant="outline"
+                context="footer quick contact"
+                position="footer"
+                className="border-white/30 text-white hover:bg-white/10"
+              />
+            </div>
             <div className="mt-4 space-y-2">
               {site.contact.offices.map((office) => (
                 <p key={office.label} className="inline-flex items-start gap-2 text-sm text-white/70">

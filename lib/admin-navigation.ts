@@ -8,6 +8,7 @@ import {
   Image,
   Users,
   Shield,
+  Building2,
 } from "lucide-react";
 
 export interface AdminNavItem {
@@ -29,7 +30,8 @@ export const adminNavGroups: AdminNavGroup[] = [
   {
     title: "Work",
     items: [
-      { href: "/admin/messages", label: "Messages", icon: Inbox },
+      { href: "/admin/messages", label: "Cases & Enquiries", icon: Inbox },
+      { href: "/admin/organisations", label: "Organisations", icon: Building2 },
       { href: "/admin/donations", label: "Donations", icon: CircleDollarSign },
     ],
   },

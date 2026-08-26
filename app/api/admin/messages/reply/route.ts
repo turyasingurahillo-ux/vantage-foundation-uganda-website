@@ -18,6 +18,7 @@ import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
+import { stampFirstResponseIfFirst } from "@/lib/db/cases";
 
 /**
  * Sends an administrator's reply to whoever submitted a contact form.
@@ -35,6 +36,14 @@ import { appendAuditLog } from "@/lib/db/audit";
  * called, then moved to `sent` or `failed`. The conversation is only marked
  * replied off the back of a `sent` row, so a provider rejection is never
  * displayed as a delivered reply, and a failed reply can be retried.
+ *
+ * Case model: a successful reply sets the MESSAGE DELIVERY state to `replied`
+ * (the legacy `status` column) and stamps `first_response_at` for SLA
+ * reporting, but does NOT change the CASE WORKFLOW state (`workflow_status`).
+ * The admin decides what happens next in the relationship — e.g. "please send
+ * your registration certificate" means the case is `awaiting_external`, not
+ * completed — via the case workspace controls. A failed reply does not mark
+ * the case resolved either; the conversation moves to `awaiting_response`.
  *
  * Validation lives in `lib/reply-validation.ts` so every failure mode maps
  * onto a fixed application error code (`empty`, `too-long`, `invalid`) rather
@@ -136,6 +145,18 @@ export async function POST(request: Request) {
       result.providerStatus ?? null,
     );
     await markContactMessageReplied(message.id);
+
+    // Stamp the first-response timestamp for SLA reporting. This records
+    // when the first OUTBOUND reply was sent, separate from the case
+    // workflow status — a reply does NOT complete the case. The admin
+    // decides whether the case is now awaiting_external (e.g. "please send
+    // your registration certificate"), awaiting_vantage (e.g. "we will
+    // review this"), or another state, via the case workspace controls.
+    try {
+      await stampFirstResponseIfFirst(message.id);
+    } catch {
+      // Non-fatal — SLA stamp is bookkeeping, not gating.
+    }
 
     await appendAuditLog({
       actorId,
