@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
@@ -22,7 +22,9 @@ export default async function AdminLayout({
   const cookieStore = await cookies();
   const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
   if (!session) {
-    redirect("/admin/login");
+    const h = await headers();
+    const pathname = h.get("x-pathname") || "/admin";
+    redirect(`/admin/login?returnTo=${encodeURIComponent(pathname)}`);
   }
 
   const csrfToken = await getCsrfTokenFromRequest();

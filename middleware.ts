@@ -37,6 +37,9 @@ export function middleware(request: NextRequest) {
   // can read it (they cannot set cookies, only read headers).
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(CSRF_HEADER_NAME, token);
+  // Also pass the pathname so the admin layout can build a return-to URL
+  // when redirecting unauthenticated users to the login page.
+  requestHeaders.set("x-pathname", pathname);
 
   const response = NextResponse.next({
     request: {

@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; seconds?: string }>;
+  searchParams: Promise<{ error?: string; seconds?: string; returnTo?: string }>;
 }) {
-  const { error, seconds } = await searchParams;
+  const { error, seconds, returnTo } = await searchParams;
   const csrfToken = await getCsrfTokenFromRequest();
 
   return (
@@ -31,6 +31,9 @@ export default async function AdminLoginPage({
           className="mt-6 space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm"
         >
           <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
+          {returnTo && (
+            <input type="hidden" name="returnTo" value={returnTo} />
+          )}
           <div>
             <label htmlFor="username" className="block text-sm font-medium">
               Username <span className="text-muted-foreground">(blank for bootstrap)</span>

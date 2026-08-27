@@ -46,6 +46,30 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB);
 }
 
+/**
+ * Validates a return-to URL to prevent open redirects.
+ * Only allows relative paths starting with "/admin/" (not "/admin/login"
+ * to avoid redirect loops). Returns a safe fallback if the URL is invalid.
+ */
+export function safeReturnTo(value: string | null | undefined): string {
+  if (!value) return "/admin/donations";
+  // Reject absolute URLs or protocol-relative URLs first.
+  if (value.startsWith("//") || /^[a-z][a-z0-9+.-]*:/i.test(value)) {
+    return "/admin/donations";
+  }
+  // Must start with /admin/.
+  if (!value.startsWith("/admin/")) {
+    return "/admin/donations";
+  }
+  // Reject the login page itself (with or without query string) to avoid
+  // redirect loops.
+  const pathOnly = value.split("?")[0];
+  if (pathOnly === "/admin/login") {
+    return "/admin/donations";
+  }
+  return value;
+}
+
 export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
   const lockoutKey = `admin-login-lockout:${ip}`;
@@ -79,10 +103,12 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const cookieStore = await cookies();
+  const returnTo = safeReturnTo(formData.get("returnTo") as string | null);
+
   if (!validateCsrf(cookieStore, formData)) {
     logWarn("admin_login_csrf_failed", { ip });
     return NextResponse.redirect(
-      new URL("/admin/login?error=csrf", request.url),
+      new URL(`/admin/login?error=csrf&returnTo=${encodeURIComponent(returnTo)}`, request.url),
       302
     );
   }
@@ -98,9 +124,10 @@ export async function POST(request: Request) {
     try {
       admin = await getActiveAdminByUsername(username);
     } catch (err) {
-      // DB not configured or admins table missing — fall through to the
-      // bootstrap path below, which may still work if ADMIN_SECRET is set
-      // and zero admins exist (countActiveAdmins will also throw).
+      // DB not configured or admins table missing. The admin lookup fails,
+      // so admin stays null and the code below records a failure and returns
+      // a generic login error. The bootstrap path (no username) is a
+      // separate branch that can still succeed when the DB is down.
       logError("admin_login_db_error", {
         error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
       });
@@ -113,7 +140,7 @@ export async function POST(request: Request) {
 
         const { token } = createSessionToken(String(admin.id));
         const response = NextResponse.redirect(
-          new URL("/admin/donations", request.url),
+          new URL(returnTo, request.url),
           302
         );
         response.cookies.set(sessionCookieName, token, {
@@ -133,7 +160,7 @@ export async function POST(request: Request) {
         windowMs: LOCKOUT_WINDOW_MS,
       });
       logWarn("admin_login_failed", { ip, username });
-      return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
+      return NextResponse.redirect(new URL(`/admin/login?error=1&returnTo=${encodeURIComponent(returnTo)}`, request.url), 302);
     }
 
     // Username not found. If the DB is working but the admin doesn't exist,
@@ -145,7 +172,7 @@ export async function POST(request: Request) {
       windowMs: LOCKOUT_WINDOW_MS,
     });
     logWarn("admin_login_failed", { ip, username });
-    return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
+    return NextResponse.redirect(new URL(`/admin/login?error=1&returnTo=${encodeURIComponent(returnTo)}`, request.url), 302);
   }
 
   // --- Bootstrap fallback path ---
@@ -156,7 +183,7 @@ export async function POST(request: Request) {
   const adminSecret = process.env.ADMIN_SECRET;
   if (!adminSecret) {
     logWarn("admin_login_no_secret", { ip });
-    return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
+    return NextResponse.redirect(new URL(`/admin/login?error=1&returnTo=${encodeURIComponent(returnTo)}`, request.url), 302);
   }
 
   let activeCount = 0;
@@ -179,7 +206,7 @@ export async function POST(request: Request) {
       windowMs: LOCKOUT_WINDOW_MS,
     });
     logWarn("admin_login_bootstrap_disabled", { ip });
-    return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
+    return NextResponse.redirect(new URL(`/admin/login?error=1&returnTo=${encodeURIComponent(returnTo)}`, request.url), 302);
   }
 
   // Timing-safe comparison against ADMIN_SECRET.
@@ -191,7 +218,7 @@ export async function POST(request: Request) {
       windowMs: LOCKOUT_WINDOW_MS,
     });
     logWarn("admin_login_failed", { ip });
-    return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
+    return NextResponse.redirect(new URL(`/admin/login?error=1&returnTo=${encodeURIComponent(returnTo)}`, request.url), 302);
   }
 
   // Successful bootstrap login.
@@ -199,7 +226,7 @@ export async function POST(request: Request) {
   logInfo("admin_login_success", { ip, actor: BOOTSTRAP_ACTOR_ID });
 
   const { token } = createSessionToken(BOOTSTRAP_ACTOR_ID);
-  const response = NextResponse.redirect(new URL("/admin/donations", request.url), 302);
+  const response = NextResponse.redirect(new URL(returnTo, request.url), 302);
   response.cookies.set(sessionCookieName, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

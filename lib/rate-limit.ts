@@ -54,12 +54,19 @@ interface RateLimitOptions {
 /**
  * Returns `true` if the request is within the limit, `false` if it exceeds it.
  * Each call records a timestamp in the bucket.
+ *
+ * This function also checks for lockouts on the same key. If the key is
+ * locked out (via `recordFailure` with the same key), the request is rejected.
+ * Callers that use separate keys for rate limiting and lockouts (e.g. the
+ * login route uses `admin-login:${ip}` for rate limiting but
+ * `admin-login-lockout:${ip}` for lockouts) must call `isLockedOut()`
+ * separately before calling this function.
  */
 export function rateLimit({ key, limit, windowMs }: RateLimitOptions): boolean {
   const now = Date.now();
   prune(now);
 
-  // Check if currently locked out.
+  // Check if currently locked out (same key only).
   const unlockAt = lockouts.get(key);
   if (unlockAt && unlockAt > now) {
     return false;
