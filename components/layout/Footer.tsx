@@ -7,35 +7,44 @@ import { Button } from "@/components/ui/Button";
 import { BrandPattern } from "@/components/shared/BrandPattern";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/shared/SocialIcons";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import type { I18nDictionary } from "@/lib/i18n/dictionaries";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
-export function Footer() {
+export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18nDictionary }) {
+  const n = dictionary.navigation;
+  const f = dictionary.footer;
+  const c = dictionary.common;
+  const pageContent = getPageContent(locale);
+  const footer = pageContent.footer;
+  const href = (path: string) => localePath(path, locale);
   const programmeLinks = [
-    { label: "Vantage Care", href: "/programmes/health" },
-    { label: "KikumiKyo Academy", href: "/programmes/education" },
-    { label: "Humanitarian Assistance", href: "/programmes/humanitarian" },
-    { label: "Water, Sanitation and Hygiene", href: "/programmes/water" },
+    { label: footer.vantageCare, href: href("/programmes/health") },
+    { label: footer.kikumiKyoAcademy, href: href("/programmes/education") },
+    { label: n.humanitarian, href: href("/programmes/humanitarian") },
+    { label: n.wash, href: href("/programmes/water") },
   ];
 
   const impactLinks = [
-    { label: "Projects", href: "/projects" },
-    { label: "Impact Results", href: "/impact" },
-    { label: "Reports and Accountability", href: "/reports-and-accountability" },
-    { label: "Where We Work", href: "/impact#where-we-work" },
+    { label: n.projects, href: href("/projects") },
+    { label: n.impactResults, href: href("/impact") },
+    { label: n.reportsAccountability, href: href("/reports-and-accountability") },
+    { label: n.whereWeWork, href: href("/impact#where-we-work") },
   ];
 
   const getInvolvedLinks = [
-    { label: "Donate", href: "/donate" },
-    { label: "Volunteer", href: "/get-involved#volunteer" },
-    { label: "Partner", href: "/get-involved#partner" },
-    { label: "Sponsor", href: "/get-involved#sponsor" },
-    { label: "Corporate Social Responsibility", href: "/get-involved#csr" },
+    { label: n.donate, href: href("/donate") },
+    { label: n.volunteer, href: href("/get-involved#volunteer") },
+    { label: n.partner, href: href("/get-involved#partner") },
+    { label: n.sponsor, href: href("/get-involved#sponsor") },
+    { label: n.csr, href: href("/get-involved#csr") },
   ];
 
   const legalLinks = [
-    { label: "Privacy", href: "/privacy" },
-    { label: "Terms", href: "/terms" },
-    { label: "Safeguarding", href: "/safeguarding" },
-    { label: "Accessibility", href: "/accessibility" },
+    { label: c.privacy, href: href("/privacy") },
+    { label: c.terms, href: href("/terms") },
+    { label: c.safeguarding, href: href("/safeguarding") },
+    { label: c.accessibility, href: href("/accessibility") },
   ];
 
   const socials = [
@@ -51,24 +60,22 @@ export function Footer() {
         <div className="grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-4">
           {/* Organisation summary */}
           <div className="lg:col-span-1">
-            <Logo href="/" variant="horizontal" theme="dark" height={56} alt={site.name} />
+            <Logo href={href("/")} variant="horizontal" theme="dark" height={56} alt={site.name} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
-              {site.legalName} is a youth-led nonprofit improving access to
-              health, education, clean water and humanitarian support in
-              underserved Ugandan communities.
+              {f.summary}
             </p>
             <p className="mt-4 text-sm font-medium text-deep-teal">
-              {site.tagline}
+              {dictionary.home.heroTitle}
             </p>
-            <Button href={site.primaryCta.href} size="sm" className="mt-6">
-              {site.primaryCta.label}
+            <Button href={href(site.primaryCta.href)} size="sm" className="mt-6">
+              {n.donate}
             </Button>
           </div>
 
           {/* Programmes */}
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
-              Programmes
+              {n.programmes}
             </h2>
             <ul className="mt-4 space-y-2">
               {programmeLinks.map((item) => (
@@ -87,7 +94,7 @@ export function Footer() {
           {/* Impact and accountability */}
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
-              Impact &amp; Accountability
+              {f.impactAccountability}
             </h2>
             <ul className="mt-4 space-y-2">
               {impactLinks.map((item) => (
@@ -106,7 +113,7 @@ export function Footer() {
           {/* Get involved */}
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
-              Get Involved
+              {n.getInvolved}
             </h2>
             <ul className="mt-4 space-y-2">
               {getInvolvedLinks.map((item) => (
@@ -128,7 +135,7 @@ export function Footer() {
           {/* Contact information */}
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
-              Contact
+              {n.contact}
             </h2>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
               <li>
@@ -142,11 +149,11 @@ export function Footer() {
                   </a>
                 ) : (
                   <Link
-                    href="/contact"
+                    href={href("/contact")}
                     className="inline-flex items-center gap-2 transition-colors hover:text-deep-teal"
                   >
                     <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Contact Vantage
+                    {f.contactVantage}
                   </Link>
                 )}
               </li>
@@ -161,10 +168,10 @@ export function Footer() {
               </li>
             </ul>
             <div className="mt-4 space-y-2">
-              {site.contact.offices.map((office) => (
+              {site.contact.offices.map((office, index) => (
                 <p key={office.label} className="inline-flex items-start gap-2 text-sm text-white/70">
                   <MapPin className="h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                  <span><span className="font-medium text-white/90">{office.label}:</span> {office.city}, {office.region}</span>
+                  <span><span className="font-medium text-white/90">{index === 0 ? f.jinjaOffice : f.ishakaOffice}:</span> {office.city}, {index === 0 ? f.easternRegion : f.bushenyiDistrict}</span>
                 </p>
               ))}
             </div>
@@ -188,13 +195,13 @@ export function Footer() {
           {/* Newsletter */}
           <div className="lg:col-span-2">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
-              Newsletter
+              {f.newsletter}
             </h2>
             <p className="mt-4 text-sm text-white/70">
-              Get updates on our work, stories and ways to support.
+              {f.newsletterDescription}
             </p>
             <div className="mt-4 max-w-md">
-              <NewsletterForm light />
+              <NewsletterForm light dictionary={dictionary.forms} privacyLabel={c.privacy} privacyHref={href("/privacy")} />
             </div>
           </div>
         </div>
@@ -202,8 +209,7 @@ export function Footer() {
         {/* Legal links and copyright */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 py-6 text-sm text-white/60 md:flex-row">
           <p>
-            &copy; {new Date().getFullYear()} {site.legalName}. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {site.legalName}. {c.allRightsReserved}
           </p>
           <div className="flex flex-wrap gap-4 md:gap-6">
             {legalLinks.map((item) => (

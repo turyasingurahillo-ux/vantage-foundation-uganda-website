@@ -9,6 +9,8 @@ interface FormPrivacyNoticeProps {
    * bg-primary). Defaults to false (dark text on light backgrounds).
    */
   light?: boolean;
+  privacyLabel?: string;
+  privacyHref?: string;
 }
 
 const defaultText =
@@ -18,6 +20,8 @@ export function FormPrivacyNotice({
   text = defaultText,
   className,
   light = false,
+  privacyLabel = "Privacy Policy",
+  privacyHref = "/privacy",
 }: FormPrivacyNoticeProps) {
   return (
     <p
@@ -25,10 +29,10 @@ export function FormPrivacyNotice({
     >
       {text}{" "}
       <Link
-        href="/privacy"
+        href={privacyHref}
         className={light ? "text-white underline" : "text-primary underline"}
       >
-        Privacy Policy
+        {privacyLabel}
       </Link>
       .
     </p>
