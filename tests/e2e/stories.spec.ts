@@ -111,9 +111,9 @@ test.describe("Stories — layout", () => {
     await page.setViewportSize(DESKTOP);
     await page.goto("/stories/the-meaning-of-advantage");
 
-    const shareRail = page.getByRole("complementary", { name: /share this story/i });
+    const shareRail = page.getByRole("complementary", { name: /share/i });
     await expect(shareRail).toBeVisible();
-    await expect(page.getByRole("navigation", { name: /in this story/i })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: /more stories/i })).toBeVisible();
 
     const article = page.locator("#story-article");
     const articleBox = await article.boundingBox();

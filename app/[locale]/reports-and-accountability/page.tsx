@@ -7,15 +7,27 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { FileText, FileCheck, Scale, Shield, BarChart3, Mail } from "lucide-react";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Reports & Accountability",
-  description: "Publication status, approved reports, safeguarding information and accountability commitments from Vantage Foundation Uganda.",
-  path: "/reports-and-accountability",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale).reports;
+  return createPublicMetadata({
+    title: p.title,
+    description: p.description,
+    path: "/reports-and-accountability",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-// Lets an admin publish a new report via /admin/media without a code
-// deploy — refreshes periodically well within the presigned URL TTL.
 export const revalidate = 3600;
 
 /** A sectioned empty-state card for a report category with no approved documents yet. */
@@ -23,12 +35,12 @@ function EmptyReportSection({
   icon: Icon,
   title,
   description,
-  status = "Pending approval",
+  status,
 }: {
   icon: typeof FileText;
   title: string;
   description: string;
-  status?: string;
+  status: string;
 }) {
   return (
     <Card className="flex flex-col p-6">
@@ -50,9 +62,14 @@ function EmptyReportSection({
   );
 }
 
-export default async function ReportsPage() {
-  // Static reports plus anything an admin has since uploaded via
-  // /admin/media (newest uploads first).
+export default async function ReportsPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const d = await getDictionary(locale);
+  const p = getPageContent(locale);
   const uploaded = await getPublishedDocuments();
   const reports = [...uploaded, ...getPublishedReports()];
 
@@ -62,8 +79,8 @@ export default async function ReportsPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Reports & Accountability"
-            description="Transparency is how we build trust with communities, donors and partners."
+            title={p.reports.title}
+            description={p.reports.description}
             light
           />
         </Container>
@@ -71,13 +88,16 @@ export default async function ReportsPage() {
 
       <section className="py-16 md:py-24">
         <Container>
-          {/* Approved reports (if any) */}
+          <p className="rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {d.common.originalLanguageNotice}
+          </p>
+
           {reports.length > 0 && (
             <>
               <SectionHeader
                 align="left"
-                title="Approved reports"
-                description="Documents cleared for public release, with their reporting period and type."
+                title={p.reports.approvedReports}
+                description={p.reports.approvedDescription}
               />
               <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {reports.map((report) => (
@@ -96,7 +116,7 @@ export default async function ReportsPage() {
                     )}
                     {report.url && (
                       <Button href={report.url} variant="outline" className="mt-4" size="sm">
-                        Download
+                        {p.reports.download}
                       </Button>
                     )}
                   </Card>
@@ -105,73 +125,74 @@ export default async function ReportsPage() {
             </>
           )}
 
-          {/* Sectioned report categories with honest empty states */}
           <div className="mt-12">
             <SectionHeader
               align="left"
-              title="Publication status by category"
-              description="We do not present unfinished documents as published evidence. Each section below shows its current status and what will appear there when approved."
+              title={p.reports.publicationStatus}
+              description={p.reports.publicationDescription}
             />
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <EmptyReportSection
                 icon={FileCheck}
-                title="Annual reports"
-                description="Yearly summaries of our programmes, reach and organisational development. The first annual report will be published here once approved for public release."
+                title={p.reports.annualReports}
+                description={p.reports.annualReportsDescription}
+                status={p.reports.emptyStatus}
               />
               <EmptyReportSection
                 icon={BarChart3}
-                title="Financial reports"
-                description="Income and expenditure statements showing how donations are used. As a 100% volunteer-run organisation, funds go directly to programmes. Financial statements will be added after formal approval."
+                title={p.reports.financialReports}
+                description={p.reports.financialReportsDescription}
+                status={p.reports.emptyStatus}
               />
               <EmptyReportSection
                 icon={FileText}
-                title="Project reports"
-                description="Detailed reports from individual projects — including activities, outcomes and lessons learned. Project-level documentation is linked from each project page as it becomes available."
-                status="Linked from project pages"
+                title={p.reports.projectReports}
+                description={p.reports.projectReportsDescription}
+                status={p.reports.projectReportsStatus}
               />
               <EmptyReportSection
                 icon={Shield}
-                title="Safeguarding"
-                description="Our safeguarding policy sets out how we protect children, young people and vulnerable adults across all programmes. The policy is being finalised for publication."
+                title={p.reports.safeguarding}
+                description={p.reports.safeguardingDescription}
+                status={p.reports.emptyStatus}
               />
               <EmptyReportSection
                 icon={Scale}
-                title="Governance"
-                description="Vantage Foundation Uganda is led by a published volunteer leadership team and is working towards a formal board structure. Governance documents will be added here only after approval."
+                title={p.reports.governance}
+                description={p.reports.governanceDescription}
+                status={p.reports.emptyStatus}
               />
               <EmptyReportSection
                 icon={BarChart3}
-                title="Monitoring & evaluation"
-                description="Our approach to measuring impact combines quantitative counts (patients treated, litres of water provided, workshop attendance) with qualitative case studies and community feedback."
-                status="Framework in place"
+                title={p.reports.monitoring}
+                description={p.reports.monitoringDescription}
+                status={p.reports.monitoringStatus}
               />
             </div>
           </div>
 
-          {/* Policies */}
           <div className="mt-16">
             <SectionHeader
               align="left"
-              title="Policies"
-              description="Our public policy commitments are available now. Formal policy documents will be linked as they are approved."
+              title={p.reports.policies}
+              description={p.reports.policiesDescription}
             />
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button href="/safeguarding" variant="outline" size="sm">
-                Safeguarding
+              <Button href={localePath("/safeguarding", locale)} variant="outline" size="sm">
+                {p.legal.safeguarding}
               </Button>
-              <Button href="/privacy" variant="outline" size="sm">
-                Privacy
+              <Button href={localePath("/privacy", locale)} variant="outline" size="sm">
+                {p.legal.privacy}
               </Button>
-              <Button href="/accessibility" variant="outline" size="sm">
-                Accessibility
+              <Button href={localePath("/accessibility", locale)} variant="outline" size="sm">
+                {p.legal.accessibility}
               </Button>
-              <Button href="/terms" variant="outline" size="sm">
-                Terms
+              <Button href={localePath("/terms", locale)} variant="outline" size="sm">
+                {p.legal.terms}
               </Button>
             </div>
           </div>
 
-          {/* Request information */}
           <div className="mt-16">
             <Card className="flex flex-col items-start gap-4 p-8 md:flex-row md:items-center md:justify-between">
               <div className="flex items-start gap-4">
@@ -179,16 +200,14 @@ export default async function ReportsPage() {
                   <Mail className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div>
-                <h2 className="text-xl font-bold">Request information</h2>
-                <p className="mt-1 max-w-2xl text-muted-foreground">
-                  We welcome requests for information from donors, partners,
-                  journalists and community members. Reach out and we will
-                  respond as soon as possible.
-                </p>
+                  <h2 className="text-xl font-bold">{p.reports.requestInfo}</h2>
+                  <p className="mt-1 max-w-2xl text-muted-foreground">
+                    {p.reports.requestDescription}
+                  </p>
                 </div>
               </div>
-              <Button href="/contact" className="shrink-0">
-                Contact us
+              <Button href={localePath("/contact", locale)} className="shrink-0">
+                {p.reports.contactUs}
               </Button>
             </Card>
           </div>

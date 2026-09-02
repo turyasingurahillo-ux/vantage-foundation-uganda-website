@@ -4,26 +4,50 @@ import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ProjectList } from "@/components/projects/ProjectList";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Projects",
-  description:
-    "Browse Vantage Foundation Uganda's projects in health, education, humanitarian aid and water & sanitation.",
-  path: "/projects",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = getPageContent(locale).projects;
+  return createPublicMetadata({
+    title: content.title,
+    description:
+      "Browse Vantage Foundation Uganda's projects in health, education, humanitarian aid and water & sanitation.",
+    path: "/projects",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function ProjectsPage() {
+export default async function ProjectsPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const content = getPageContent(locale).projects;
+
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
-          <SectionHeader title="Projects" level="h1" light />
+          <SectionHeader title={content.title} level="h1" light />
         </Container>
       </section>
 
       <section className="py-16 md:py-24">
         <Container>
-          <ProjectList projects={getPublishedProjects()} />
+          <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+          <ProjectList projects={getPublishedProjects()} locale={locale} />
         </Container>
       </section>
     </>

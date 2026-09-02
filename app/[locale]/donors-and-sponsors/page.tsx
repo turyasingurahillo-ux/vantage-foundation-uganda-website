@@ -10,29 +10,41 @@ import { Button } from "@/components/ui/Button";
 import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { ContactForm } from "@/components/shared/ContactForm";
 import { createPublicMetadata } from "@/lib/metadata";
+import { resolveCategoryFromQuery } from "@/lib/contact-categories";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { engagementContent } from "@/lib/i18n/content/engagement";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Partners, Donors & Sponsors",
-  description: `Recognizing the individuals, companies and organizations who support ${site.name}, with their consent.`,
-  path: "/donors-and-sponsors",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = engagementContent[locale].donorsAndSponsors;
+  return createPublicMetadata({
+    title: content.title,
+    description: content.description.replace("{name}", site.name),
+    path: "/donors-and-sponsors",
+    locale,
+    contentLocalized: true,
+  });
+}
 
 // Lets an admin recognise a new donor/sponsor via /admin/media without a
 // code deploy — refreshes periodically well within the presigned URL TTL.
 export const revalidate = 3600;
 
-const categories = [
-  { name: "Strategic Partners", description: "Long-term organisational partnerships shaping our direction." },
-  { name: "Programme Sponsors", description: "Sustained support for a specific health, education or humanitarian programme." },
-  { name: "Project Donors", description: "Funding for a single project, such as a borehole or medical camp." },
-  { name: "In-Kind Supporters", description: "Goods, services or expertise donated in place of cash." },
-  { name: "Community Partners", description: "Local leaders, organisations and volunteers who make our work possible." },
-  { name: "Anonymous Contributors", description: "Donors who choose to support us without public recognition." },
-];
+export default async function DonorsAndSponsorsPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const content = engagementContent[locale].donorsAndSponsors;
 
-export default async function DonorsAndSponsorsPage() {
-  // Static partners plus anything an admin has since uploaded and recognised
-  // via /admin/media (newest uploads first).
   const uploadedLogos = await getPublishedLogos();
   const recognized = [...uploadedLogos, ...getPublishedPartners()];
 
@@ -42,8 +54,8 @@ export default async function DonorsAndSponsorsPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Partners, Donors & Sponsors"
-            description="Verified relationships and consent-based recognition of organisations and people supporting our work."
+            title={content.heroTitle}
+            description={content.heroDescription}
             light
           />
         </Container>
@@ -53,15 +65,12 @@ export default async function DonorsAndSponsorsPage() {
         <Container>
           <div className="max-w-3xl">
             <p className="text-lg leading-relaxed text-muted-foreground">
-              {site.name} is grateful to every donor, sponsor and partner who
-              supports our health, education and humanitarian work. This page
-              recognises contributors who have given their documented
-              consent to be publicly named.
+              {content.intro.replace("{name}", site.name)}
             </p>
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((cat) => (
+            {content.categories.map((cat) => (
               <Card key={cat.name} className="p-6">
                 <h3 className="text-base font-semibold text-primary">{cat.name}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{cat.description}</p>
@@ -74,8 +83,8 @@ export default async function DonorsAndSponsorsPage() {
       <section className="bg-surface py-16 md:py-24">
         <Container>
           <SectionHeader
-            title="Recognised contributors"
-            description="Featured with the documented consent of each contributor, grouped by relationship type."
+            title={content.recognisedTitle}
+            description={content.recognisedDescription}
           />
 
           {recognized.length > 0 ? (
@@ -91,7 +100,8 @@ export default async function DonorsAndSponsorsPage() {
               ).map(([type, partners]) => (
                 <div key={type}>
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">
-                    {type}
+                    {(content.relationshipTypeLabels[type] ??
+                      (type === "Other" ? content.otherRelationshipType : type))}
                   </h3>
                   <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {partners.map((partner) => (
@@ -100,7 +110,7 @@ export default async function DonorsAndSponsorsPage() {
                           {partner.logo ? (
                             <ImageOrPlaceholder
                               src={partner.logo}
-                              alt={partner.logoAlt ?? `${partner.name} logo`}
+                              alt={partner.logoAlt ?? `${partner.name} ${content.logoAltSuffix}`}
                               fill
                               preset="card"
                               containerClassName="h-14 w-36"
@@ -120,7 +130,7 @@ export default async function DonorsAndSponsorsPage() {
                             rel="noopener noreferrer"
                             className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline"
                           >
-                            Visit official website
+                            {content.visitWebsite}
                           </a>
                         )}
                       </Card>
@@ -133,8 +143,7 @@ export default async function DonorsAndSponsorsPage() {
             <div className="mx-auto mt-12 max-w-md text-center">
               <HeartHandshake className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
               <p className="mt-4 text-muted-foreground">
-                Partner and donor recognitions will appear here with their
-                consent.
+                {content.emptyState}
               </p>
             </div>
           )}
@@ -145,33 +154,31 @@ export default async function DonorsAndSponsorsPage() {
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="text-2xl font-bold">Recognition policy</h2>
+              <h2 className="text-2xl font-bold">{content.policyTitle}</h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
-                We only publish a donor or sponsor&rsquo;s name, logo, or
-                description with their documented, written consent. We never
-                publish donation amounts or personal financial details.
-                Donors may request removal from this page at any time, and
-                may choose to give anonymously and remain unnamed.
+                {content.policyBody}
               </p>
-              <h2 className="mt-10 text-2xl font-bold">Become a sponsor</h2>
+              <h2 className="mt-10 text-2xl font-bold">{content.sponsorTitle}</h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
-                If you or your organisation would like to sponsor a
-                programme, support a project, or nominate a contributor for
-                recognition, use the form or donate directly below.
+                {content.sponsorBody}
               </p>
-              <Button href="/donate" size="lg" className="mt-6">
-                Donate
+              <Button href={localePath("/donate", locale)} size="lg" className="mt-6">
+                {content.donateCta}
               </Button>
             </div>
 
             <Card className="p-6 md:p-8">
-              <h2 className="text-xl font-semibold">Contact us about sponsorship</h2>
+              <h2 className="text-xl font-semibold">{content.contactTitle}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Tell us about your organisation and how you&rsquo;d like to
-                support our work.
+                {content.contactDescription}
               </p>
               <div className="mt-6">
-                <ContactForm defaultSubject="sponsor" />
+                <ContactForm
+                  defaultSubject={resolveCategoryFromQuery("sponsor")}
+                  dictionary={dictionary.forms}
+                  locale={locale}
+                  privacyLabel={dictionary.common.privacy}
+                />
               </div>
             </Card>
           </div>

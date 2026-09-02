@@ -1,10 +1,17 @@
+"use client";
+
+import { useParams } from "next/navigation";
 import { Container } from "@/components/shared/Container";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 export default function ProjectLoading() {
+  const { locale } = useParams() as { locale: Locale };
+  const p = getPageContent(locale);
+
   return (
     <>
-      {/* Hero skeleton */}
       <section className="bg-primary py-16 md:py-24">
         <Container>
           <div className="max-w-3xl">
@@ -20,15 +27,14 @@ export default function ProjectLoading() {
         </Container>
       </section>
 
-      {/* Body skeleton */}
       <section className="py-12 md:py-16">
         <Container>
           <Breadcrumbs
             className="mb-8"
             items={[
-              { label: "Home", href: "/" },
-              { label: "Projects", href: "/projects" },
-              { label: "…" },
+              { label: p.common.home, href: localePath("/", locale) },
+              { label: p.projects.title, href: localePath("/projects", locale) },
+              { label: p.ui.loading.ellipsis },
             ]}
           />
           <div className="aspect-[16/9] w-full animate-pulse rounded-2xl bg-muted" />

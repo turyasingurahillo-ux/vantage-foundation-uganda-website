@@ -13,17 +13,19 @@ import { UgandaMap } from "@/components/map/UgandaMap";
 import { MapLegend } from "@/components/map/MapLegend";
 import { type DistrictMeta } from "@/components/map/MapTooltip";
 import { cn } from "@/lib/utils";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 type DistrictStatus = "active" | "completed" | "planned" | "reached";
 
 const STATUS_STYLE: Record<
   DistrictStatus,
-  { pin: string; badge: "default" | "success" | "warning" | "outline"; label: string }
+  { pin: string; badge: "default" | "success" | "warning" | "outline" }
 > = {
-  active: { pin: "text-primary", badge: "default", label: "Active project" },
-  planned: { pin: "text-warning", badge: "warning", label: "Planned project" },
-  completed: { pin: "text-success", badge: "success", label: "Completed project" },
-  reached: { pin: "text-muted-foreground", badge: "outline", label: "Area reached" },
+  active: { pin: "text-primary", badge: "default" },
+  planned: { pin: "text-warning", badge: "warning" },
+  completed: { pin: "text-success", badge: "success" },
+  reached: { pin: "text-muted-foreground", badge: "outline" },
 };
 
 function districtStatus(district: ReachDistrict): DistrictStatus {
@@ -54,15 +56,21 @@ function districtProgrammes(district: ReachDistrict): string[] {
   return [...programmes];
 }
 
-const PROGRAMME_FILTERS: { id: string; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "health", label: "Health" },
-  { id: "education", label: "Education" },
-  { id: "humanitarian", label: "Humanitarian" },
-  { id: "water", label: "WASH" },
-];
-
-export function UgandaReachMap() {
+export function UgandaReachMap({ locale = "en" }: { locale?: Locale }) {
+  const t = getPageContent(locale).ui.map;
+  const statusLabels: Record<DistrictStatus, string> = {
+    active: t.activeProject,
+    planned: t.plannedProject,
+    completed: t.completedProject,
+    reached: t.areaReached,
+  };
+  const filters = [
+    { id: "all", label: t.all },
+    { id: "health", label: t.health },
+    { id: "education", label: t.education },
+    { id: "humanitarian", label: t.humanitarian },
+    { id: "water", label: t.wash },
+  ];
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const idBase = useId();
@@ -101,15 +109,15 @@ export function UgandaReachMap() {
     <section className="bg-white py-16 md:py-24 lg:py-32">
       <Container>
         <SectionHeader
-          eyebrow="Where We Work"
-          title="Our Reach Across Uganda"
-          description="From urban centres to rural communities, we work where need meets opportunity. Select a district for details."
+          eyebrow={t.eyebrow}
+          title={t.title}
+          description={t.description}
         />
 
         {/* Programme filter */}
         <div className="mt-8 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-          {PROGRAMME_FILTERS.map((f) => (
+          <span className="text-sm font-medium text-muted-foreground">{t.filter}</span>
+          {filters.map((f) => (
             <button
               key={f.id}
               type="button"
@@ -131,31 +139,37 @@ export function UgandaReachMap() {
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
-          <div role="group" aria-label="Uganda programme map">
+          <div role="group" aria-label={t.mapAriaLabel}>
             <UgandaMap
               districts={visibleDistricts}
               selected={selected}
               idBase={idBase}
               onSelect={select}
-              onToggle={toggle}
+              locale={locale}
             />
-            <MapLegend />
+            <MapLegend
+              labels={{
+                active: t.activeProject,
+                completed: t.completedProject,
+                planned: t.plannedProject,
+                reached: t.areaReached,
+              }}
+            />
             <p className="mt-2 text-right text-xs text-muted-foreground">
-              Map uses Natural Earth 50m public-domain data.
+              {t.attribution}
             </p>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">
-              Districts we&rsquo;ve reached
+              {t.districtsHeading}
             </h3>
             {visibleDistricts.length === 0 ? (
               <p className="mt-4 rounded-xl border border-border p-4 text-sm text-muted-foreground">
-                No districts with linked projects in this programme yet. Select
-                &ldquo;All&rdquo; to see everywhere we work.
+                {t.emptyState}
               </p>
             ) : (
-              <ul className="mt-4 space-y-2" aria-label="District list">
+              <ul className="mt-4 space-y-2" aria-label={t.districtListAriaLabel}>
                 {visibleDistricts.map(({ district, status, projects }) => {
                   const isSelected = selected === district.name;
                   return (
@@ -181,7 +195,7 @@ export function UgandaReachMap() {
                           {district.name}
                         </span>
                         <Badge variant={STATUS_STYLE[status].badge}>
-                          {STATUS_STYLE[status].label}
+                          {statusLabels[status]}
                         </Badge>
                       </button>
 
@@ -190,7 +204,7 @@ export function UgandaReachMap() {
                           {projects.map((p) => (
                             <li key={p.slug}>
                               <Link
-                                href={`/projects/${p.slug}`}
+                                href={localePath(`/projects/${p.slug}`, locale)}
                                 className="text-sm text-primary underline-offset-4 hover:underline"
                               >
                                 {p.title}
@@ -200,7 +214,7 @@ export function UgandaReachMap() {
                         </ul>
                       ) : (
                         <p className="mt-2 pl-6 text-sm text-muted-foreground">
-                          Programme activity reaches this area; no dedicated project page yet.
+                          {t.noProjectPage}
                         </p>
                       )}
                     </li>
@@ -209,8 +223,7 @@ export function UgandaReachMap() {
               </ul>
             )}
             <p className="mt-6 text-sm text-muted-foreground">
-              Markers show real district administrative centres (WGS84) as the
-              approximate programme location.
+              {t.markersNote}
             </p>
           </div>
         </div>

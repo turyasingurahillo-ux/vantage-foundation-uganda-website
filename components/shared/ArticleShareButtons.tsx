@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { trackArticleShare } from "./ArticleAnalytics";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 /**
  * ArticleShareButtons — social share controls for a story page.
@@ -23,11 +25,13 @@ interface ArticleShareButtonsProps {
   title: string;
   variant?: "bar" | "rail";
   className?: string;
+  locale?: Locale;
 }
 
-function shareUrl(slug: string): string {
-  if (typeof window === "undefined") return `/stories/${slug}`;
-  return `${window.location.origin}/stories/${slug}`;
+function shareUrl(slug: string, locale: Locale): string {
+  const path = localePath(`/stories/${slug}`, locale);
+  if (typeof window === "undefined") return path;
+  return `${window.location.origin}${path}`;
 }
 
 export function ArticleShareButtons({
@@ -35,9 +39,11 @@ export function ArticleShareButtons({
   title,
   variant = "bar",
   className,
+  locale = "en",
 }: ArticleShareButtonsProps) {
+  const c = getPageContent(locale);
   const [copied, setCopied] = useState(false);
-  const url = shareUrl(slug);
+  const url = shareUrl(slug, locale);
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
   const isRail = variant === "rail";
@@ -86,13 +92,13 @@ export function ArticleShareButtons({
             : "text-sm"
         )}
       >
-        {isRail ? "Share" : "Share:"}
+        {isRail ? c.common.share : `${c.common.share}:`}
       </span>
       <button
         type="button"
         onClick={() => handleShare("whatsapp", `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`)}
         className={buttonClass}
-        aria-label="Share on WhatsApp"
+        aria-label={`${c.common.shareOn} WhatsApp`}
       >
         WhatsApp
       </button>
@@ -100,7 +106,7 @@ export function ArticleShareButtons({
         type="button"
         onClick={() => handleShare("linkedin", `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`)}
         className={buttonClass}
-        aria-label="Share on LinkedIn"
+        aria-label={`${c.common.shareOn} LinkedIn`}
       >
         LinkedIn
       </button>
@@ -108,7 +114,7 @@ export function ArticleShareButtons({
         type="button"
         onClick={() => handleShare("x", `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`)}
         className={buttonClass}
-        aria-label="Share on X"
+        aria-label={`${c.common.shareOn} X`}
       >
         X
       </button>
@@ -116,7 +122,7 @@ export function ArticleShareButtons({
         type="button"
         onClick={() => handleShare("facebook", `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`)}
         className={buttonClass}
-        aria-label="Share on Facebook"
+        aria-label={`${c.common.shareOn} Facebook`}
       >
         Facebook
       </button>
@@ -124,18 +130,18 @@ export function ArticleShareButtons({
         type="button"
         onClick={handleCopyLink}
         className={buttonClass}
-        aria-label="Copy link"
+        aria-label={c.common.copyLink}
       >
-        {copied ? "Copied!" : "Copy link"}
+        {copied ? c.common.copied : c.common.copyLink}
       </button>
       {hasNativeShare && (
         <button
           type="button"
           onClick={handleNativeShare}
           className={buttonClass}
-          aria-label="Share via device"
+          aria-label={`${c.common.share} …`}
         >
-          Share…
+          {c.common.share}…
         </button>
       )}
     </div>

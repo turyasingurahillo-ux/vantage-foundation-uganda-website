@@ -186,7 +186,7 @@ test.describe("contact form", () => {
     await contactForm(page).getByRole("button", { name: /send message/i }).click();
 
     // The bot gets the same confirmation a human gets, learning nothing.
-    await expect(page.getByText(/message has been received/i)).toBeVisible();
+    await expect(page.getByText(/message received/i)).toBeVisible();
   });
 
   test("form fields are keyboard reachable and labelled", async ({ page }) => {

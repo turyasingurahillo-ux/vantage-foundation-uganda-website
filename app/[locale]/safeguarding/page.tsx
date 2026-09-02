@@ -1,18 +1,37 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ContactChannelListItem } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Safeguarding Policy",
-  description:
-    "Vantage Foundation Uganda's safeguarding policy for protecting children, young people, and vulnerable adults.",
-  path: "/safeguarding",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  return createPublicMetadata({
+    title: "Safeguarding Policy",
+    description:
+      "Vantage Foundation Uganda's safeguarding policy for protecting children, young people, and vulnerable adults.",
+    path: "/safeguarding",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function SafeguardingPage() {
+export default async function SafeguardingPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -28,7 +47,10 @@ export default function SafeguardingPage() {
 
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
-          <div className="space-y-8 leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+          <div className="mt-8 space-y-8 leading-relaxed text-muted-foreground">
             <div>
               <h2 className="mb-3 text-xl font-bold text-foreground">
                 Our commitment
@@ -128,19 +150,19 @@ export default function SafeguardingPage() {
                 <li>
                   Never take or share photographs of children without verified
                   consent (see our{" "}
-                  <a
-                    href="/privacy"
+                  <Link
+                    href={localePath("/privacy", locale)}
                     className="text-primary underline"
                   >
                     Privacy Policy
-                  </a>{" "}
+                  </Link>{" "}
                   and{" "}
-                  <a
-                    href="/accessibility"
+                  <Link
+                    href={localePath("/accessibility", locale)}
                     className="text-primary underline"
                   >
                     Accessibility Statement
-                  </a>
+                  </Link>
                   ).
                 </li>
                 <li>
@@ -182,12 +204,12 @@ export default function SafeguardingPage() {
               </ul>
               <p className="mt-3">
                 For the full technical and editorial details, see our{" "}
-                <a
-                  href="/reports-and-accountability"
+                <Link
+                  href={localePath("/reports-and-accountability", locale)}
                   className="text-primary underline"
                 >
                   Reports &amp; Accountability
-                </a>{" "}
+                </Link>{" "}
                 page.
               </p>
             </div>
@@ -203,7 +225,7 @@ export default function SafeguardingPage() {
                 take appropriate action.
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <ContactChannelListItem category="safeguarding" />
+                <ContactChannelListItem category="safeguarding" locale={locale} />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a

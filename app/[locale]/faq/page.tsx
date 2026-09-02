@@ -1,26 +1,44 @@
 import type { Metadata } from "next";
-import { faq } from "@/content/faq";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { JsonLd, buildFaqJsonLd } from "@/components/shared/JsonLd";
 import { createPublicMetadata } from "@/lib/metadata";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { engagementContent } from "@/lib/i18n/content/engagement";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "FAQ",
-  description: "Frequently asked questions about Vantage Foundation Uganda, our work, donations and partnerships.",
-  path: "/faq",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = engagementContent[locale].faq;
+  return createPublicMetadata({
+    title: content.title,
+    description: content.description,
+    path: "/faq",
+    locale,
+    contentLocalized: true,
+  });
+}
 
-export default function FaqPage() {
+export default async function FaqPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const content = engagementContent[locale].faq;
+
   return (
     <>
-      <JsonLd data={buildFaqJsonLd(faq)} />
+      <JsonLd data={buildFaqJsonLd(content.items)} />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader
             level="h1"
-            title="Frequently Asked Questions"
-            description="Answers to common questions about our work and how to get involved."
+            title={content.heroTitle}
+            description={content.heroDescription}
             light
           />
         </Container>
@@ -29,12 +47,12 @@ export default function FaqPage() {
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
           <div className="space-y-4">
-            {faq.map((item, index) => {
+            {content.items.map((item, index) => {
               const summaryId = `faq-summary-${index}`;
               const contentId = `faq-content-${index}`;
               return (
                 <details
-                  key={index}
+                  key={item.id}
                   className="group rounded-xl border border-border bg-white p-6 open:shadow-sm"
                 >
                   <summary

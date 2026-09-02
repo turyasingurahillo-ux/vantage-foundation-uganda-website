@@ -7,22 +7,38 @@ import { Card } from "@/components/ui/Card";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { createPublicMetadata } from "@/lib/metadata";
 import { resolveCategoryFromQuery } from "@/lib/contact-categories";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Contact",
-  description: "Get in touch with Vantage Foundation Uganda for donations, volunteering, partnerships and media inquiries.",
-  path: "/contact",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  return createPublicMetadata({
+    title: dictionary.contact.title,
+    description: dictionary.contact.description,
+    path: "/contact",
+    locale,
+  });
+}
 
 export default async function ContactPage({
+  params,
   searchParams,
 }: {
+  params: LocaleParams;
   searchParams: Promise<{ subject?: string }>;
 }) {
   const { subject } = await searchParams;
   // Accepts current category values and the legacy ?subject= values still used
   // by older CTAs elsewhere on the site.
   const defaultSubject = resolveCategoryFromQuery(subject);
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const contact = dictionary.contact;
 
   return (
     <>
@@ -30,8 +46,8 @@ export default async function ContactPage({
         <Container>
           <SectionHeader
             level="h1"
-            title="Contact us"
-            description="We would love to hear from you. Reach out for donations, volunteering, partnerships or general inquiries."
+            title={contact.title}
+            description={contact.description}
             light
           />
         </Container>
@@ -47,7 +63,7 @@ export default async function ContactPage({
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Email</h3>
+                    <h3 className="font-semibold">{contact.email}</h3>
                     {site.contact.publicEmail ? (
                       <a
                         href={`mailto:${site.contact.publicEmail}`}
@@ -57,8 +73,7 @@ export default async function ContactPage({
                       </a>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        Use the form on this page — choose a category and your
-                        message goes straight to the right team.
+                        {contact.privateEmailHelp}
                       </p>
                     )}
                   </div>
@@ -71,7 +86,7 @@ export default async function ContactPage({
                     <Phone className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Phone</h3>
+                    <h3 className="font-semibold">{contact.phone}</h3>
                     <a
                       href={`tel:${site.contact.phone.replace(/\s/g, "")}`}
                       className="text-sm text-muted-foreground hover:text-primary"
@@ -88,7 +103,7 @@ export default async function ContactPage({
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Location</h3>
+                    <h3 className="font-semibold">{contact.location}</h3>
                     <div className="mt-1 space-y-2">
                       {site.contact.offices.map((office) => (
                         <p key={office.label} className="text-sm text-muted-foreground">
@@ -105,12 +120,12 @@ export default async function ContactPage({
 
             <div className="lg:col-span-2">
               <Card className="p-6 md:p-8">
-                <h2 className="text-2xl font-bold">Send us a message</h2>
+                <h2 className="text-2xl font-bold">{contact.sendTitle}</h2>
                 <p className="mt-2 text-muted-foreground">
-                  Fill out the form below and we will respond as soon as possible.
+                  {contact.sendDescription}
                 </p>
                 <div className="mt-6">
-                  <ContactForm defaultSubject={defaultSubject} />
+                  <ContactForm defaultSubject={defaultSubject} dictionary={dictionary.forms} locale={locale} privacyLabel={dictionary.common.privacy} />
                 </div>
               </Card>
             </div>

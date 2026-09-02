@@ -9,15 +9,34 @@ import { ImpactMetricList, type ImpactTier } from "@/components/shared/ImpactMet
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Impact",
-  description:
-    "See how Vantage Foundation Uganda measures and reports its impact in health, education, humanitarian aid and WASH.",
-  path: "/impact",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  return createPublicMetadata({
+    title: "Impact",
+    description:
+      "See how Vantage Foundation Uganda measures and reports its impact in health, education, humanitarian aid and WASH.",
+    path: "/impact",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function ImpactPage() {
+export default async function ImpactPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+
   // Combine the three flat arrays into a single tiered list so the
   // measurement hierarchy (output → outcome → long-term) is explicit.
   const tieredItems: { tier: ImpactTier; text: string }[] = [
@@ -41,6 +60,10 @@ export default function ImpactPage() {
 
       <section className="py-16 md:py-24">
         <Container>
+          <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+
           <div className="grid gap-6 md:grid-cols-3">
             {getPublishedImpactStats().map((stat) => (
               <StatCard key={stat.label} {...stat} />
@@ -137,11 +160,11 @@ export default function ImpactPage() {
           <SectionHeader title="Projects behind the numbers" />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {getPublishedProjects().slice(0, 3).map((project) => (
-              <ProjectCard key={project.slug} project={project} />
+              <ProjectCard key={project.slug} project={project} locale={locale} />
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Button href="/projects">View All Projects</Button>
+            <Button href={localePath("/projects", locale)}>View All Projects</Button>
           </div>
         </Container>
       </section>

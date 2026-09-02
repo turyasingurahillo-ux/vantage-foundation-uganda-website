@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Container } from "@/components/shared/Container";
 import { Button } from "@/components/ui/Button";
+import { localeFromPathname, localePath } from "@/lib/i18n/config";
+import { errorCopy } from "@/lib/i18n/error-copy";
 
 export default function Error({
   error,
@@ -11,6 +14,11 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // The error boundary sits above the route params, so the locale is read
+  // back off the URL. Unprefixed paths are English by definition.
+  const locale = localeFromPathname(usePathname() ?? "/");
+  const copy = errorCopy[locale];
+
   useEffect(() => {
     // Log the error to an error reporting service (console for now).
     console.error("Unhandled error:", error);
@@ -21,26 +29,29 @@ export default function Error({
       <Container>
         <div className="mx-auto max-w-xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-            Something went wrong
+            {copy.eyebrow}
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            An error occurred
+            {copy.title}
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-            We&rsquo;re sorry &mdash; something went wrong while loading this
-            page. Please try again, or contact us if the problem persists.
+            {copy.description}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Button onClick={reset} size="lg">
-              Try again
+              {copy.tryAgain}
             </Button>
-            <Button href="/" variant="outline" size="lg">
-              Return Home
+            <Button
+              href={localePath("/", locale)}
+              variant="outline"
+              size="lg"
+            >
+              {copy.returnHome}
             </Button>
           </div>
           {error.digest && (
             <p className="mt-8 text-xs text-muted-foreground">
-              Error ID: {error.digest}
+              {copy.errorId}: {error.digest}
             </p>
           )}
         </div>

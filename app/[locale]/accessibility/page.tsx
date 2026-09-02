@@ -1,18 +1,37 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ContactChannelListItem } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Accessibility Statement",
-  description:
-    "Vantage Foundation Uganda's commitment to making our website accessible to everyone, including people with disabilities.",
-  path: "/accessibility",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  return createPublicMetadata({
+    title: "Accessibility Statement",
+    description:
+      "Vantage Foundation Uganda's commitment to making our website accessible to everyone, including people with disabilities.",
+    path: "/accessibility",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function AccessibilityPage() {
+export default async function AccessibilityPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -28,7 +47,10 @@ export default function AccessibilityPage() {
 
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
-          <div className="space-y-8 leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+          <div className="mt-8 space-y-8 leading-relaxed text-muted-foreground">
             <div>
               <h2 className="mb-3 text-xl font-bold text-foreground">
                 Our commitment
@@ -180,7 +202,7 @@ export default function AccessibilityPage() {
                 have a suggestion for improvement, please contact us:
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <ContactChannelListItem />
+                <ContactChannelListItem locale={locale} />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a
@@ -210,12 +232,12 @@ export default function AccessibilityPage() {
               <p className="mt-3">
                 For the full technical documentation of our accessibility
                 implementation, see our{" "}
-                <a
-                  href="/reports-and-accountability"
+                <Link
+                  href={localePath("/reports-and-accountability", locale)}
                   className="text-primary underline"
                 >
                   Reports &amp; Accountability
-                </a>{" "}
+                </Link>{" "}
                 page.
               </p>
             </div>

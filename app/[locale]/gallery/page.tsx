@@ -3,22 +3,40 @@ import { getPublishedMedia } from "@/content/media";
 import { getPublishedGalleryMedia } from "@/lib/media-public";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { createPublicMetadata } from "@/lib/metadata";
+import { resolveLocale } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Gallery",
-  description:
-    "Photos from Vantage Foundation Uganda's water, education, health and community programmes.",
-  path: "/gallery",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale).gallery;
+  return createPublicMetadata({
+    title: p.title,
+    description: p.description,
+    path: "/gallery",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-// Refreshes admin-uploaded photos periodically without a full redeploy.
 export const revalidate = 3600;
 
-export default async function GalleryPage() {
-  // Static, pre-processed photos plus anything an admin has since uploaded
-  // via /admin/media (newest uploads first).
+export default async function GalleryPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale);
+  const d = await getDictionary(locale);
   const uploaded = await getPublishedGalleryMedia();
   const images = [...uploaded, ...getPublishedMedia()];
 
@@ -28,15 +46,23 @@ export default async function GalleryPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Gallery"
-            description="Moments from our boreholes, schools and community programmes across Uganda."
+            title={p.gallery.title}
+            description={p.gallery.description}
             light
           />
         </Container>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="py-12 md:py-16">
         <Container>
+          <Breadcrumbs
+            className="mb-8"
+            items={[
+              { label: d.common.home, href: localePath("/", locale) },
+              { label: p.gallery.title },
+            ]}
+            locale={locale}
+          />
           <GalleryGrid images={images} />
         </Container>
       </section>

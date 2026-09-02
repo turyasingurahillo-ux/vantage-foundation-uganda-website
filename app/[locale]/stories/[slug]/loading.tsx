@@ -1,7 +1,15 @@
+"use client";
+
+import { useParams } from "next/navigation";
 import { Container } from "@/components/shared/Container";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 export default function StoryLoading() {
+  const { locale } = useParams() as { locale: Locale };
+  const p = getPageContent(locale);
+
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -19,9 +27,9 @@ export default function StoryLoading() {
           <Breadcrumbs
             className="mb-8"
             items={[
-              { label: "Home", href: "/" },
-              { label: "Stories", href: "/stories" },
-              { label: "…" },
+              { label: p.common.home, href: localePath("/", locale) },
+              { label: p.stories.title, href: localePath("/stories", locale) },
+              { label: p.ui.loading.ellipsis },
             ]}
           />
           <div className="aspect-[16/10] w-full animate-pulse rounded-2xl bg-muted" />

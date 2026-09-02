@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { site } from "@/content/site";
 import { getLeadership, getVolunteers } from "@/content/team";
 import { getTeamMemberPhotoOverride } from "@/lib/media-public";
 import { Container } from "@/components/shared/Container";
@@ -8,18 +7,37 @@ import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
+import { resolveLocale } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Our Team",
-  description: `Meet the leadership and volunteers behind ${site.name}.`,
-  path: "/about-us/team",
-});
-
-// Lets an admin update a team member's photo via /admin/media without a
-// code deploy — refreshes periodically well within the presigned URL TTL.
 export const revalidate = 3600;
 
-export default async function TeamPage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale).team;
+  return createPublicMetadata({
+    title: p.title,
+    description: p.description,
+    path: "/about-us/team",
+    locale,
+    contentLocalized: false,
+  });
+}
+
+export default async function TeamPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale);
+  const d = await getDictionary(locale);
   const leadership = getLeadership();
   const volunteers = getVolunteers();
   const allMembers = [...leadership, ...volunteers];
@@ -37,8 +55,8 @@ export default async function TeamPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Our Team"
-            description="A youth-led, volunteer-driven team working across health, education and humanitarian action in Uganda."
+            title={p.team.title}
+            description={p.team.description}
             light
           />
         </Container>
@@ -49,25 +67,21 @@ export default async function TeamPage() {
           <Breadcrumbs
             className="mb-4"
             items={[
-              { label: "Home", href: "/" },
-              { label: "About Us", href: "/about-us" },
-              { label: "Our Team" },
+              { label: d.common.home, href: localePath("/", locale) },
+              { label: p.common.aboutUs, href: localePath("/about-us", locale) },
+              { label: p.team.title },
             ]}
+            locale={locale}
           />
-          <p className="max-w-2xl text-muted-foreground">
-            {site.name} operates on a 100% volunteer basis. The people below
-            lead our strategy, coordinate our field operations, and give
-            their clinical, technical and organisational expertise to make
-            our programmes possible.
-          </p>
+          <p className="max-w-2xl text-muted-foreground">{p.team.description}</p>
         </Container>
       </section>
 
       <section className="pb-4">
         <Container>
           <SectionHeader
-            title="Executive leadership"
-            description="Strategic direction and day-to-day operations."
+            title={p.team.executive}
+            description={p.team.executiveDescription}
           />
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {leadership.map((member) => (
@@ -75,6 +89,7 @@ export default async function TeamPage() {
                 key={member.slug}
                 member={member}
                 photoOverrideSrc={overrides.get(member.slug)?.src}
+                locale={locale}
               />
             ))}
           </div>
@@ -84,8 +99,8 @@ export default async function TeamPage() {
       <section className="py-16 md:py-24">
         <Container>
           <SectionHeader
-            title="Volunteers and technical contributors"
-            description="Clinical, technical and field expertise, contributed voluntarily."
+            title={p.team.volunteers}
+            description={p.team.volunteersDescription}
           />
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {volunteers.map((member) => (
@@ -93,6 +108,7 @@ export default async function TeamPage() {
                 key={member.slug}
                 member={member}
                 photoOverrideSrc={overrides.get(member.slug)?.src}
+                locale={locale}
               />
             ))}
           </div>
@@ -103,18 +119,15 @@ export default async function TeamPage() {
         <Container>
           <div className="flex flex-col items-center justify-between gap-6 rounded-2xl bg-primary p-8 text-white md:flex-row md:p-12">
             <div>
-              <h2 className="text-2xl font-bold">Join our team</h2>
-              <p className="mt-2 max-w-xl text-white/90">
-                We&rsquo;re always glad to hear from volunteers, professionals and
-                partners who want to contribute their time or expertise.
-              </p>
+              <h2 className="text-2xl font-bold">{p.team.joinTitle}</h2>
+              <p className="mt-2 max-w-xl text-white/90">{p.team.joinDescription}</p>
             </div>
             <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row">
-              <Button href="/get-involved" variant="secondary">
-                Volunteer or partner with us
+              <Button href={localePath("/get-involved", locale)} variant="secondary">
+                {p.team.volunteerCta}
               </Button>
-              <Button href="/donate" variant="outline" className="border-white text-white hover:bg-white/10">
-                Donate
+              <Button href={localePath("/donate", locale)} variant="outline" className="border-white text-white hover:bg-white/10">
+                {p.team.donateCta}
               </Button>
             </div>
           </div>

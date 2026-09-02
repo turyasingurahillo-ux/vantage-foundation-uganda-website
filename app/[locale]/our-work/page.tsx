@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/content/site";
 import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
 import { getPublishedProjects } from "@/content/projects";
 import { Container } from "@/components/shared/Container";
@@ -9,22 +8,44 @@ import { AreaIcon } from "@/components/shared/AreaIcon";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { Card } from "@/components/ui/Card";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Our Work",
-  description: `Explore ${site.name}'s four community programmes: Vantage Care, KikumiKyo Academy, Humanitarian Assistance, and Water, Sanitation and Hygiene.`,
-  path: "/our-work",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = getPageContent(locale).ourWork;
+  return createPublicMetadata({
+    title: content.title,
+    description: content.description,
+    path: "/our-work",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function OurWorkPage() {
+export default async function OurWorkPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const p = getPageContent(locale);
+
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader
             level="h1"
-            title="Our Work"
-            description="Four connected programmes advancing health, financial capability, humanitarian support, and clean water and sanitation."
+            title={p.ourWork.title}
+            description={p.ourWork.description}
             light
           />
         </Container>
@@ -32,11 +53,15 @@ export default function OurWorkPage() {
 
       <section className="py-16 md:py-24">
         <Container>
+          <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+
           <div className="grid gap-12">
             {areasOfWork.map((area) => {
               const categories = projectCategoriesByAreaId[area.id] ?? [];
               const relatedProjects = getPublishedProjects().filter((p) =>
-                categories.includes(p.category)
+                categories.includes(p.category),
               );
 
               return (
@@ -50,27 +75,28 @@ export default function OurWorkPage() {
                         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                           <h2 className="text-2xl font-bold">
                             <Link
-                              href={`/programmes/${area.id}`}
+                              href={localePath(`/programmes/${area.id}`, locale)}
                               className="hover:text-primary"
                             >
                               {area.programmeName ?? area.title}
                             </Link>
                           </h2>
                           <Link
-                            href={`/programmes/${area.id}`}
+                            href={localePath(`/programmes/${area.id}`, locale)}
                             className="shrink-0 text-sm font-medium text-primary hover:underline"
+                            aria-label={`${dictionary.common.learnMore} ${p.common.about} ${area.programmeName ?? area.title}`}
                           >
-                            Learn more
+                            {dictionary.common.learnMore}
                             <span className="sr-only">
                               {" "}
-                              about {area.programmeName ?? area.title}
+                              {p.common.about} {area.programmeName ?? area.title}
                             </span>{" "}
                             <span aria-hidden="true">&rarr;</span>
                           </Link>
                         </div>
                         {area.programmeName && (
                           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            {area.title} Programme
+                            {area.title} {p.ourWork.programmeSuffix}
                           </p>
                         )}
                         <p className="mt-2 text-muted-foreground">{area.description}</p>
@@ -88,11 +114,11 @@ export default function OurWorkPage() {
                     {relatedProjects.length > 0 && (
                       <div className="mt-8">
                         <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">
-                          Related projects
+                          {p.ourWork.relatedProjects}
                         </h3>
                         <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                           {relatedProjects.map((project) => (
-                            <ProjectCard key={project.slug} project={project} />
+                            <ProjectCard key={project.slug} project={project} locale={locale} />
                           ))}
                         </div>
                       </div>

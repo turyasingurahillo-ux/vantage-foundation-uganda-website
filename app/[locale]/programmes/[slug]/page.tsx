@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
 import { getPublishedProjects } from "@/content/projects";
 import { getPublishedStories } from "@/content/stories";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { AreaIcon } from "@/components/shared/AreaIcon";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { StoryCard } from "@/components/shared/StoryCard";
@@ -17,37 +17,50 @@ import { getProgrammeAdditionalPhotos } from "@/lib/media-public";
 import { createPublicMetadata } from "@/lib/metadata";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
 import { site } from "@/content/site";
+import { resolveLocale } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
-// Lets an admin add photos to a programme via /admin/media without a code
-// deploy — refreshes periodically well within the presigned URL TTL.
 export const revalidate = 3600;
 
 export function generateStaticParams() {
   return areasOfWork.map((area) => ({ slug: area.id }));
 }
 
-export function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  return params.then(({ slug }) => {
-    const area = areasOfWork.find((a) => a.id === slug);
-    if (!area) return { title: "Programme not found" };
-    const name = area.programmeName ?? area.title;
-    return createPublicMetadata({
-      title: name,
-      description: area.summary,
-      path: `/programmes/${slug}`,
-    });
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const resolved = await params;
+  const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
+  const area = areasOfWork.find((a) => a.id === resolved.slug);
+  if (!area) {
+    return { title: getPageContent(locale).ui.programmeNotFound.title };
+  }
+  const name = area.programmeName ?? area.title;
+  return createPublicMetadata({
+    title: name,
+    description: area.summary,
+    path: `/programmes/${resolved.slug}`,
+    locale,
+    contentLocalized: false,
   });
 }
 
 export default async function ProgrammePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
-  const area = areasOfWork.find((a) => a.id === slug);
+  const resolved = await params;
+  const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
+  const area = areasOfWork.find((a) => a.id === resolved.slug);
   if (!area) notFound();
 
+  const p = getPageContent(locale);
+  const d = await getDictionary(locale);
   const prog = programmeTokenForArea(area.id);
   const categories = projectCategoriesByAreaId[area.id] ?? [];
   const relatedProjects = getPublishedProjects().filter((p) =>
@@ -65,9 +78,9 @@ export default async function ProgrammePage({
       <JsonLd
         data={buildBreadcrumbJsonLd(
           [
-            { label: "Home", url: "/" },
-            { label: "Our Work", url: "/our-work" },
-            { label: area.programmeName ?? area.title, url: `/programmes/${area.id}` },
+            { label: d.common.home, url: localePath("/", locale) },
+            { label: p.ourWork.title, url: localePath("/our-work", locale) },
+            { label: area.programmeName ?? area.title, url: localePath(`/programmes/${area.id}`, locale) },
           ],
           site.url,
         )}
@@ -76,7 +89,7 @@ export default async function ProgrammePage({
         <Container>
           <SectionHeader
             level="h1"
-            eyebrow={area.programmeName ? `${area.title} Programme` : undefined}
+            eyebrow={area.programmeName ? `${area.title} ${p.ourWork.programmeSuffix}` : undefined}
             title={area.programmeName ?? area.title}
             description={area.summary}
             light
@@ -86,23 +99,19 @@ export default async function ProgrammePage({
 
       <section className="py-16 md:py-24">
         <Container>
-          {/* Breadcrumbs */}
-          <nav
-            className="mb-8 flex items-center gap-2 text-sm text-muted-foreground"
-            aria-label="Breadcrumb"
-          >
-            <Link href="/" className="hover:text-primary">
-              Home
-            </Link>
-            <span aria-hidden="true">/</span>
-            <Link href="/our-work" className="hover:text-primary">
-              Our Work
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span className="text-foreground" aria-current="page">
-              {area.programmeName ?? area.title}
-            </span>
-          </nav>
+          <Breadcrumbs
+            className="mb-8"
+            items={[
+              { label: d.common.home, href: localePath("/", locale) },
+              { label: p.ourWork.title, href: localePath("/our-work", locale) },
+              { label: area.programmeName ?? area.title },
+            ]}
+            locale={locale}
+          />
+
+          <p className="mb-8 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {d.common.originalLanguageNotice}
+          </p>
 
           <div className="grid gap-12 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -114,7 +123,7 @@ export default async function ProgrammePage({
                   <AreaIcon id={area.id} className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">About this programme</h2>
+                  <h2 className="text-2xl font-bold">{p.programme.aboutTitle}</h2>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {area.description}
                   </p>
@@ -123,7 +132,7 @@ export default async function ProgrammePage({
 
               <div className="mt-8">
                 <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: prog.safeHex }}>
-                  What we do
+                  {p.programme.whatWeDo}
                 </h3>
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {area.items.map((item) => (
@@ -138,26 +147,25 @@ export default async function ProgrammePage({
 
             <div>
               <Card className="p-6">
-                <h2 className="text-lg font-semibold">Get involved</h2>
+                <h2 className="text-lg font-semibold">{p.programme.getInvolved}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Support this programme through a donation or by volunteering
-                  your time and skills.
+                  {p.ourWork.description}
                 </p>
                 <div className="mt-4 space-y-2">
                   <Button
-                    href={`/donate?campaign=${area.id}`}
+                    href={localePath(`/donate?campaign=${area.id}`, locale)}
                     className="w-full"
                     size="sm"
                   >
-                    Donate to this programme
+                    {p.programme.donateToProgramme}
                   </Button>
                   <Button
-                    href="/get-involved"
+                    href={localePath("/get-involved", locale)}
                     variant="outline"
                     className="w-full"
                     size="sm"
                   >
-                    Volunteer with us
+                    {p.programme.volunteerWithUs}
                   </Button>
                 </div>
               </Card>
@@ -176,7 +184,7 @@ export default async function ProgrammePage({
                     className="mt-4 w-full"
                     size="sm"
                   >
-                    Visit the learning platform
+                    {p.programme.visitPlatform}
                   </Button>
                 </Card>
               )}
@@ -189,12 +197,11 @@ export default async function ProgrammePage({
         <section className="bg-surface py-16 md:py-24">
           <Container>
             <SectionHeader
-              title={`Projects in ${area.title}`}
-              description="See how we put this programme into action."
+              title={p.programme.projectsIn.replace("{programme}", area.title)}
             />
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedProjects.map((project) => (
-                <ProjectCard key={project.slug} project={project} />
+                <ProjectCard key={project.slug} project={project} locale={locale} />
               ))}
             </div>
           </Container>
@@ -205,12 +212,11 @@ export default async function ProgrammePage({
         <section className="py-16 md:py-24">
           <Container>
             <SectionHeader
-              title="Stories from this programme"
-              description="Real experiences from the people and communities we work with."
+              title={p.programme.storiesFrom}
             />
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedStories.map((story) => (
-                <StoryCard key={story.slug} story={story} />
+                <StoryCard key={story.slug} story={story} locale={locale} />
               ))}
             </div>
           </Container>
@@ -221,8 +227,7 @@ export default async function ProgrammePage({
         <section className="py-16 md:py-24">
           <Container>
             <SectionHeader
-              title={`Photos from ${area.title}`}
-              description="Moments from this programme's work in the field."
+              title={p.programme.photosFrom.replace("{programme}", area.title)}
             />
             <div className="mt-12">
               <GalleryGrid images={additionalPhotos} />
@@ -235,16 +240,13 @@ export default async function ProgrammePage({
         <Container>
           <div className="flex flex-col items-center justify-between gap-4 rounded-xl bg-primary p-8 text-white md:flex-row">
             <div>
-              <h2 className="text-xl font-bold">
-                Explore our other programmes
-              </h2>
+              <h2 className="text-xl font-bold">{p.programme.exploreOther}</h2>
               <p className="mt-1 text-white/90">
-                We work across four interconnected programmes, with youth
-                leadership running through all of them.
+                {p.programme.workAcross}
               </p>
             </div>
-            <Button href="/our-work" variant="outline" className="border-white text-white hover:bg-white/10">
-              View all programmes
+            <Button href={localePath("/our-work", locale)} variant="outline" className="border-white text-white hover:bg-white/10">
+              {p.programme.viewAllProgrammes}
             </Button>
           </div>
         </Container>

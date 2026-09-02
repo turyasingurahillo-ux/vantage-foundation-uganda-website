@@ -3,6 +3,8 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Heart, HandHelping, Handshake, Megaphone, Users, Briefcase } from "lucide-react";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
 const pathways = [
   {
@@ -49,28 +51,26 @@ const pathways = [
   },
 ];
 
-export function GetInvolvedSection() {
+export function GetInvolvedSection({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["involved"] }) {
   return (
     <section className="bg-surface py-16 md:py-24 lg:py-32" id="get-involved">
       <Container>
         <SectionHeader
-          eyebrow="Get Involved"
-          title="Join the movement"
-          description="There are many ways to help create one more advantage for a young person, family or community."
+          eyebrow={copy.eyebrow} title={copy.title} description={copy.description}
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pathways.map((path) => (
+          {pathways.map((path, index) => (
             <Card key={path.title} className="flex flex-col p-6">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <path.icon className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3 className="mt-4 text-xl font-semibold">{path.title}</h3>
+              <h3 className="mt-4 text-xl font-semibold">{copy.cards[index]?.title ?? path.title}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                {path.description}
+                {copy.cards[index]?.description ?? path.description}
               </p>
-              <Button href={path.href} variant="ghost" className="mt-4 justify-start px-0">
-                {path.cta}
+              <Button href={localePath(path.href, locale)} variant="ghost" className="mt-4 justify-start px-0">
+                {copy.cards[index]?.cta ?? path.cta}
               </Button>
             </Card>
           ))}

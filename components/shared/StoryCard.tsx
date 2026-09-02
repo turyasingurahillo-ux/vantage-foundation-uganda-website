@@ -5,22 +5,24 @@ import { Badge } from "@/components/ui/Badge";
 import { ImageOrPlaceholder } from "./ImageOrPlaceholder";
 import { formatContentDate } from "@/lib/content-date";
 import { DEFAULT_LANDSCAPE_FOCAL_POINT, estimateReadingTime } from "@/lib/story-article";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 interface StoryCardProps {
   story: Story;
+  locale?: Locale;
 }
 
-export function StoryCard({ story }: StoryCardProps) {
+export function StoryCard({ story, locale = "en" }: StoryCardProps) {
+  const p = getPageContent(locale);
+  const c = p.common;
+  const ui = p.ui.contentTypes;
   const readingTime = story.readingTimeMinutes ?? estimateReadingTime(story.body);
-  const contentType = story.contentType ?? "Story";
+  const contentTypeKey = (story.contentType ?? "story").toLowerCase() as keyof typeof ui;
+  const contentType = ui[contentTypeKey] ?? ui.story;
 
   return (
     <Card className="flex flex-col overflow-hidden">
-      {/*
-        Card thumbnails reuse the story's hero image, so a portrait photograph
-        meets the shallowest crop on the site here. The focal point travels
-        with the story, which is what keeps a subject's head in frame.
-      */}
       <div className="relative aspect-[16/10] overflow-hidden bg-surface-strong">
         <ImageOrPlaceholder
           src={story.heroImage}
@@ -35,7 +37,7 @@ export function StoryCard({ story }: StoryCardProps) {
           {contentType} · {story.category}
         </Badge>
         <h3 className="mt-3 text-lg font-semibold leading-snug">
-          <Link href={`/stories/${story.slug}`} className="hover:text-primary">
+          <Link href={localePath(`/stories/${story.slug}`, locale)} className="hover:text-primary">
             {story.title}
           </Link>
         </h3>
@@ -48,13 +50,13 @@ export function StoryCard({ story }: StoryCardProps) {
         </div>
         <div className="mt-4 flex items-center justify-between">
           <Link
-            href={`/stories/${story.slug}`}
+            href={localePath(`/stories/${story.slug}`, locale)}
             className="inline-flex text-sm font-semibold text-primary hover:underline"
           >
-            Read the {contentType.toLowerCase()}
+            {c.readStory}
           </Link>
           <span className="text-xs text-muted-foreground">
-            {readingTime} min read
+            {c.minRead.replace("{minutes}", String(readingTime))}
           </span>
         </div>
       </div>

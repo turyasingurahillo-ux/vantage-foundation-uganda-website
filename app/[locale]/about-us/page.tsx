@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { site } from "@/content/site";
 import { getPublishedTeam } from "@/content/team";
 import { getTeamMemberPhotoOverride } from "@/lib/media-public";
 import { Container } from "@/components/shared/Container";
@@ -9,18 +8,35 @@ import { Card } from "@/components/ui/Card";
 import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { aboutContent } from "@/lib/i18n/page-content";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "About Us",
-  description: `Learn about ${site.name}'s mission, vision, values and youth-led approach to community development in Uganda.`,
-  path: "/about-us",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  return createPublicMetadata({
+    title: dictionary.about.title,
+    description: dictionary.about.description,
+    path: "/about-us",
+    locale,
+  });
+}
 
 // Lets an admin update a team member's photo via /admin/media without a
 // code deploy — refreshes periodically well within the presigned URL TTL.
 export const revalidate = 3600;
 
-export default async function AboutPage() {
+export default async function AboutPage({ params }: { params: LocaleParams }) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const copy = dictionary.about;
+  const content = aboutContent[locale];
   const teamPreview = getPublishedTeam().slice(0, 4);
   const teamPhotoOverrides = new Map(
     await Promise.all(
@@ -35,8 +51,8 @@ export default async function AboutPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="About Vantage Foundation Uganda"
-            description="Youth-led, community-centred and committed to one more advantage at a time."
+            title={copy.title}
+            description={copy.description}
             light
           />
         </Container>
@@ -47,22 +63,16 @@ export default async function AboutPage() {
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                Vantage Foundation Uganda is a youth-led nonprofit established in December
-                2020. Our story is just like any other for young people: our lives started
-                small and, just like a forest fire, just one match will do the job. We are a
-                work in progress that holds a candle for those younger than us because we can
-                relate — and through this we have become revolutionaries.
+                {content.intro[0]}
               </p>
               <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-                We envision improved livelihoods in communities in Uganda and Africa. Today,
-                our focus is assisting young people in Uganda to achieve their full potential
-                through health, education, humanitarian aid and water, sanitation and hygiene.
+                {content.intro[1]}
               </p>
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
               <ImageOrPlaceholder
                 src="/images/photos/photo-066.webp"
-                alt="Vantage Foundation Uganda community work"
+                alt={content.imageAlt}
                 fill
                 preset="half"
                 containerClassName="h-full w-full"
@@ -72,17 +82,17 @@ export default async function AboutPage() {
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-primary">Mission</h2>
-              <p className="mt-3 text-muted-foreground">{site.mission}</p>
+              <h2 className="text-xl font-semibold text-primary">{copy.mission}</h2>
+              <p className="mt-3 text-muted-foreground">{content.mission}</p>
             </Card>
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-primary">Vision</h2>
-              <p className="mt-3 text-muted-foreground">{site.vision}</p>
+              <h2 className="text-xl font-semibold text-primary">{copy.vision}</h2>
+              <p className="mt-3 text-muted-foreground">{content.vision}</p>
             </Card>
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-primary">Values</h2>
+              <h2 className="text-xl font-semibold text-primary">{copy.values}</h2>
               <ul className="mt-3 space-y-2 text-muted-foreground">
-                {site.values.map((value) => (
+                {content.values.map((value) => (
                   <li key={value} className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-primary" />
                     {value}
@@ -97,26 +107,20 @@ export default async function AboutPage() {
       <section className="bg-surface py-16 md:py-24">
         <Container>
           <SectionHeader
-            title="Who we serve"
-            description="We focus on the people and places often left out of mainstream development."
+            title={copy.whoWeServe}
+            description={copy.whoWeServeDescription}
           />
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Target beneficiaries</h3>
+              <h3 className="text-lg font-semibold">{copy.targetBeneficiaries}</h3>
               <ul className="mt-4 space-y-2 text-muted-foreground">
-                <li>Youth in rural areas</li>
-                <li>Women and girls</li>
-                <li>Children and orphans</li>
-                <li>People in remote districts and urban informal settlements (slums)</li>
+                {content.beneficiaries.map((beneficiary) => <li key={beneficiary}>{beneficiary}</li>)}
               </ul>
             </Card>
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Our approach</h3>
+              <h3 className="text-lg font-semibold">{copy.approach}</h3>
               <p className="mt-4 text-muted-foreground">
-                We identify districts and communities that are often overlooked by larger
-                international NGOs and magnify the reach of existing social safety nets. We
-                recognise that development is sequential: without health and nutrition,
-                education cannot be absorbed; without education, poverty cannot be escaped.
+                {content.approach}
               </p>
             </Card>
           </div>
@@ -125,7 +129,7 @@ export default async function AboutPage() {
 
       <section className="py-16 md:py-24">
         <Container>
-          <SectionHeader title="Meet the team" description="Youth-led and volunteer-driven." />
+          <SectionHeader title={copy.meetTeam} description={copy.teamDescription} />
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {teamPreview.map((member) => (
               <TeamCard
@@ -136,8 +140,8 @@ export default async function AboutPage() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button href="/about-us/team" variant="outline">
-              Meet the full team
+            <Button href={localePath("/about-us/team", locale)} variant="outline">
+              {copy.fullTeam}
             </Button>
           </div>
         </Container>
@@ -146,19 +150,15 @@ export default async function AboutPage() {
       <section className="bg-surface py-16 md:py-24">
         <Container>
           <SectionHeader
-            title="Governance and accountability"
-            description="We are working towards the highest standards of transparency and safeguarding."
+            title={copy.governanceTitle}
+            description={copy.governanceDescription}
           />
           <div className="mt-8 max-w-3xl text-muted-foreground">
             <p>
-              Vantage Foundation Uganda operates on a 100% volunteer basis with zero salary
-              overhead. As we grow, we are formalising governance structures, safeguarding
-              policies and financial reporting so that every donor, partner and community can
-              trust how resources are used.
+              {content.governance[0]}
             </p>
             <p className="mt-4">
-              Annual reports, financial statements and project reports will be published on our
-              Reports and Accountability page.
+              {content.governance[1]}
             </p>
           </div>
         </Container>

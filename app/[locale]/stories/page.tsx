@@ -9,21 +9,41 @@ import { Badge } from "@/components/ui/Badge";
 import { createPublicMetadata } from "@/lib/metadata";
 import { formatContentDate } from "@/lib/content-date";
 import { DEFAULT_LANDSCAPE_FOCAL_POINT } from "@/lib/story-article";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Stories & Insights",
-  description:
-    "Read community stories, programme updates, research and reflections from Vantage Foundation Uganda.",
-  path: "/stories",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = getPageContent(locale).stories;
+  return createPublicMetadata({
+    title: content.title,
+    description: content.description,
+    path: "/stories",
+    locale,
+    contentLocalized: true,
+  });
+}
 
 export const revalidate = 3600;
 
-export default async function StoriesPage() {
+export default async function StoriesPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale);
+  const c = p.common;
+  const s = p.stories;
+  const ui = p.ui.contentTypes;
+
   const stories = await getPublishedStoriesWithDb();
-  // Featured: the first story (or a specific one if we add a `featured` flag later)
   const [featured, ...rest] = stories;
-  // Derive categories from the published stories, sorted alphabetically.
   const categories = [...new Set(stories.map((s) => s.category))].sort();
 
   return (
@@ -32,8 +52,8 @@ export default async function StoriesPage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Stories & Insights"
-            description="Community voices, programme updates, research and reflections from our work."
+            title={s.title}
+            description={s.description}
             light
           />
         </Container>
@@ -56,17 +76,26 @@ export default async function StoriesPage() {
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-                  Featured {(featured.contentType ?? "Story").toLowerCase()}
-                </p>
-                <div className="mt-3">
-                  <Badge variant="accent">
-                    {featured.contentType ?? "Story"} · {featured.category}
-                  </Badge>
-                </div>
+                {(() => {
+                  const featuredContentType =
+                    ui[(featured.contentType ?? "story").toLowerCase() as keyof typeof ui] ??
+                    ui.story;
+                  return (
+                    <>
+                      <p className="text-sm font-semibold uppercase tracking-wider text-primary">
+                        {s.featured} {featuredContentType.toLowerCase()}
+                      </p>
+                      <div className="mt-3">
+                        <Badge variant="accent">
+                          {featuredContentType} · {featured.category}
+                        </Badge>
+                      </div>
+                    </>
+                  );
+                })()}
                 <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
                   <Link
-                    href={`/stories/${featured.slug}`}
+                    href={localePath(`/stories/${featured.slug}`, locale)}
                     className="hover:text-primary"
                   >
                     {featured.title}
@@ -79,10 +108,10 @@ export default async function StoriesPage() {
                   <span>{formatContentDate(featured.date)}</span>
                 </div>
                 <Link
-                  href={`/stories/${featured.slug}`}
+                  href={localePath(`/stories/${featured.slug}`, locale)}
                   className="mt-6 inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline"
                 >
-                  Read the {(featured.contentType ?? "Story").toLowerCase()} &rarr;
+                  {c.readStory} &rarr;
                 </Link>
               </div>
             </div>
@@ -95,10 +124,10 @@ export default async function StoriesPage() {
         <Container>
           <SectionHeader
             align="left"
-            title="All stories & insights"
-            description={`${stories.length} ${stories.length === 1 ? "story or insight" : "stories and insights"} from our community`}
+            title={s.title}
+            description={s.description}
           />
-          <StoryList stories={rest} categories={categories} />
+          <StoryList stories={rest} categories={categories} locale={locale} />
         </Container>
       </section>
     </>

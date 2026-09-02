@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
+import { suggestedAmounts } from "@/content/donate";
 import { site } from "@/content/site";
-import { whyDonate, donationCampaigns } from "@/content/donate";
-import { faq } from "@/content/faq";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { DonationForm } from "@/components/shared/DonationForm";
@@ -10,20 +9,38 @@ import { Button } from "@/components/ui/Button";
 import { Shield, Heart, ArrowRight, CheckCircle2 } from "lucide-react";
 import { CopyBankDetails } from "@/components/shared/CopyBankDetails";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { engagementContent } from "@/lib/i18n/content/engagement";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Donate",
-  description: "Support Vantage Foundation Uganda by transferring to its official bank account and recording your donation for verification.",
-  path: "/donate",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const content = engagementContent[locale].donate;
+  return createPublicMetadata({
+    title: content.title,
+    description: content.description,
+    path: "/donate",
+    locale,
+    contentLocalized: true,
+  });
+}
 
-export default function DonatePage() {
-  // Donation-related FAQ items
-  const donationFaq = faq.filter(
-    (item) =>
-      item.question.toLowerCase().includes("donat") ||
-      item.question.toLowerCase().includes("tax") ||
-      item.question.toLowerCase().includes("fund"),
+export default async function DonatePage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
+  const content = engagementContent[locale].donate;
+
+  const donationFaq = engagementContent[locale].faq.items.filter(
+    (item) => item.donationRelated,
   );
 
   return (
@@ -32,8 +49,8 @@ export default function DonatePage() {
         <Container>
           <SectionHeader
             level="h1"
-            title="Support our work"
-            description="Your donation becomes one more advantage for a young person, family or community."
+            title={content.heroTitle}
+            description={content.heroDescription}
             light
           />
         </Container>
@@ -44,9 +61,9 @@ export default function DonatePage() {
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="text-2xl font-bold">Why donate?</h2>
+              <h2 className="text-2xl font-bold">{content.whyTitle}</h2>
               <ul className="mt-6 space-y-4">
-                {whyDonate.map((item) => (
+                {content.whyReasons.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <Heart className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                     <span className="text-muted-foreground">{item}</span>
@@ -56,12 +73,12 @@ export default function DonatePage() {
 
               {/* Donation priorities */}
               <div className="mt-10">
-                <h3 className="text-lg font-semibold">Where your donation goes</h3>
+                <h3 className="text-lg font-semibold">{content.allocationTitle}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Choose a specific project or let us direct it to where it is needed most.
+                  {content.allocationDescription}
                 </p>
                 <ul className="mt-4 space-y-2">
-                  {donationCampaigns.map((campaign) => (
+                  {content.campaigns.map((campaign) => (
                     <li
                       key={campaign.id}
                       className="flex items-center gap-2 text-sm text-foreground"
@@ -75,52 +92,55 @@ export default function DonatePage() {
 
               {/* Bank transfer details */}
               <div className="mt-10 rounded-xl bg-surface p-6">
-                <h3 className="text-lg font-semibold">Bank transfer</h3>
+                <h3 className="text-lg font-semibold">{content.bank.heading}</h3>
                 <dl className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Bank</dt>
+                    <dt className="text-muted-foreground">{content.bank.bank}</dt>
                     <dd className="font-medium">{site.bankDetails.bankName}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Account name</dt>
+                    <dt className="text-muted-foreground">{content.bank.accountName}</dt>
                     <dd className="font-medium">{site.bankDetails.accountName}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Account number</dt>
+                    <dt className="text-muted-foreground">{content.bank.accountNumber}</dt>
                     <dd className="font-medium">{site.bankDetails.accountNumber}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">SWIFT/BIC</dt>
+                    <dt className="text-muted-foreground">{content.bank.swift}</dt>
                     <dd className="font-medium">{site.bankDetails.swiftCode}</dd>
                   </div>
                 </dl>
                 <div className="mt-4">
-                  <CopyBankDetails />
+                  <CopyBankDetails copy={content.bank} />
                 </div>
               </div>
 
               <div className="mt-8 flex items-start gap-3 text-sm text-muted-foreground">
                 <Shield className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                <p>
-                  We are 100% volunteer-run and committed to financial transparency. Your
-                  details will only be used to process your donation and send a receipt.
-                </p>
+                <p>{content.transparencyNote}</p>
               </div>
             </div>
 
             {/* Donation form */}
             <Card className="p-6 md:p-8">
-              <h2 className="text-2xl font-bold">Make a donation</h2>
+              <h2 className="text-2xl font-bold">{content.formTitle}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Fill in your details, make the transfer, and include the transaction
-                reference if you have one.
+                {content.formDescription}
               </p>
               <div className="mt-4 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
-                All donations are recorded as <strong>pending</strong> until a Vantage
-                administrator verifies the transfer against our official bank statement.
+                {content.pendingNoticeLead}
+                <strong>{content.pendingNoticeStrong}</strong>
+                {content.pendingNoticeTail}
               </div>
               <div className="mt-6">
-                <DonationForm />
+                <DonationForm
+                  form={content.form}
+                  campaigns={content.campaigns}
+                  suggestedAmounts={suggestedAmounts}
+                  privacyLabel={dictionary.common.privacy}
+                  locale={locale}
+                />
               </div>
             </Card>
           </div>
@@ -131,42 +151,22 @@ export default function DonatePage() {
       <section className="bg-surface py-16 md:py-24">
         <Container>
           <SectionHeader
-            eyebrow="How it works"
-            title="Three simple steps"
-            description="From transfer to impact, here is what happens when you donate."
+            eyebrow={content.stepsEyebrow}
+            title={content.stepsTitle}
+            description={content.stepsDescription}
           />
           <div className="mt-12 grid gap-8 md:grid-cols-3">
-            <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                1
+            {content.steps.map((step) => (
+              <div key={step.step}>
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
+                  {step.step}
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
-              <h3 className="mt-4 text-lg font-semibold">Transfer</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Make a bank transfer to our official account using the details above.
-                Include a reference if you have one.
-              </p>
-            </div>
-            <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                2
-              </div>
-              <h3 className="mt-4 text-lg font-semibold">Record</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Fill in the donation form so we can match your transfer and send you a
-                confirmation. Your details stay private.
-              </p>
-            </div>
-            <div>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
-                3
-              </div>
-              <h3 className="mt-4 text-lg font-semibold">Verify</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                A Vantage administrator verifies your transfer against our bank statement.
-                You receive a confirmation and, where possible, an update on how your gift
-                was used.
-              </p>
-            </div>
+            ))}
           </div>
         </Container>
       </section>
@@ -176,28 +176,22 @@ export default function DonatePage() {
         <Container>
           <div className="mx-auto max-w-3xl text-center">
             <SectionHeader
-              eyebrow="Transparency"
-              title="Where every shilling goes"
-              description="As a 100% volunteer-run organisation, donations go directly to programmes — not salaries or overhead."
+              eyebrow={content.transparencyEyebrow}
+              title={content.transparencyTitle}
+              description={content.transparencyDescription}
             />
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <Card className="p-6 text-center">
-              <p className="text-3xl font-bold text-primary">100%</p>
-              <p className="mt-2 text-sm text-muted-foreground">Volunteer-run — no paid staff</p>
-            </Card>
-            <Card className="p-6 text-center">
-              <p className="text-3xl font-bold text-primary">Direct</p>
-              <p className="mt-2 text-sm text-muted-foreground">Funds go to programmes, not intermediaries</p>
-            </Card>
-            <Card className="p-6 text-center">
-              <p className="text-3xl font-bold text-primary">Verified</p>
-              <p className="mt-2 text-sm text-muted-foreground">Every donation checked against bank statements</p>
-            </Card>
+            {content.transparencyStats.map((stat) => (
+              <Card key={stat.label} className="p-6 text-center">
+                <p className="text-3xl font-bold text-primary">{stat.value}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+              </Card>
+            ))}
           </div>
           <div className="mt-8 text-center">
-            <Button href="/reports-and-accountability" variant="outline">
-              See our accountability commitments
+            <Button href={localePath("/reports-and-accountability", locale)} variant="outline">
+              {content.reportsCta}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
@@ -210,8 +204,8 @@ export default function DonatePage() {
           <Container className="max-w-3xl">
             <SectionHeader
               align="left"
-              title="Donation FAQ"
-              description="Common questions about giving to Vantage Foundation Uganda."
+              title={content.faqTitle}
+              description={content.faqDescription}
             />
             <div className="mt-8 space-y-4">
               {donationFaq.map((item, index) => {
@@ -219,7 +213,7 @@ export default function DonatePage() {
                 const contentId = `donate-faq-content-${index}`;
                 return (
                   <details
-                    key={index}
+                    key={item.id}
                     className="group rounded-xl border border-border bg-white p-6 open:shadow-sm"
                   >
                     <summary
@@ -251,14 +245,13 @@ export default function DonatePage() {
         <Container>
           <Card className="flex flex-col items-center gap-4 p-8 text-center md:flex-row md:justify-between md:text-left">
             <div>
-              <h2 className="text-xl font-bold">Questions about donating?</h2>
+              <h2 className="text-xl font-bold">{content.contactTitle}</h2>
               <p className="mt-1 text-muted-foreground">
-                We are happy to discuss specific projects, tax-deductibility or partnership
-                opportunities.
+                {content.contactDescription}
               </p>
             </div>
-            <Button href="/contact?subject=donation" className="shrink-0">
-              Contact us
+            <Button href={localePath("/contact", locale)} className="shrink-0">
+              {content.contactCta}
             </Button>
           </Card>
         </Container>

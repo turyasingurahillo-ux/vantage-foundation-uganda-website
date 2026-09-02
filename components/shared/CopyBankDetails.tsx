@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { site } from "@/content/site";
+import type { BankDetailsCopy } from "@/lib/i18n/content/engagement";
 
-export function CopyBankDetails() {
+export function CopyBankDetails({ copy }: { copy: BankDetailsCopy }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const text = `Bank: ${site.bankDetails.bankName}\nAccount name: ${site.bankDetails.accountName}\nAccount number: ${site.bankDetails.accountNumber}\nSWIFT: ${site.bankDetails.swiftCode}`;
+    const { bankDetails } = site;
+    const text = `${copy.bank}: ${bankDetails.bankName}\n${copy.accountName}: ${bankDetails.accountName}\n${copy.accountNumber}: ${bankDetails.accountNumber}\n${copy.swift}: ${bankDetails.swiftCode}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -16,7 +18,7 @@ export function CopyBankDetails() {
 
   return (
     <Button variant="outline" size="sm" onClick={handleCopy}>
-      {copied ? "Copied" : "Copy bank details"}
+      {copied ? copy.copied : copy.copy}
     </Button>
   );
 }

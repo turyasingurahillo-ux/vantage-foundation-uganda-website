@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { trackArticleCta } from "./ArticleAnalytics";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 /**
  * ArticleCtaBar — meaningful-action calls to action shown at the end of an
@@ -14,6 +17,7 @@ import { trackArticleCta } from "./ArticleAnalytics";
  */
 interface ArticleCtaBarProps {
   slug: string;
+  locale?: Locale;
 }
 
 function CtaLink({
@@ -28,33 +32,36 @@ function CtaLink({
   position: string;
 }) {
   return (
-    <a
+    <Link
       href={href}
       onClick={() => trackArticleCta(ctaType, href, position)}
       className="inline-flex items-center rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-foreground hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       {label}
-    </a>
+    </Link>
   );
 }
 
-export function ArticleCtaBar({ slug }: ArticleCtaBarProps) {
+export function ArticleCtaBar({ slug, locale = "en" }: ArticleCtaBarProps) {
   // slug is included in the prop for future per-article CTA customization;
   // the tracker already knows the article via window.__vantageArticle.
   void slug;
+  const c = getPageContent(locale).common;
+  const p = getPageContent(locale).story;
+
   return (
     <div className="mt-12 rounded-xl border border-border bg-surface p-6">
-      <h2 className="text-lg font-semibold">Take action</h2>
+      <h2 className="text-lg font-semibold">{c.takeAction}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Inspired by this story? Here are ways you can help Vantage Foundation Uganda create more impact.
+        {p.ctaDescription}
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <CtaLink href="/donate" ctaType="donate" label="Donate" position="cta-bar" />
-        <CtaLink href="/get-involved#volunteer" ctaType="volunteer" label="Volunteer" position="cta-bar" />
-        <CtaLink href="/get-involved#partner" ctaType="partner" label="Partner with us" position="cta-bar" />
-        <CtaLink href="/contact" ctaType="contact" label="Contact Vantage" position="cta-bar" />
-        <CtaLink href="/our-work" ctaType="programmes" label="Visit programmes" position="cta-bar" />
-        <CtaLink href="/about-us" ctaType="about" label="About us" position="cta-bar" />
+        <CtaLink href={localePath("/donate", locale)} ctaType="donate" label={c.donate} position="cta-bar" />
+        <CtaLink href={localePath("/get-involved#volunteer", locale)} ctaType="volunteer" label={c.volunteer} position="cta-bar" />
+        <CtaLink href={localePath("/get-involved#partner", locale)} ctaType="partner" label={c.partnerWithUs} position="cta-bar" />
+        <CtaLink href={localePath("/contact", locale)} ctaType="contact" label={c.contactVantage} position="cta-bar" />
+        <CtaLink href={localePath("/our-work", locale)} ctaType="programmes" label={c.visitProgrammes} position="cta-bar" />
+        <CtaLink href={localePath("/about-us", locale)} ctaType="about" label={c.aboutUs} position="cta-bar" />
       </div>
     </div>
   );

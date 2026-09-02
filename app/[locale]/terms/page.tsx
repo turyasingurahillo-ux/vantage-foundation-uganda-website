@@ -1,18 +1,37 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ContactChannelListItem } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Terms of Use",
-  description:
-    "Terms and conditions for using the Vantage Foundation Uganda website and making donations.",
-  path: "/terms",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  return createPublicMetadata({
+    title: "Terms of Use",
+    description:
+      "Terms and conditions for using the Vantage Foundation Uganda website and making donations.",
+    path: "/terms",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function TermsPage() {
+export default async function TermsPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -28,7 +47,10 @@ export default function TermsPage() {
 
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
-          <div className="space-y-8 leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+          <div className="mt-8 space-y-8 leading-relaxed text-muted-foreground">
             <div>
               <h2 className="mb-3 text-xl font-bold text-foreground">
                 Acceptance of terms
@@ -122,12 +144,12 @@ export default function TermsPage() {
                 <li>
                   Use images of children or vulnerable individuals in any way
                   that could cause harm or distress (see our{" "}
-                  <a
-                    href="/safeguarding"
+                  <Link
+                    href={localePath("/safeguarding", locale)}
                     className="text-primary underline"
                   >
                     Safeguarding Policy
-                  </a>
+                  </Link>
                   ).
                 </li>
               </ul>
@@ -213,7 +235,7 @@ export default function TermsPage() {
                 contact us:
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <ContactChannelListItem />
+                <ContactChannelListItem locale={locale} />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a

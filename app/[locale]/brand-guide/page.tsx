@@ -13,6 +13,9 @@ import {
   contrastRatio,
   type ProgrammeToken,
 } from "@/lib/design-tokens";
+import { createPublicMetadata } from "@/lib/metadata";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
 import {
   HeartPulse,
   GraduationCap,
@@ -27,12 +30,24 @@ import {
   X,
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Brand Guide",
-  description:
-    "Visual identity system for Vantage Foundation Uganda — logos, colours, typography, components, and usage rules.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  const p = getPageContent(locale).brandGuide;
+  return {
+    ...createPublicMetadata({
+      title: p.title,
+      description: p.description,
+      path: "/brand-guide",
+      locale,
+      contentLocalized: false,
+    }),
+    robots: { index: false, follow: false },
+  };
+}
 
 const sectionWrap = "py-16 md:py-24";
 const subsectionTitle = "text-2xl font-bold tracking-tight";
@@ -104,20 +119,25 @@ function ProgrammeChip({ p }: { p: ProgrammeToken }) {
   );
 }
 
-const navSections = [
-  { id: "foundations", label: "Foundations" },
-  { id: "logo", label: "Logo" },
-  { id: "colour", label: "Colour" },
-  { id: "typography", label: "Typography" },
-  { id: "components", label: "Components" },
-  { id: "programme", label: "Programme Colours" },
-  { id: "icons", label: "Iconography" },
-  { id: "photography", label: "Photography" },
-  { id: "accessibility", label: "Accessibility" },
-  { id: "downloads", label: "Downloads" },
-];
-
-export default function BrandGuidePage() {
+export default async function BrandGuidePage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const c = getPageContent(locale).brandGuide;
+  const navSections = [
+    { id: "foundations", label: c.nav.foundations },
+    { id: "logo", label: c.nav.logo },
+    { id: "colour", label: c.nav.colour },
+    { id: "typography", label: c.nav.typography },
+    { id: "components", label: c.nav.components },
+    { id: "programme", label: c.nav.programme },
+    { id: "icons", label: c.nav.icons },
+    { id: "photography", label: c.nav.photography },
+    { id: "accessibility", label: c.nav.accessibility },
+    { id: "downloads", label: c.nav.downloads },
+  ];
   const white = "#ffffff";
   const navyOnWhite = ratioLabel(contrastRatio(semanticColors.foreground, white));
   const tealOnWhite = ratioLabel(contrastRatio(semanticColors.primary, white));
@@ -133,15 +153,13 @@ export default function BrandGuidePage() {
       <section className="bg-navy py-20 text-white md:py-28">
         <Container>
           <p className={subLabel} style={{ color: brandColors.brightAqua }}>
-            Visual Identity System
+            {c.eyebrow}
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Vantage Foundation Uganda Brand Guide
+            {c.heroTitle}
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/90">
-            The complete visual identity system — logos, colours, typography,
-            components, and usage rules. Use this guide to keep every
-            communication recognisable, credible, and consistent.
+            {c.heroDescription}
           </p>
           <p className="mt-6 text-sm text-white/70">
             Change the World One Advantage at a Time
@@ -152,7 +170,7 @@ export default function BrandGuidePage() {
       {/* Sticky in-page nav */}
       <nav
         className="sticky top-16 z-30 border-b border-border bg-white/95 backdrop-blur"
-        aria-label="Brand guide sections"
+        aria-label={c.navAriaLabel}
       >
         <Container>
           <ul className="flex gap-4 overflow-x-auto py-3 text-sm">
@@ -173,11 +191,11 @@ export default function BrandGuidePage() {
       {/* Foundations */}
       <section id="foundations" className={sectionWrap}>
         <Container>
-          <p className={subLabel}>01 — Foundations</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Brand foundations</h2>
+          <p className={subLabel}>01 — {c.sections.foundations.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.foundations.title}</h2>
           <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Mission</h3>
+              <h3 className="text-lg font-semibold">{c.sections.foundations.mission}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 To change the world one advantage at a time by developing
                 sustainable, community-driven solutions in health, education,
@@ -186,13 +204,13 @@ export default function BrandGuidePage() {
               </p>
             </Card>
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Vision</h3>
+              <h3 className="text-lg font-semibold">{c.sections.foundations.vision}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 Improved livelihoods in Ugandan and East African communities.
               </p>
             </Card>
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Personality</h3>
+              <h3 className="text-lg font-semibold">{c.sections.foundations.personality}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 Compassionate, professional, trustworthy, youthful, progressive,
                 evidence-based, transparent, hopeful, community-led, resilient,
@@ -201,7 +219,7 @@ export default function BrandGuidePage() {
             </Card>
           </div>
           <div className="mt-6">
-            <h3 className="text-base font-semibold">Core values</h3>
+            <h3 className="text-base font-semibold">{c.sections.foundations.coreValues}</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
                 "Growth",
@@ -227,39 +245,36 @@ export default function BrandGuidePage() {
       {/* Logo */}
       <section id="logo" className={`${sectionWrap} bg-surface`}>
         <Container>
-          <p className={subLabel}>02 — Logo</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Logo system</h2>
+          <p className={subLabel}>02 — {c.sections.logo.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.logo.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            The Vantage Foundation Uganda logo has three lockup variants. Use the
-            horizontal lockup for headers and signatures, the primary stacked
-            lockup for formal documents and covers, and the symbol-only mark for
-            favicons, social profiles, and small applications.
+            {c.sections.logo.lede}
           </p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
             <Card className="flex flex-col items-center justify-center p-8">
               <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Primary / stacked
+                {c.sections.logo.primary}
               </p>
-              <Logo variant="primary" height={120} alt="Vantage Foundation Uganda primary logo" />
+              <Logo variant="primary" height={120} alt={c.sections.logo.primaryAlt} />
             </Card>
             <Card className="flex flex-col items-center justify-center p-8">
               <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Horizontal
+                {c.sections.logo.horizontal}
               </p>
-              <Logo variant="horizontal" height={64} alt="Vantage Foundation Uganda horizontal logo" />
+              <Logo variant="horizontal" height={64} alt={c.sections.logo.horizontalAlt} />
             </Card>
             <Card className="flex flex-col items-center justify-center p-8">
               <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Symbol only
+                {c.sections.logo.symbol}
               </p>
-              <Logo variant="symbol" height={96} alt="Vantage Foundation Uganda symbol" />
+              <Logo variant="symbol" height={96} alt={c.sections.logo.symbolAlt} />
             </Card>
           </div>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Clear space</h3>
+              <h3 className="text-lg font-semibold">{c.sections.logo.clearSpace}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 Maintain clear space around the logo equal to the height of the
                 &ldquo;V&rdquo; in the symbol on all sides. Never let text,
@@ -272,18 +287,18 @@ export default function BrandGuidePage() {
               </div>
             </Card>
             <Card className="p-6">
-              <h3 className="text-lg font-semibold">Minimum sizes</h3>
+              <h3 className="text-lg font-semibold">{c.sections.logo.minSizes}</h3>
               <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <strong className="text-foreground">Digital:</strong> horizontal
+                  <strong className="text-foreground">{c.sections.logo.digital}:</strong> horizontal
                   lockup minimum height 32px; symbol minimum 24px.
                 </li>
                 <li>
-                  <strong className="text-foreground">Print:</strong> horizontal
+                  <strong className="text-foreground">{c.sections.logo.print}:</strong> horizontal
                   lockup minimum width 25mm; primary stacked minimum width 30mm.
                 </li>
                 <li>
-                  <strong className="text-foreground">Favicon:</strong> use the
+                  <strong className="text-foreground">{c.sections.logo.favicon}:</strong> use the
                   symbol only, never the full lockup.
                 </li>
               </ul>
@@ -291,7 +306,7 @@ export default function BrandGuidePage() {
           </div>
 
           <div className="mt-10">
-            <h3 className="text-lg font-semibold">Logo misuse — never do this</h3>
+            <h3 className="text-lg font-semibold">{c.sections.logo.misuse}</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 "Stretch or compress",
@@ -328,15 +343,13 @@ export default function BrandGuidePage() {
       {/* Colour */}
       <section id="colour" className={sectionWrap}>
         <Container>
-          <p className={subLabel}>03 — Colour</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Colour system</h2>
+          <p className={subLabel}>03 — {c.sections.colour.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.colour.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Exactly three dominant colours, roughly a third each: teal, white,
-            and black/dark charcoal for text and dark sections. Target ratio:
-            ~33% white/neutral, ~33% teal, ~33% black/charcoal.
+            {c.sections.colour.lede}
           </p>
 
-          <h3 className="mt-10 text-lg font-semibold">Primary palette</h3>
+          <h3 className="mt-10 text-lg font-semibold">{c.sections.colour.primaryPalette}</h3>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Teal Primary only reaches {deepTealOnWhite} on white — short of
             WCAG AA&rsquo;s 4.5:1 for normal text — so it&rsquo;s reserved for large
@@ -353,7 +366,7 @@ export default function BrandGuidePage() {
             <Swatch name="White" hex={brandColors.white} token="--background" on="#050708" />
           </div>
 
-          <h3 className="mt-10 text-lg font-semibold">Accessible pairings</h3>
+          <h3 className="mt-10 text-lg font-semibold">{c.sections.colour.accessiblePairings}</h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Swatch name="White on Teal Dark" hex={brandColors.oceanBlue} token="text on primary" on="#ffffff" ratio={whiteOnTeal} />
             <Swatch name="White on Navy" hex={brandColors.darkNavy} token="text on navy" on="#ffffff" ratio={whiteOnNavy} />
@@ -362,7 +375,7 @@ export default function BrandGuidePage() {
 
           <div className="mt-6 rounded-lg border border-border bg-surface p-4">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Warning:</strong> Teal
+              <strong className="text-foreground">{c.sections.colour.warning}</strong> Teal
               Primary ({brandColors.deepTeal.toUpperCase()}) reaches only{" "}
               {deepTealOnWhite} as text on white — below WCAG AA&rsquo;s 4.5:1 for
               normal text. Use it for large text/surfaces only (24px+, 3:1
@@ -378,12 +391,10 @@ export default function BrandGuidePage() {
       {/* Typography */}
       <section id="typography" className={`${sectionWrap} bg-surface`}>
         <Container>
-          <p className={subLabel}>04 — Typography</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Typography</h2>
+          <p className={subLabel}>04 — {c.sections.typography.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.typography.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Inter is the primary typeface, loaded via next/font/google with a
-            robust system-font fallback. Avoid excessive uppercase — reserve it
-            for short labels and eyebrows.
+            {c.sections.typography.lede}
           </p>
 
           <div className="mt-8 space-y-6">
@@ -446,10 +457,10 @@ export default function BrandGuidePage() {
       {/* Components */}
       <section id="components" className={sectionWrap}>
         <Container>
-          <p className={subLabel}>05 — Components</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>UI components</h2>
+          <p className={subLabel}>05 — {c.sections.components.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.components.title}</h2>
 
-          <h3 className="mt-8 text-lg font-semibold">Buttons</h3>
+          <h3 className="mt-8 text-lg font-semibold">{c.sections.components.buttons}</h3>
           <div className="mt-4 flex flex-wrap gap-4">
             <Button>Primary</Button>
             <Button variant="secondary">Secondary</Button>
@@ -465,7 +476,7 @@ export default function BrandGuidePage() {
           </div>
           <div className="mt-4 rounded-lg bg-navy p-6">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/70">
-              On dark background
+              {c.sections.components.onDark}
             </p>
             <div className="flex flex-wrap gap-3">
               <Button>Primary</Button>
@@ -473,7 +484,7 @@ export default function BrandGuidePage() {
             </div>
           </div>
 
-          <h3 className="mt-10 text-lg font-semibold">Badges</h3>
+          <h3 className="mt-10 text-lg font-semibold">{c.sections.components.badges}</h3>
           <div className="mt-4 flex flex-wrap gap-3">
             <Badge>Default</Badge>
             <Badge variant="outline">Outline</Badge>
@@ -483,7 +494,7 @@ export default function BrandGuidePage() {
             <Badge variant="destructive">Destructive</Badge>
           </div>
 
-          <h3 className="mt-10 text-lg font-semibold">Cards</h3>
+          <h3 className="mt-10 text-lg font-semibold">{c.sections.components.cards}</h3>
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="p-6">
               <h4 className="text-lg font-semibold">Project card</h4>
@@ -520,12 +531,10 @@ export default function BrandGuidePage() {
       {/* Programme colours */}
       <section id="programme" className={`${sectionWrap} bg-surface`}>
         <Container>
-          <p className={subLabel}>06 — Programme colours</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Programme accent colours</h2>
+          <p className={subLabel}>06 — {c.sections.programme.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.programme.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Each programme area has a recognisable accent colour, always paired
-            with an icon and text label. Colour is never the sole means of
-            conveying category (WCAG 2.2 §1.4.1).
+            {c.sections.programme.lede}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {Object.values(programmeColours).map((p) => (
@@ -538,12 +547,10 @@ export default function BrandGuidePage() {
       {/* Iconography */}
       <section id="icons" className={sectionWrap}>
         <Container>
-          <p className={subLabel}>07 — Iconography</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Iconography</h2>
+          <p className={subLabel}>07 — {c.sections.iconography.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.iconography.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Icons are outlined, rounded, and consistent in stroke weight (Lucide).
-            They support programme categorisation and wayfinding. Use at
-            1.25rem default, 1.5rem for feature contexts.
+            {c.sections.iconography.lede}
           </p>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
             {[
@@ -571,13 +578,10 @@ export default function BrandGuidePage() {
       {/* Photography */}
       <section id="photography" className={`${sectionWrap} bg-surface`}>
         <Container>
-          <p className={subLabel}>08 — Photography</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Photography direction</h2>
+          <p className={subLabel}>08 — {c.sections.photography.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.photography.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Authentic Vantage Foundation photography is the primary visual asset.
-            Prioritise real communities, volunteers in action, field
-            implementation, and visible results. Avoid pity-based imagery and
-            dehumanising close-ups.
+            {c.sections.photography.lede}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <figure>
@@ -624,7 +628,7 @@ export default function BrandGuidePage() {
             </figure>
           </div>
           <div className="mt-6 rounded-lg border border-border bg-white p-4">
-            <h3 className="text-sm font-semibold">Crop presets</h3>
+            <h3 className="text-sm font-semibold">{c.sections.photography.cropPresets}</h3>
             <ul className="mt-2 text-xs text-muted-foreground">
               <li>Hero landscape 16:9 · Feature 3:2 · Card 4:3 · Square 1:1 · Portrait 4:5</li>
               <li>Social portrait 9:16 · Social square 1:1 · Social landscape 1.91:1</li>
@@ -636,11 +640,10 @@ export default function BrandGuidePage() {
       {/* Accessibility */}
       <section id="accessibility" className={sectionWrap}>
         <Container>
-          <p className={subLabel}>09 — Accessibility</p>
-          <h2 className={`mt-2 ${subsectionTitle}`}>Accessibility</h2>
+          <p className={subLabel}>09 — {c.sections.accessibility.eyebrow}</p>
+          <h2 className={`mt-2 ${subsectionTitle}`}>{c.sections.accessibility.title}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            The brand system targets WCAG 2.2 AA. Colour contrast, keyboard
-            focus, semantic structure, and reduced-motion support are built in.
+            {c.sections.accessibility.lede}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {[
@@ -669,13 +672,11 @@ export default function BrandGuidePage() {
       <section id="downloads" className={`${sectionWrap} bg-navy text-white`}>
         <Container>
           <p className={subLabel} style={{ color: brandColors.brightAqua }}>
-            10 — Downloads
+            10 — {c.sections.downloads.eyebrow}
           </p>
-          <h2 className={`mt-2 ${subsectionTitle} text-white`}>Approved assets</h2>
+          <h2 className={`mt-2 ${subsectionTitle} text-white`}>{c.sections.downloads.title}</h2>
           <p className="mt-3 max-w-2xl text-white/80">
-            All logo files are true vector SVG (under 15 KB each, scalable to any size).
-            Files live in <code className="font-mono text-white">public/brand/logos/</code>.
-            Do not redistribute proprietary fonts.
+            {c.sections.downloads.lede}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -699,7 +700,7 @@ export default function BrandGuidePage() {
             ))}
           </div>
           <p className="mt-6 text-xs text-white/60">
-            Full documentation: <code className="font-mono">docs/brand/</code> and{" "}
+            {c.sections.downloads.fullDocs} <code className="font-mono">docs/brand/</code> and{" "}
             <code className="font-mono">docs/design-tokens.md</code>
           </p>
         </Container>

@@ -5,13 +5,19 @@ import { Card } from "@/components/ui/Card";
 import { ImageOrPlaceholder } from "./ImageOrPlaceholder";
 import { programmeTokenForCategory } from "@/lib/design-tokens";
 import { MapPin } from "lucide-react";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 interface ProjectCardProps {
   project: Project;
+  locale: Locale;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, locale }: ProjectCardProps) {
+  const c = getPageContent(locale).common;
   const prog = programmeTokenForCategory(project.category);
+  const href = localePath(`/projects/${project.slug}`, locale);
+
   return (
     <Card className="flex flex-col overflow-hidden">
       <div className="relative aspect-[16/10] overflow-hidden">
@@ -33,7 +39,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <Badge variant="outline">{project.status}</Badge>
         </div>
         <h3 className="mt-3 text-lg font-semibold leading-snug">
-          <Link href={`/projects/${project.slug}`} className="hover:text-primary">
+          <Link href={href} className="hover:text-primary">
             {project.title}
           </Link>
         </h3>
@@ -45,10 +51,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
           {project.summary}
         </p>
         <Link
-          href={`/projects/${project.slug}`}
+          href={href}
           className="mt-4 inline-flex text-sm font-semibold text-primary hover:underline"
         >
-          View the project
+          {c.viewProject}
         </Link>
       </div>
     </Card>

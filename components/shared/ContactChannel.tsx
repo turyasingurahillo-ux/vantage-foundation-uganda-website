@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { site } from "@/content/site";
 import type { ContactCategory } from "@/lib/contact-categories";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * The site's public contact channel.
@@ -23,13 +25,17 @@ function contactHref(category?: ContactCategory) {
 export function ContactChannelLink({
   category,
   className = "text-primary underline",
-  formLabel = "our contact form",
+  formLabel,
+  locale = "en",
 }: {
   category?: ContactCategory;
   className?: string;
   formLabel?: string;
+  locale?: Locale;
 }) {
   const email = site.contact.publicEmail;
+  const ui = getPageContent(locale).ui.contactChannel;
+  const label = formLabel ?? ui.formLabel;
 
   if (email) {
     return (
@@ -41,7 +47,7 @@ export function ContactChannelLink({
 
   return (
     <Link href={contactHref(category)} className={className}>
-      {formLabel}
+      {label}
     </Link>
   );
 }
@@ -53,16 +59,19 @@ export function ContactChannelLink({
 export function ContactChannelListItem({
   category,
   className = "text-primary underline",
+  locale = "en",
 }: {
   category?: ContactCategory;
   className?: string;
+  locale?: Locale;
 }) {
   const email = site.contact.publicEmail;
+  const ui = getPageContent(locale).ui.contactChannel;
 
   if (email) {
     return (
       <li>
-        Email:{" "}
+        {ui.emailLabel}{" "}
         <a href={`mailto:${email}`} className={className}>
           {email}
         </a>
@@ -72,7 +81,7 @@ export function ContactChannelListItem({
 
   return (
     <li>
-      Contact form:{" "}
+      {ui.contactFormLabel}{" "}
       <Link href={contactHref(category)} className={className}>
         vantagefoundationuganda.com/contact
       </Link>

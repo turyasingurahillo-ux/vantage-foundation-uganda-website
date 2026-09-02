@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { programmeTokenForCategory } from "@/lib/design-tokens";
 import { MapPin, Calendar, Users } from "lucide-react";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
 /**
  * Editorial, magazine-style homepage section for the flagship project.
@@ -13,7 +15,7 @@ import { MapPin, Calendar, Users } from "lucide-react";
  *
  * Renders nothing if there is no flagship project (graceful no-op).
  */
-export function FlagshipProjectSection() {
+export function FlagshipProjectSection({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["flagship"] }) {
   const project = getFlagshipProject();
   if (!project || !project.flagship) return null;
 
@@ -46,7 +48,7 @@ export function FlagshipProjectSection() {
           {/* Content column */}
           <div className="order-2 lg:order-2">
             <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-              Flagship project
+              {copy.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {project.title}
@@ -60,7 +62,7 @@ export function FlagshipProjectSection() {
               <div className="flex flex-col gap-1">
                 <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <MapPin className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                  Location
+                  {copy.location}
                 </dt>
                 <dd className="text-sm text-foreground">
                   {project.location}
@@ -69,7 +71,7 @@ export function FlagshipProjectSection() {
               <div className="flex flex-col gap-1">
                 <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <Calendar className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                  Timeline
+                  {copy.timeline}
                 </dt>
                 <dd className="text-sm text-foreground">{project.date}</dd>
               </div>
@@ -77,7 +79,7 @@ export function FlagshipProjectSection() {
                 <div className="flex flex-col gap-1">
                   <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     <Users className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                    Beneficiaries
+                    {copy.beneficiaries}
                   </dt>
                   <dd className="text-sm text-foreground">
                     {project.beneficiaries}
@@ -93,7 +95,7 @@ export function FlagshipProjectSection() {
                     >
                       <span className="block h-2 w-2 rounded-full bg-primary" />
                     </span>
-                    Funding
+                    {copy.funding}
                   </dt>
                   <dd className="text-sm text-foreground">
                     {project.fundingStatus}
@@ -114,12 +116,12 @@ export function FlagshipProjectSection() {
             )}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href={`/projects/${project.slug}`}>
-                Read the full story
+              <Button href={localePath(`/projects/${project.slug}`, locale)}>
+                {copy.read}
               </Button>
               {project.fundingStatus && (
-                <Button href="/donate" variant="outline">
-                  Support this project
+                <Button href={localePath("/donate", locale)} variant="outline">
+                  {copy.support}
                 </Button>
               )}
             </div>

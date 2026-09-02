@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import {
@@ -7,15 +8,33 @@ import {
 } from "@/components/shared/ContactChannel";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = createPublicMetadata({
-  title: "Privacy Policy",
-  description:
-    "How Vantage Foundation Uganda collects, uses, and protects personal data of donors, volunteers, and website visitors.",
-  path: "/privacy",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: LocaleParams;
+}): Promise<Metadata> {
+  const locale = await resolveLocale(params);
+  return createPublicMetadata({
+    title: "Privacy Policy",
+    description:
+      "How Vantage Foundation Uganda collects, uses, and protects personal data of donors, volunteers, and website visitors.",
+    path: "/privacy",
+    locale,
+    contentLocalized: false,
+  });
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({
+  params,
+}: {
+  params: LocaleParams;
+}) {
+  const locale = await resolveLocale(params);
+  const dictionary = await getDictionary(locale);
   return (
     <>
       <section className="bg-primary py-16 text-white md:py-24">
@@ -31,7 +50,10 @@ export default function PrivacyPage() {
 
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
-          <div className="space-y-8 leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {dictionary.common.originalLanguageNotice}
+          </p>
+          <div className="mt-8 space-y-8 leading-relaxed text-muted-foreground">
             <div>
               <h2 className="mb-3 text-xl font-bold text-foreground">
                 Overview
@@ -192,7 +214,7 @@ export default function PrivacyPage() {
               </ul>
               <p className="mt-3">
                 To exercise any of these rights, contact us through{" "}
-                <ContactChannelLink formLabel="our contact form" />.
+                <ContactChannelLink locale={locale} />.
               </p>
             </div>
 
@@ -219,12 +241,12 @@ export default function PrivacyPage() {
                 collect their personal data through this website. Photographs
                 of children are published only with verified consent &mdash;
                 see our{" "}
-                <a
-                  href="/safeguarding"
+                <Link
+                  href={localePath("/safeguarding", locale)}
                   className="text-primary underline"
                 >
                   Safeguarding Policy
-                </a>
+                </Link>
                 .
               </p>
             </div>
@@ -250,7 +272,7 @@ export default function PrivacyPage() {
                 handle your personal data, please contact us:
               </p>
               <ul className="mt-3 ml-6 list-disc space-y-1">
-                <ContactChannelListItem />
+                <ContactChannelListItem locale={locale} />
                 <li>
                   Phone/WhatsApp:{" "}
                   <a
