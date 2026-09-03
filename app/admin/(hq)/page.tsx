@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import {
@@ -338,13 +339,13 @@ export default async function AdminDashboardPage() {
             >
               Recent activity
             </h2>
-            <a
+            <Link
               href="/admin/audit"
               className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
             >
               View all
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
+            </Link>
           </div>
           <div className="mt-4 rounded-xl border border-border bg-white p-2">
             <ActivityFeed entries={activityEntries} adminNames={adminNames} />
