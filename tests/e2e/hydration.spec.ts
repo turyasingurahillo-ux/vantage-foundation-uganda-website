@@ -88,3 +88,34 @@ test("the lazily rendered reach map is absent until scrolled to, then renders", 
   await expect(page.getByText("Where We Work").first()).toBeVisible();
   expect(problems).toEqual([]);
 });
+
+// Form routes that render <HoneypotFields>. Guard against SSR/client
+// nondeterminism in the hidden loadedAt / submissionId values.
+const HONEYPOT_ROUTES = ["/contact", "/de/contact", "/donate"];
+
+for (const route of HONEYPOT_ROUTES) {
+  test(`honeypot fields on ${route} hydrate without mismatch and populate`, async ({ page }) => {
+    const problems = collectHydrationProblems(page);
+
+    await page.goto(route, { waitUntil: "load" });
+    await expect(page.locator("h1").first()).toBeVisible();
+    await page.waitForTimeout(800);
+
+    // Time-trap value is populated after client hydration.
+    const loadedAt = page.locator('input[name="form_loaded_at"]').first();
+    await expect(loadedAt).toHaveValue(/^[0-9]+$/);
+
+    if (route === "/donate") {
+      const submissionId = page.locator('input[name="submissionId"]').first();
+      await expect(submissionId).toHaveValue(/\S/);
+    }
+
+    // Honeypot fields remain hidden and non-focusable.
+    const website = page.locator('input[name="website"]').first();
+    await expect(website).toBeHidden();
+    await expect(website).toHaveAttribute("tabindex", "-1");
+    await expect(website).toHaveAttribute("aria-hidden", "true");
+
+    expect(problems).toEqual([]);
+  });
+}
