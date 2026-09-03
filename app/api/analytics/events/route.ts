@@ -3,7 +3,8 @@ import { createHmac } from "crypto";
 import { z } from "zod";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logError, logInfo, logWarn } from "@/lib/logger";
-import { getStoryBySlug } from "@/lib/db/stories";
+import { resolvePublishedStoryBySlug } from "@/lib/stories-public";
+import { ensureAnalyticsArticleId } from "@/lib/db/analytics-articles";
 import {
   ingestEvent,
   classifySource,
@@ -99,16 +100,20 @@ export async function POST(request: Request) {
   }
   const data = parsed.data;
 
-  // Resolve the article and verify it is published. Reject events for drafts
-  // or non-existent articles so they never enter public-performance totals.
+  // Resolve the article via the canonical published-story resolver (same
+  // one the public story page uses). Reject events for drafts, non-existent
+  // or unpublished articles so they never enter public-performance totals.
   let articleId: number;
   try {
-    const story = await getStoryBySlug(data.articleSlug);
-    if (!story || !story.published) {
+    const ref = await resolvePublishedStoryBySlug(data.articleSlug);
+    if (!ref) {
       // Silently ignore — don't leak which slugs exist.
       return new NextResponse(null, { status: 204 });
     }
-    articleId = story.id;
+    // Ensure the analytics registry has a row for this story. The ref has
+    // already been validated as published, so this is safe — it stores only
+    // analytics metadata (slug, title, category), never editorial content.
+    articleId = await ensureAnalyticsArticleId(ref);
   } catch {
     // DB not configured or error — fail silently (no tracking, no crash).
     return new NextResponse(null, { status: 204 });

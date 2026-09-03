@@ -30,9 +30,12 @@ import { useEffect, useRef, useCallback } from "react";
  */
 
 interface ArticleAnalyticsProps {
-  articleId: number;
   articleSlug: string;
   articleTitle: string;
+  /** Optional DB id, used only for GA4 mirroring. The first-party endpoint
+   *  resolves identity from articleSlug, so static-manifest stories (no dbId)
+   *  are tracked identically to DB stories. */
+  articleId?: number;
 }
 
 const READER_COOKIE_NAME = "vantage_reader";

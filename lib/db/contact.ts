@@ -172,7 +172,105 @@ export async function getContactMessages(
 }
 
 /**
- * Inbox tabs.
+ * Bounded preview length for the inbox list.
+ *
+ * The list does not need the full message body — a short preview is enough
+ * for an administrator to recognise a conversation. The full body is only
+ * fetched for the selected conversation via getContactMessageById().
+ */
+export const MESSAGE_PREVIEW_LENGTH = 160;
+
+/**
+ * Lightweight summary of a contact message for inbox list rendering.
+ *
+ * Unlike ContactMessageRow, this does NOT carry the full `message` body —
+ * only a bounded `messagePreview`. This is real PII minimisation: the full
+ * body never reaches the list HTML, only the selected conversation pane.
+ */
+export interface ContactMessageSummary {
+  id: number;
+  createdAt: Date;
+  name: string;
+  email: string;
+  phone?: string;
+  organisation?: string;
+  category: ContactCategory;
+  /** Bounded preview of the message body, never the full text. */
+  messagePreview: string;
+  emailSent: boolean;
+  status: ContactMessageStatus;
+  lastRepliedAt?: Date;
+  archivedAt?: Date;
+}
+
+function mapSummary(row: Record<string, unknown>): ContactMessageSummary {
+  return {
+    id: Number(row.id),
+    createdAt: new Date(row.created_at as string),
+    name: row.name as string,
+    email: row.email as string,
+    phone: (row.phone as string) ?? undefined,
+    organisation: (row.organisation as string) ?? undefined,
+    category: row.category as ContactCategory,
+    messagePreview: row.message_preview as string,
+    emailSent: Boolean(row.email_sent),
+    status: (row.status as ContactMessageStatus) ?? "new",
+    lastRepliedAt: row.last_replied_at
+      ? new Date(row.last_replied_at as string)
+      : undefined,
+    archivedAt: row.archived_at
+      ? new Date(row.archived_at as string)
+      : undefined,
+  };
+}
+
+/**
+ * Inbox list summaries with an optional free-text search.
+ *
+ * Search matches against the FULL message body (message ILIKE ...) even
+ * though only a bounded preview is SELECTed. This gives real PII
+ * minimisation — the full body never leaves the database for list rows —
+ * without sacrificing search fidelity.
+ *
+ * Both the filter and the search term are passed as bound parameters — the
+ * search string never becomes SQL.
+ */
+export async function searchContactMessageSummaries(options: {
+  filter?: InboxFilter;
+  query?: string;
+  limit?: number;
+}): Promise<ContactMessageSummary[]> {
+  const sql = getSql();
+  const filter = options.filter ?? "new";
+  const limit = options.limit ?? 200;
+  const term = options.query?.trim();
+  const like = term ? `%${term}%` : null;
+
+  const rows = await sql`
+    SELECT id, created_at, name, email, phone, organisation, category,
+           LEFT(message, ${MESSAGE_PREVIEW_LENGTH}) AS message_preview,
+           email_sent, status, last_replied_at, archived_at
+    FROM contact_messages
+    WHERE deleted_at IS NULL
+      AND (${filter} = 'all' OR status = ${filter})
+      AND (
+        ${like}::text IS NULL
+        OR name ILIKE ${like}
+        OR email ILIKE ${like}
+        OR category ILIKE ${like}
+        OR message ILIKE ${like}
+        OR COALESCE(organisation, '') ILIKE ${like}
+      )
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `;
+  return rows.map(mapSummary);
+}
+
+/**
+ * Inbox listing with an optional free-text search across the fields an admin
+ * would actually recognise a conversation by.
+
  *
  * The three workflow values and "all" address the ACTIVE inbox — archived
  * conversations are excluded from every one of them. "archived" is the only
@@ -382,6 +480,11 @@ export async function setContactMessageStatus(
   await sql`
     UPDATE contact_messages
     SET status = ${status},
+        archived_at =
+          CASE
+            WHEN ${status} = 'archived' THEN CURRENT_TIMESTAMP
+            ELSE NULL
+          END,
         handled_at = CASE
           WHEN ${status} = 'new' THEN NULL
           ELSE COALESCE(handled_at, CURRENT_TIMESTAMP)

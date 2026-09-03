@@ -83,3 +83,61 @@ export async function getAllStorySlugsWithDb(): Promise<string[]> {
   const dbSlugs = await getDbStorySlugs();
   return [...new Set([...dbSlugs, ...getStorySlugs()])];
 }
+
+/**
+ * Lightweight published-story reference — just enough metadata for analytics
+ * identity resolution without the cost of presigning R2 hero URLs.
+ */
+export interface PublishedStoryRef {
+  slug: string;
+  title: string;
+  category: string;
+  source: "static" | "db";
+  dbId?: number;
+  publishedDate?: string;
+}
+
+/**
+ * Canonical published-story resolver used by both the public story page and
+ * the analytics ingestion endpoint. Resolves a slug to a published story,
+ * checking the database first (published rows only) and falling back to the
+ * static manifest. Returns null for unknown, unpublished, or soft-deleted
+ * stories so analytics can never track drafts or non-existent content.
+ *
+ * This is the single source of truth for "is this slug publicly trackable?"
+ * — the public page and the analytics endpoint must agree, and this function
+ * is the shared contract that ensures they do.
+ */
+export async function resolvePublishedStoryBySlug(
+  slug: string
+): Promise<PublishedStoryRef | null> {
+  // Try DB first (published rows only).
+  try {
+    const row = await getDbRowBySlug(slug);
+    if (row && row.published) {
+      return {
+        slug: row.slug,
+        title: row.title,
+        category: row.category,
+        source: "db",
+        dbId: row.id,
+        publishedDate: row.date,
+      };
+    }
+  } catch {
+    // DB not configured or error — fall through to static manifest.
+  }
+  // Fall back to static manifest. In production, only published stories are
+  // trackable (published !== false; default is true when omitted).
+  const staticStory = getStoryBySlug(slug);
+  if (staticStory && staticStory.published !== false) {
+    return {
+      slug: staticStory.slug,
+      title: staticStory.title,
+      category: staticStory.category,
+      source: "static",
+      publishedDate: staticStory.date,
+    };
+  }
+  return null;
+}
