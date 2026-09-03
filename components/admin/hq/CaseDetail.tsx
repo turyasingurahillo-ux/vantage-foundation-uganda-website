@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { formatDateTime, formatDate } from "@/lib/format";
-import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import { ConversationTimeline } from "@/components/admin/hq/ConversationTimeline";
 import { CaseWorkflowControls } from "@/components/admin/hq/CaseWorkflowControls";
 import { CaseOutcomeControls } from "@/components/admin/hq/CaseOutcomeControls";
@@ -158,15 +157,6 @@ export function CaseDetail({
             message={caseRow}
             replies={replies}
             adminNames={adminNames}
-          />
-        </div>
-
-        {/* Reply composer */}
-        <div className="mt-6 border-t border-border pt-5">
-          <ReplyComposer
-            messageId={caseRow.id}
-            recipientName={caseRow.name}
-            recipientEmail={caseRow.email}
             fromAddress={fromAddress}
             csrfToken={csrfToken}
             csrfFieldName={csrfFieldName}

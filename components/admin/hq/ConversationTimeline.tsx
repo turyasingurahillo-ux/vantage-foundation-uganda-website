@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format";
+import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import type { ContactMessageRow } from "@/lib/db/contact";
 import type { ContactReplyRow } from "@/lib/db/contact-replies";
 
@@ -7,6 +11,10 @@ interface ConversationTimelineProps {
   message: ContactMessageRow;
   replies: ContactReplyRow[];
   adminNames: Record<string, string>;
+  fromAddress: string;
+  csrfToken: string;
+  csrfFieldName: string;
+  maxLength: number;
 }
 
 function actorLabel(
@@ -24,13 +32,23 @@ function actorLabel(
  * outbound replies in order.
  *
  * Message and reply bodies are rendered as plain text (whitespace-pre-wrap)
- * — never as HTML.
+ * — never as HTML. A failed outbound reply can be retried; clicking the
+ * retry link pre-fills the composer with the original body and tags the new
+ * attempt with the failed reply's id.
  */
 export function ConversationTimeline({
   message,
   replies,
   adminNames,
+  fromAddress,
+  csrfToken,
+  csrfFieldName,
+  maxLength,
 }: ConversationTimelineProps) {
+  const [retry, setRetry] = useState<{ id: number; body: string } | null>(
+    null,
+  );
+
   return (
     <div className="space-y-4">
       {/* Original submission */}
@@ -105,15 +123,42 @@ export function ConversationTimeline({
             <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
               {reply.body}
             </p>
-            {reply.sendStatus === "failed" && reply.errorDetail && (
-              <p className="mt-2 text-xs text-destructive-fg">
-                Delivery failed: {reply.errorDetail}. Send a new reply to
-                retry.
-              </p>
+            {reply.sendStatus === "failed" && (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {reply.errorDetail && (
+                  <p className="text-xs text-destructive-fg">
+                    Delivery failed: {reply.errorDetail}.
+                  </p>
+                )}
+                {isOutbound && (
+                  <button
+                    type="button"
+                    onClick={() => setRetry({ id: reply.id, body: reply.body })}
+                    className="text-xs font-semibold text-primary underline hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    Retry this reply
+                  </button>
+                )}
+              </div>
             )}
           </div>
         );
       })}
+
+      {/* Reply composer */}
+      <div className="border-t border-border pt-5">
+        <ReplyComposer
+          messageId={message.id}
+          recipientName={message.name}
+          recipientEmail={message.email}
+          fromAddress={fromAddress}
+          csrfToken={csrfToken}
+          csrfFieldName={csrfFieldName}
+          maxLength={maxLength}
+          retryOfReplyId={retry?.id}
+          initialBody={retry?.body ?? ""}
+        />
+      </div>
     </div>
   );
 }

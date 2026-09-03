@@ -410,18 +410,10 @@ ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAU
 ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS last_replied_at TIMESTAMP WITH TIME ZONE;
 ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP WITH TIME ZONE;
 
--- Constrain status to the known workflow states. Added separately (and
--- guarded) because ADD CONSTRAINT has no IF NOT EXISTS.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_status_values'
-  ) THEN
-    ALTER TABLE contact_messages
-      ADD CONSTRAINT contact_messages_status_values
-      CHECK (status IN ('new', 'awaiting_response', 'replied', 'archived'));
-  END IF;
-END $$;
+-- The CHECK constraint on `status` is defined further down, in the "Inbox v2"
+-- section: 'archived' used to be one of the permitted values and is now
+-- expressed by archived_at instead, so there is one authoritative definition
+-- rather than an old one that a later block has to undo.
 
 CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status);
 
@@ -450,3 +442,162 @@ CREATE TABLE IF NOT EXISTS contact_message_replies (
 
 CREATE INDEX IF NOT EXISTS idx_cmr_message_id ON contact_message_replies(message_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_cmr_send_status ON contact_message_replies(send_status);
+
+-- ---------------------------------------------------------------------------
+-- Inbox v2: archive separated from workflow state, activity ordering, and
+-- per-conversation idempotency.
+--
+-- Everything below is written to be re-runnable against a database that has
+-- already been migrated: each step is either natively idempotent
+-- (IF NOT EXISTS) or guarded on the state it is about to change.
+-- ---------------------------------------------------------------------------
+
+-- 1. Retry lineage. A failed reply is never rewritten; a retry is a NEW row
+--    that points back at the attempt it replaces, so the audit trail keeps
+--    both the failure and its resolution.
+ALTER TABLE contact_message_replies
+  ADD COLUMN IF NOT EXISTS retry_of_reply_id INTEGER
+  REFERENCES contact_message_replies(id) ON DELETE SET NULL;
+
+-- 2. How a `pending` row was finally resolved when the provider never
+--    answered. Written only by an administrator who has checked the mailbox —
+--    the system will not guess (see lib/db/contact-replies.ts).
+ALTER TABLE contact_message_replies
+  ADD COLUMN IF NOT EXISTS resolved_by TEXT;
+ALTER TABLE contact_message_replies
+  ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP WITH TIME ZONE;
+
+-- 3. Scope idempotency to the conversation.
+--
+--    `idempotency_key TEXT UNIQUE` was global, so a key collision between two
+--    different conversations would return a reply belonging to somebody else's
+--    message. Scoping the uniqueness to (message_id, idempotency_key) makes
+--    that structurally impossible. Existing rows already satisfy the narrower
+--    index because the old constraint was strictly stronger.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cmr_message_idempotency
+  ON contact_message_replies(message_id, idempotency_key);
+
+--    Drop the old global constraint only AFTER the replacement index exists,
+--    so there is no window without protection. The name is Postgres's
+--    auto-generated one for a column-level UNIQUE.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'contact_message_replies_idempotency_key_key'
+  ) THEN
+    ALTER TABLE contact_message_replies
+      DROP CONSTRAINT contact_message_replies_idempotency_key_key;
+  END IF;
+END $$;
+
+-- 4. Conversation activity timestamp.
+--
+--    An inbox sorted by original submission time buries a two-week-old thread
+--    that was answered five minutes ago. last_activity_at is the latest of:
+--    the submission itself, and any successful outbound reply. (Phase 2
+--    inbound replies will feed the same column.)
+--
+--    Deliberately NOT touched by archive/unarchive or by manual status
+--    changes: those are administrator bookkeeping, not conversation activity,
+--    and must not reshuffle the inbox.
+ALTER TABLE contact_messages
+  ADD COLUMN IF NOT EXISTS last_activity_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE contact_messages
+  ALTER COLUMN last_activity_at SET DEFAULT CURRENT_TIMESTAMP;
+
+--    Backfill. GREATEST ignores nothing, so COALESCE the nullable sides down
+--    to created_at first. Only touches rows that have never been stamped, so
+--    re-running cannot move a live value.
+UPDATE contact_messages m
+SET last_activity_at = GREATEST(
+  m.created_at,
+  COALESCE(m.last_replied_at, m.created_at),
+  COALESCE(
+    (SELECT MAX(COALESCE(r.sent_at, r.created_at))
+     FROM contact_message_replies r
+     WHERE r.message_id = m.id
+       AND r.direction = 'outbound'
+       AND r.send_status = 'sent'),
+    m.created_at
+  )
+)
+WHERE m.last_activity_at IS NULL;
+
+ALTER TABLE contact_messages
+  ALTER COLUMN last_activity_at SET NOT NULL;
+
+-- 5. Retire 'archived' as a workflow status.
+--
+--    archived_at already recorded the fact; storing it in `status` as well
+--    meant archiving destroyed the response state, and unarchiving had to
+--    invent a new one (replied -> archive -> unarchive came back as new).
+--
+--    Migration rule: keep archived_at, and recover the response state from
+--    evidence rather than assumption. A conversation is only restored to
+--    'replied' if there is a delivered reply behind it; everything else falls
+--    back to 'new', which claims nothing.
+--
+--    Naturally idempotent: after this runs no row has status = 'archived'.
+UPDATE contact_messages m
+SET
+  archived_at = COALESCE(m.archived_at, m.handled_at, m.created_at),
+  status = CASE
+    WHEN m.last_replied_at IS NOT NULL THEN 'replied'
+    WHEN EXISTS (
+      SELECT 1 FROM contact_message_replies r
+      WHERE r.message_id = m.id
+        AND r.direction = 'outbound'
+        AND r.send_status = 'sent'
+    ) THEN 'replied'
+    ELSE 'new'
+  END
+WHERE m.status = 'archived';
+
+--    Swap the CHECK constraint to the three-state workflow. A new name is used
+--    so the guard is a simple "does the new one exist yet".
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'contact_messages_workflow_status_values'
+  ) THEN
+    ALTER TABLE contact_messages
+      DROP CONSTRAINT IF EXISTS contact_messages_status_values;
+    ALTER TABLE contact_messages
+      ADD CONSTRAINT contact_messages_workflow_status_values
+      CHECK (status IN ('new', 'awaiting_response', 'replied'));
+  END IF;
+END $$;
+
+-- 6. Indexes for the inbox query shapes.
+--
+--    Each of these serves one of the three listings the page can produce, and
+--    each is partial so it only carries rows that listing can return. The
+--    ordering columns match ORDER BY last_activity_at DESC, id DESC exactly,
+--    so the planner can walk the index instead of sorting the table.
+--
+--    idx_..._active_status_activity — the New / Needs reply / Replied tabs:
+--      equality on status, then an already-ordered scan.
+CREATE INDEX IF NOT EXISTS idx_contact_messages_active_status_activity
+  ON contact_messages (status, last_activity_at DESC, id DESC)
+  WHERE deleted_at IS NULL AND archived_at IS NULL;
+
+--    idx_..._active_activity — the "All active" tab, which has no status
+--      predicate and therefore cannot use the index above.
+CREATE INDEX IF NOT EXISTS idx_contact_messages_active_activity
+  ON contact_messages (last_activity_at DESC, id DESC)
+  WHERE deleted_at IS NULL AND archived_at IS NULL;
+
+--    idx_..._archived_activity — the Archived tab.
+CREATE INDEX IF NOT EXISTS idx_contact_messages_archived_activity
+  ON contact_messages (last_activity_at DESC, id DESC)
+  WHERE deleted_at IS NULL AND archived_at IS NOT NULL;
+
+--    No index is added for searching reply bodies. That search is always
+--    correlated (EXISTS ... WHERE r.message_id = m.id AND r.body ILIKE $1), so
+--    it is served by idx_cmr_message_id and only ever inspects the handful of
+--    replies belonging to a candidate conversation. A trigram index would only
+--    pay for itself on an uncorrelated full-table body search, which the inbox
+--    never issues.

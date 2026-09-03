@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { z } from "zod";
 import {
   getContactMessageById,
   markContactMessageReplied,
@@ -8,6 +9,7 @@ import {
 import {
   createPendingReply,
   getLastSentReply,
+  getReplyForMessage,
   markReplyFailed,
   markReplySent,
 } from "@/lib/db/contact-replies";
@@ -40,10 +42,10 @@ import { stampFirstResponseIfFirst } from "@/lib/db/cases";
  * Case model: a successful reply sets the MESSAGE DELIVERY state to `replied`
  * (the legacy `status` column) and stamps `first_response_at` for SLA
  * reporting, but does NOT change the CASE WORKFLOW state (`workflow_status`).
- * The admin decides what happens next in the relationship — e.g. "please send
- * your registration certificate" means the case is `awaiting_external`, not
- * completed — via the case workspace controls. A failed reply does not mark
- * the case resolved either; the conversation moves to `awaiting_response`.
+ * The admin decides what happens next in the relationship via the case
+ * workspace controls. A failed reply moves the message delivery state to
+ * `awaiting_response` (unless the conversation is archived) so the team knows
+ * the enquirer still needs an answer.
  *
  * Validation lives in `lib/reply-validation.ts` so every failure mode maps
  * onto a fixed application error code (`empty`, `too-long`, `invalid`) rather
@@ -91,11 +93,30 @@ export async function POST(request: Request) {
 
   const { id, body, idempotencyKey } = parsed.data;
 
+  // Optional retryOf: this reply replaces a previously failed attempt.
+  const retryOfRaw = formData.get("retryOf");
+  const retryOfParsed = z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .safeParse(retryOfRaw === null ? undefined : retryOfRaw);
+  const retryOf = retryOfParsed.success ? retryOfParsed.data : undefined;
+
   try {
     // Recipient comes from the database, never from the request.
     const message = await getContactMessageById(id);
     if (!message) {
       return back(request, id, "error=notfound");
+    }
+
+    // A retry must name a genuinely failed attempt on THIS conversation.
+    if (retryOf !== undefined) {
+      const original = await getReplyForMessage(message.id, retryOf);
+      if (!original || original.sendStatus !== "failed") {
+        logWarn("message_reply_bad_retry", { id: message.id });
+        return back(request, id, "error=retry-invalid");
+      }
     }
 
     const { reply, alreadyExisted } = await createPendingReply({
@@ -104,17 +125,30 @@ export async function POST(request: Request) {
       recipientEmail: message.email,
       adminActorId: actorId,
       idempotencyKey,
+      retryOfReplyId: retryOf,
     });
 
     // A replayed submission (double-click, browser retry) hits the unique
-    // index and lands here. Never send a second copy.
+    // index and lands here. Never send a second copy — but report what the
+    // existing attempt actually did.
     if (alreadyExisted) {
-      logWarn("message_reply_duplicate", { id: message.id });
-      return back(
-        request,
-        id,
-        reply.sendStatus === "failed" ? "error=send" : "replied=1",
-      );
+      if (reply.messageId !== message.id) {
+        logError("message_reply_idempotency_mismatch", { id: message.id });
+        return back(request, id, "error=server");
+      }
+
+      logWarn("message_reply_duplicate", {
+        id: message.id,
+        sendStatus: reply.sendStatus,
+      });
+
+      if (reply.sendStatus === "sent") {
+        return back(request, id, "replied=1");
+      }
+      if (reply.sendStatus === "failed") {
+        return back(request, id, "error=send");
+      }
+      return back(request, id, "error=in-flight");
     }
 
     const previous = await getLastSentReply(message.id);
@@ -132,7 +166,8 @@ export async function POST(request: Request) {
     if (!result.ok) {
       await markReplyFailed(reply.id, result.error ?? "unknown error");
       // The enquirer is still waiting, so the conversation owes a response.
-      if (message.status !== "archived") {
+      // Do not overwrite an already-replied conversation or an archived one.
+      if (message.status !== "archived" && message.status !== "replied") {
         await setContactMessageStatus(message.id, "awaiting_response");
       }
       logWarn("message_reply_send_failed", { id: message.id });
@@ -148,10 +183,7 @@ export async function POST(request: Request) {
 
     // Stamp the first-response timestamp for SLA reporting. This records
     // when the first OUTBOUND reply was sent, separate from the case
-    // workflow status — a reply does NOT complete the case. The admin
-    // decides whether the case is now awaiting_external (e.g. "please send
-    // your registration certificate"), awaiting_vantage (e.g. "we will
-    // review this"), or another state, via the case workspace controls.
+    // workflow status.
     try {
       await stampFirstResponseIfFirst(message.id);
     } catch {
@@ -172,6 +204,7 @@ export async function POST(request: Request) {
       id: message.id,
       replyId: reply.id,
       category: message.category,
+      retry: Boolean(retryOf),
     });
     return back(request, id, "replied=1");
   } catch (err) {
