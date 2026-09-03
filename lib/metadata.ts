@@ -79,14 +79,29 @@ export function createPublicMetadata({
     ...(socialImage.height ? { height: socialImage.height } : {}),
   };
 
+function openGraphLocaleValue(locale: Locale): string {
+  switch (locale) {
+    case "de":
+      return "de_DE";
+    case "fr":
+      return "fr_FR";
+    case "es":
+      return "es_ES";
+    case "ar":
+      return "ar_AR";
+    default:
+      return "en_UG";
+  }
+}
+
   const openGraphBase = {
     title: socialTitle,
     description,
     url: localizedPath,
     siteName: site.name,
-    locale: locale === "de" ? "de_DE" : locale === "fr" ? "fr_FR" : "en_UG",
-    alternateLocale: ["en_UG", "de_DE", "fr_FR"].filter(
-      (value) => value !== (locale === "de" ? "de_DE" : locale === "fr" ? "fr_FR" : "en_UG"),
+    locale: openGraphLocaleValue(locale),
+    alternateLocale: ["en_UG", "de_DE", "fr_FR", "es_ES", "ar_AR"].filter(
+      (value) => value !== openGraphLocaleValue(locale),
     ),
     images: [openGraphImage],
   };
@@ -102,6 +117,8 @@ export function createPublicMetadata({
               en: localePath(path, "en"),
               de: localePath(path, "de"),
               fr: localePath(path, "fr"),
+              es: localePath(path, "es"),
+              ar: localePath(path, "ar"),
               "x-default": localePath(path, "en"),
             },
           }

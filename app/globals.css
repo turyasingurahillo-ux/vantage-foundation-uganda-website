@@ -267,6 +267,17 @@ body {
   font-family: var(--font-sans), "Frutiger", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
+/* Arabic direction and fallback typography. The locale layout also sets
+   `dir="rtl"` on the <html> element; this CSS guard ensures the direction
+   is applied even if the font stack is not yet loaded. */
+html:lang(ar) {
+  direction: rtl;
+}
+
+html:lang(ar) body {
+  font-family: "Noto Sans Arabic", "Frutiger", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;

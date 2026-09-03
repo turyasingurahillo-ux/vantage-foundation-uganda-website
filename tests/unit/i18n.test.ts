@@ -18,20 +18,28 @@ describe("internationalization routing", () => {
     expect(localePath("/about-us?ref=nav", "de")).toBe("/de/about-us?ref=nav");
     expect(localePath("/de/about-us", "fr")).toBe("/fr/about-us");
     expect(localePath("/fr", "en")).toBe("/");
+    expect(localePath("/es/about-us", "ar")).toBe("/ar/about-us");
   });
 
-  it("recognizes and strips only supported locale prefixes", () => {
+  it("recognizes and strips all supported locale prefixes", () => {
     expect(isLocale("de")).toBe(true);
-    expect(isLocale("es")).toBe(false);
+    expect(isLocale("es")).toBe(true);
+    expect(isLocale("ar")).toBe(true);
+    expect(isLocale("it")).toBe(false);
     expect(localeFromPathname("/fr/contact")).toBe("fr");
+    expect(localeFromPathname("/ar/contact")).toBe("ar");
     expect(stripLocale("/de/projects/example")).toBe("/projects/example");
+    expect(stripLocale("/es/projects/example")).toBe("/projects/example");
+    expect(stripLocale("/ar/projects/example")).toBe("/projects/example");
   });
 });
 
 describe("translation dictionaries", () => {
-  it("contains professional German and French navigation copy", async () => {
+  it("contains professional German, French, Spanish and Arabic navigation copy", async () => {
     expect((await getDictionary("de")).navigation.donate).toBe("Spenden");
     expect((await getDictionary("fr")).navigation.about).toBe("À propos");
+    expect((await getDictionary("es")).navigation.donate).toBe("Donar");
+    expect((await getDictionary("ar")).navigation.about).toBe("نبذة عنا");
   });
 
   it("falls back to English when a localized key is absent", () => {

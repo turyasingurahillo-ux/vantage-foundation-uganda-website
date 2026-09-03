@@ -136,6 +136,7 @@ export default async function AboutPage({ params }: { params: LocaleParams }) {
                 key={member.slug}
                 member={member}
                 photoOverrideSrc={teamPhotoOverrides.get(member.slug)?.src}
+                locale={locale}
               />
             ))}
           </div>

@@ -82,7 +82,7 @@ export function LanguageSelector({
         aria-busy={changing}
         aria-describedby={changing ? `${selectId}-status` : undefined}
         onChange={(event) => void changeLocale(event.target.value as Locale)}
-        className="min-h-[42px] max-w-[8rem] cursor-pointer bg-transparent pr-1 text-sm font-semibold outline-none disabled:cursor-wait"
+        className="min-h-[42px] max-w-[8rem] cursor-pointer bg-transparent pe-1 text-sm font-semibold outline-none disabled:cursor-wait"
       >
         {locales.map((value) => (
           <option key={value} value={value} lang={value}>

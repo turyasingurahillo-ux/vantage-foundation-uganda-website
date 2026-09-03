@@ -34,12 +34,12 @@ export default async function ContactPage({
   searchParams: Promise<{ subject?: string }>;
 }) {
   const { subject } = await searchParams;
-  // Accepts current category values and the legacy ?subject= values still used
-  // by older CTAs elsewhere on the site.
   const defaultSubject = resolveCategoryFromQuery(subject);
   const locale = await resolveLocale(params);
   const dictionary = await getDictionary(locale);
   const contact = dictionary.contact;
+  const c = dictionary.common;
+  const f = dictionary.footer;
 
   return (
     <>
@@ -62,11 +62,10 @@ export default async function ContactPage({
               <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
                 <div className="flex-1">
                   <h2 className="text-xl font-bold text-foreground">
-                    Quick question? Chat to us on WhatsApp
+                    {contact.whatsappTitle}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    The fastest way to reach Vantage Foundation Uganda. Send
-                    us a message and we will get back to you.
+                    {contact.whatsappDescription}
                   </p>
                 </div>
                 <WhatsAppButtonClient
@@ -75,6 +74,7 @@ export default async function ContactPage({
                   context="contact page quick contact"
                   position="hero"
                   className="shrink-0"
+                  label={c.whatsappUs}
                 />
               </div>
             </Card>
@@ -131,11 +131,14 @@ export default async function ContactPage({
                   <div>
                     <h3 className="font-semibold">{contact.location}</h3>
                     <div className="mt-1 space-y-2">
-                      {site.contact.offices.map((office) => (
+                      {site.contact.offices.map((office, index) => (
                         <p key={office.label} className="text-sm text-muted-foreground">
-                          <span className="font-medium">{office.label}</span>
-                          <br />
-                          {office.city}, {office.region}, {office.country}
+                          <span className="font-medium">
+                            {index === 0 ? f.jinjaOffice : f.ishakaOffice}:
+                          </span>{" "}
+                          {office.city},{" "}
+                          {index === 0 ? f.easternRegion : f.bushenyiDistrict},
+                          {" "}{office.country}
                         </p>
                       ))}
                     </div>
