@@ -166,7 +166,8 @@ export async function POST(request: Request) {
     if (!result.ok) {
       await markReplyFailed(reply.id, result.error ?? "unknown error");
       // The enquirer is still waiting, so the conversation owes a response.
-      if (message.status !== "archived") {
+      // Do not overwrite an already-replied conversation or an archived one.
+      if (message.status !== "archived" && message.status !== "replied") {
         await setContactMessageStatus(message.id, "awaiting_response");
       }
       logWarn("message_reply_send_failed", { id: message.id });

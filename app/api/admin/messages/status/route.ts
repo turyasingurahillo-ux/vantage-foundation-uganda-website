@@ -32,7 +32,6 @@ import { appendAuditLog } from "@/lib/db/audit";
  */
 
 const ACTIONS = ["mark-new", "needs-reply", "archive", "unarchive"] as const;
-type Action = (typeof ACTIONS)[number];
 
 const schema = z.object({
   id: z.coerce.number().int().positive(),

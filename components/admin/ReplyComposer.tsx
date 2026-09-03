@@ -31,7 +31,7 @@ export function ReplyComposer({
   context = {},
   initialBody = "",
   retryOfReplyId,
-  serverKey = `${messageId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+  serverKey,
   autoFocus = false,
 }: {
   messageId: number;
@@ -47,7 +47,11 @@ export function ReplyComposer({
   serverKey?: string;
   autoFocus?: boolean;
 }) {
-  const [idempotencyKey] = useState(() => serverKey);
+  const [idempotencyKey] = useState(
+    () =>
+      serverKey ??
+      `${messageId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+  );
   const [pending, setPending] = useState(false);
   const [value, setValue] = useState(initialBody);
 

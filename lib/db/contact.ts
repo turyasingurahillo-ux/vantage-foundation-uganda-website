@@ -53,19 +53,23 @@ export async function createContactMessage(
  *                       reply"; the stored value is unchanged so no historical
  *                       row has to be rewritten.
  * - `replied`           at least one reply reached `sent` at the provider
- *
- * Archiving is deliberately NOT one of these. It used to be, which meant
- * archiving a conversation overwrote how it stood — a replied thread came back
- * from the archive as `new`. Archive state now lives entirely in
- * `archived_at`, orthogonal to this column, so the two can be changed
- * independently and neither destroys the other.
+ * - `archived`          deliberately taken out of the active workflow
  */
-export type ContactMessageStatus = "new" | "awaiting_response" | "replied";
+export type ContactMessageStatus =
+  | "new"
+  | "awaiting_response"
+  | "replied"
+  | "archived";
 
 export function isContactMessageStatus(
   value: unknown,
 ): value is ContactMessageStatus {
-  return value === "new" || value === "awaiting_response" || value === "replied";
+  return (
+    value === "new" ||
+    value === "awaiting_response" ||
+    value === "replied" ||
+    value === "archived"
+  );
 }
 
 export interface ContactMessageRow extends ContactMessageInput {
@@ -77,7 +81,7 @@ export interface ContactMessageRow extends ContactMessageInput {
   lastRepliedAt?: Date;
   archivedAt?: Date;
   /** Latest of submission and any delivered reply. Drives inbox ordering. */
-  lastActivityAt: Date;
+  lastActivityAt?: Date;
 }
 
 /** Card-level correspondence facts, without any reply bodies. */
