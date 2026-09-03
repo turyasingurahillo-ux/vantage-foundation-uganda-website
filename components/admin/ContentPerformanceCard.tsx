@@ -6,7 +6,12 @@ import Link from "next/link";
 /**
  * ContentPerformanceCard — compact summary for the main admin dashboard.
  * Shows this month's content KPIs and the top performing article, with a link
- * to the full Content Analytics dashboard.
+ * to the full Stories & Insights analytics dashboard.
+ *
+ * Analytics ids are never used as editorial/public route ids:
+ * - analyticsArticleId keys analytics tables
+ * - storyId keys DB editorial records
+ * - slug keys the public story URL
  */
 
 interface OverviewData {
@@ -17,10 +22,12 @@ interface OverviewData {
   totalShares: number;
   organicClicks: number;
   ctaActions: number;
+  searchConsoleConnected?: boolean;
 }
 
 interface TopArticle {
-  articleId: number;
+  analyticsArticleId: number;
+  storyId: number | null;
   title: string;
   slug: string;
   impactScore: number;
@@ -28,8 +35,12 @@ interface TopArticle {
   completionRate: number;
 }
 
-function formatNumber(n: number): string { return n.toLocaleString(); }
-function formatPct(p: number): string { return p > 0 ? `${p}%` : "—"; }
+function formatNumber(n: number): string {
+  return n.toLocaleString();
+}
+function formatPct(p: number): string {
+  return p > 0 ? `${p}%` : "—";
+}
 
 export function ContentPerformanceCard() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
@@ -39,15 +50,25 @@ export function ContentPerformanceCard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/admin/analytics?report=overview&range=30d").then((r) => r.json()),
-      fetch("/api/admin/analytics?report=articles&range=30d").then((r) => r.json()),
+      fetch("/api/admin/analytics?report=overview&range=30d").then((r) =>
+        r.json(),
+      ),
+      fetch("/api/admin/analytics?report=articles&range=30d").then((r) =>
+        r.json(),
+      ),
     ])
       .then(([ov, art]) => {
-        if (ov.error === "db") { setDbAvailable(false); return; }
+        if (ov.error === "db") {
+          setDbAvailable(false);
+          return;
+        }
         setOverview(ov.current ?? null);
         const articles = art.articles ?? [];
         if (articles.length > 0) {
-          const top = [...articles].sort((a: { impactScore: number }, b: { impactScore: number }) => b.impactScore - a.impactScore)[0];
+          const top = [...articles].sort(
+            (a: { impactScore: number }, b: { impactScore: number }) =>
+              b.impactScore - a.impactScore,
+          )[0];
           setTopArticle(top);
         }
       })
@@ -59,7 +80,13 @@ export function ContentPerformanceCard() {
     return (
       <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold">Content performance</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Analytics tables not set up. Run <code className="rounded bg-slate-100 px-1 text-xs">node scripts/setup-db.mjs</code> to enable content analytics.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Analytics tables not set up. Run{" "}
+          <code className="rounded bg-slate-100 px-1 text-xs">
+            node scripts/setup-db.mjs
+          </code>{" "}
+          to enable content analytics.
+        </p>
       </div>
     );
   }
@@ -76,33 +103,75 @@ export function ContentPerformanceCard() {
       ) : overview ? (
         <>
           <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
-            <MiniMetric label="Article readers" value={formatNumber(overview.uniqueReaders)} />
-            <MiniMetric label="Google clicks" value={formatNumber(overview.organicClicks)} />
-            <MiniMetric label="Avg. completion" value={formatPct(overview.avgCompletionRate)} />
+            <MiniMetric
+              label="Article readers"
+              value={formatNumber(overview.uniqueReaders)}
+            />
+            <MiniMetric
+              label="Google clicks"
+              value={
+                overview.searchConsoleConnected === false
+                  ? "—"
+                  : formatNumber(overview.organicClicks)
+              }
+            />
+            <MiniMetric
+              label="Avg. completion"
+              value={formatPct(overview.avgCompletionRate)}
+            />
             <MiniMetric label="Shares" value={formatNumber(overview.totalShares)} />
-            <MiniMetric label="CTA actions" value={formatNumber(overview.ctaActions)} />
+            <MiniMetric
+              label="CTA actions"
+              value={formatNumber(overview.ctaActions)}
+            />
           </div>
 
           {topArticle && (
             <div className="mt-6 rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Top performing article</div>
-              <Link href={`/admin/stories/${topArticle.articleId}`} className="mt-1 block font-semibold text-primary hover:underline">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Top performing article
+              </div>
+              <Link
+                href={`/stories/${topArticle.slug}`}
+                className="mt-1 block font-semibold text-primary hover:underline"
+              >
                 {topArticle.title}
               </Link>
               <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <span>Impact Score: <strong className="text-foreground">{topArticle.impactScore}/100</strong></span>
-                <span>Readers: <strong className="text-foreground">{formatNumber(topArticle.readers)}</strong></span>
-                <span>Completion: <strong className="text-foreground">{formatPct(topArticle.completionRate)}</strong></span>
+                <span>
+                  Impact Score:{" "}
+                  <strong className="text-foreground">
+                    {topArticle.impactScore}/100
+                  </strong>
+                </span>
+                <span>
+                  Readers:{" "}
+                  <strong className="text-foreground">
+                    {formatNumber(topArticle.readers)}
+                  </strong>
+                </span>
+                <span>
+                  Completion:{" "}
+                  <strong className="text-foreground">
+                    {formatPct(topArticle.completionRate)}
+                  </strong>
+                </span>
               </div>
             </div>
           )}
 
-          <Link href="/admin/stories" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+          <Link
+            href="/admin/analytics"
+            className="mt-4 inline-block text-sm font-semibold text-primary hover:underline"
+          >
             View Content Analytics →
           </Link>
         </>
       ) : (
-        <p className="mt-4 text-sm text-muted-foreground">No analytics data yet. Content performance will appear once readers start viewing articles.</p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          No analytics data yet. Content performance will appear once readers
+          start viewing articles.
+        </p>
       )}
     </div>
   );
@@ -111,7 +180,9 @@ export function ContentPerformanceCard() {
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-0.5 text-xl font-bold tabular-nums">{value}</div>
     </div>
   );

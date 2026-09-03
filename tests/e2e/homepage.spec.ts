@@ -66,7 +66,7 @@ test.describe("Homepage", () => {
 
     // Programmes section
     await expect(
-      page.locator("main").getByRole("heading", { name: /four connected programmes/i })
+      page.locator("main").getByRole("heading", { name: /our areas of work/i })
     ).toBeVisible();
 
     // Final CTA

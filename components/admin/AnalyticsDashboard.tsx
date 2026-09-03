@@ -1,25 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { StoryRow } from "@/lib/db/stories";
 import {
   DonutChart,
   LineChart,
-  Sparkline,
   type DonutSlice,
   type LinePoint,
 } from "@/components/admin/charts/Charts";
-
-/**
- * AnalyticsDashboard — the content analytics & intelligence dashboard for the
- * Stories & Insights admin page. Progressive disclosure: KPI summary → trend →
- * performance table → rankings → category intelligence. All data is fetched
- * from /api/admin/analytics (server-aggregated, never raw events).
- */
-
-// ---------------------------------------------------------------------------
-// Types matching the API responses
-// ---------------------------------------------------------------------------
+import { adminStoryHref, publicStoryHref } from "@/lib/analytics-identity";
 
 interface OverviewData {
   totalViews: number;
@@ -29,13 +18,16 @@ interface OverviewData {
   totalShares: number;
   organicClicks: number;
   ctaActions: number;
+  searchConsoleConnected?: boolean;
 }
 
 interface ArticleRow {
-  articleId: number;
+  analyticsArticleId: number;
+  storyId: number | null;
   slug: string;
   title: string;
-  status: "published" | "draft";
+  status: "published" | "inactive";
+  isActive: boolean;
   publishedDate: string;
   author: string | null;
   category: string;
@@ -71,8 +63,20 @@ interface CategoryRow {
 }
 
 type DatePreset = "7d" | "30d" | "90d" | "year" | "all" | "custom";
-type SortKey = "title" | "publishedDate" | "views" | "readers" | "avgEngagementSeconds" | "completionRate" | "shares" | "googleClicks" | "ctaActions" | "impactScore";
+type SortKey =
+  | "title"
+  | "publishedDate"
+  | "views"
+  | "readers"
+  | "avgEngagementSeconds"
+  | "completionRate"
+  | "shares"
+  | "googleClicks"
+  | "ctaActions"
+  | "impactScore";
 type SortDir = "asc" | "desc";
+
+type Tab = "overview" | "performance" | "rankings" | "categories";
 
 const PRESET_LABELS: Record<DatePreset, string> = {
   "7d": "Last 7 days",
@@ -97,76 +101,66 @@ const SOURCE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
 function formatDuration(seconds: number): string {
   if (!seconds) return "—";
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${remainder}s` : `${remainder}s`;
 }
 
 function formatPct(pct: number): string {
   return pct > 0 ? `${pct}%` : "—";
 }
 
-function changePct(current: number, previous: number): { value: number; up: boolean; neutral: boolean } {
-  if (previous === 0 && current === 0) return { value: 0, up: false, neutral: true };
-  if (previous === 0) return { value: 100, up: current > 0, neutral: false };
-  const change = ((current - previous) / previous) * 100;
-  return { value: Math.round(Math.abs(change) * 10) / 10, up: change >= 0, neutral: change === 0 };
-}
-
-// ---------------------------------------------------------------------------
-// KPI Card
-// ---------------------------------------------------------------------------
-
 function KpiCard({
   label,
   value,
   previousValue,
   format = "number",
-  sparkData,
+  unavailable = false,
+  note,
 }: {
   label: string;
   value: number;
   previousValue?: number;
   format?: "number" | "duration" | "percent";
-  sparkData?: number[];
+  unavailable?: boolean;
+  note?: string;
 }) {
-  const formatted =
-    format === "duration" ? formatDuration(value) :
-    format === "percent" ? formatPct(value) :
-    formatNumber(value);
-  const change = previousValue !== undefined ? changePct(value, previousValue) : null;
+  const rendered = unavailable
+    ? "—"
+    : format === "duration"
+      ? formatDuration(value)
+      : format === "percent"
+        ? formatPct(value)
+        : formatNumber(value);
+  let comparison = "";
+  if (!unavailable && previousValue !== undefined) {
+    if (previousValue === 0 && value === 0) comparison = "— vs previous";
+    else if (previousValue === 0) comparison = "↑ 100% vs previous";
+    else {
+      const change = ((value - previousValue) / previousValue) * 100;
+      comparison = `${change >= 0 ? "↑" : "↓"} ${Math.round(Math.abs(change) * 10) / 10}% vs previous`;
+    }
+  }
   return (
     <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-bold text-foreground">{formatted}</div>
-      <div className="mt-1 flex items-center gap-2">
-        {change && !change.neutral && (
-          <span className={`text-xs font-semibold ${change.up ? "text-success-fg" : "text-destructive-fg"}`}>
-            {change.up ? "↑" : "↓"} {change.value}% vs previous
-          </span>
-        )}
-        {change && change.neutral && (
-          <span className="text-xs text-muted-foreground">— vs previous</span>
-        )}
-        {sparkData && sparkData.length > 1 && <Sparkline data={sparkData} />}
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
       </div>
+      <div className="mt-1 text-2xl font-bold text-foreground">{rendered}</div>
+      {(note || comparison) && (
+        <div className="mt-1 text-xs text-muted-foreground">
+          {note || comparison}
+        </div>
+      )}
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Empty state
-// ---------------------------------------------------------------------------
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -176,58 +170,116 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Three-dot contextual menu
-// ---------------------------------------------------------------------------
-
-function RowMenu({ article, onEdit, onDelete }: {
+function RowMenu({
+  article,
+  onEdit,
+  onDelete,
+}: {
   article: ArticleRow;
-  onEdit: (a: ArticleRow) => void;
-  onDelete: (a: ArticleRow) => void;
+  onEdit?: (article: ArticleRow) => void;
+  onDelete?: (article: ArticleRow) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const adminHref = adminStoryHref(article);
+  const publicHref = publicStoryHref(article);
+
   return (
     <div className="relative inline-block">
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((value) => !value)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         className="rounded-lg p-1.5 text-muted-foreground hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={`Actions for ${article.title}`}
         aria-expanded={open}
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>
+        ⋮
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-1 w-44 rounded-lg border border-border bg-white py-1 shadow-lg">
-          <a href={`/stories/${article.slug}`} target="_blank" rel="noopener noreferrer" className="block px-3 py-1.5 text-sm hover:bg-slate-50">Preview</a>
-          <a href={`/admin/stories/${article.articleId}`} className="block px-3 py-1.5 text-sm hover:bg-slate-50">View analytics</a>
-          <button type="button" onMouseDown={() => onEdit(article)} className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50">Edit</button>
-          <button type="button" onMouseDown={() => navigator.clipboard?.writeText(`${window.location.origin}/stories/${article.slug}`)} className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50">Copy link</button>
-          <div className="my-1 border-t border-border" />
-          <button type="button" onMouseDown={() => onDelete(article)} className="block w-full px-3 py-1.5 text-left text-sm text-destructive-fg hover:bg-red-50">Delete</button>
+        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-border bg-white py-1 shadow-lg">
+          <a
+            href={publicHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+          >
+            View public story
+          </a>
+          {adminHref ? (
+            <>
+              <a
+                href={`${adminHref}?tab=analytics`}
+                className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+              >
+                View analytics
+              </a>
+              {onEdit ? (
+                <button
+                  type="button"
+                  onMouseDown={() => onEdit(article)}
+                  className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                >
+                  Edit
+                </button>
+              ) : (
+                <a
+                  href={`${adminHref}?tab=edit`}
+                  className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+                >
+                  Edit
+                </a>
+              )}
+            </>
+          ) : (
+            <div className="px-3 py-1.5 text-xs text-muted-foreground">
+              Static story — no editorial DB record
+            </div>
+          )}
+          <button
+            type="button"
+            onMouseDown={() =>
+              navigator.clipboard?.writeText(`${window.location.origin}${publicHref}`)
+            }
+            className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+          >
+            Copy public link
+          </button>
+          {adminHref && onDelete && (
+            <>
+              <div className="my-1 border-t border-border" />
+              <button
+                type="button"
+                onMouseDown={() => onDelete(article)}
+                className="block w-full px-3 py-1.5 text-left text-sm text-destructive-fg hover:bg-red-50"
+              >
+                Delete
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main dashboard component
-// ---------------------------------------------------------------------------
-
 interface AnalyticsDashboardProps {
-  stories: StoryRow[];
-  onEditStory: (story: StoryRow) => void;
-  onDeleteStory: (story: StoryRow) => void;
+  stories?: StoryRow[];
+  /** Called when the user clicks "Edit" on a row. If omitted, a link to the edit page is used instead. */
+  onEditStory?: (story: StoryRow) => void;
+  /** Called when the user clicks "Delete" on a row. If omitted, the delete action is hidden. */
+  onDeleteStory?: (story: StoryRow) => void;
 }
 
-export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({
+  stories,
+  onEditStory,
+  onDeleteStory,
+}: AnalyticsDashboardProps) {
   const [range, setRange] = useState<DatePreset>("30d");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [compare, setCompare] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "performance" | "rankings" | "categories">("overview");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [previousOverview, setPreviousOverview] = useState<OverviewData | null>(null);
@@ -235,48 +287,60 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
   const [traffic, setTraffic] = useState<TrafficRow[]>([]);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [trendData, setTrendData] = useState<LinePoint[]>([]);
-  const [trendMetric, setTrendMetric] = useState<string>("views");
+  const [trendMetric, setTrendMetric] = useState("views");
   const [dbAvailable, setDbAvailable] = useState(true);
-
-  // Table state
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [authorFilter, setAuthorFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [authorFilter, setAuthorFilter] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("views");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showFilters, setShowFilters] = useState(false);
 
-  const buildQuery = useCallback((report: string, extra?: Record<string, string>) => {
-    const params = new URLSearchParams({ report, range });
-    if (range === "custom" && customStart && customEnd) {
-      params.set("start", customStart);
-      params.set("end", customEnd);
-    }
-    if (compare) params.set("compare", "1");
-    if (extra) {
-      for (const [k, v] of Object.entries(extra)) params.set(k, v);
-    }
-    return `/api/admin/analytics?${params.toString()}`;
-  }, [range, customStart, customEnd, compare]);
+  const buildQuery = useCallback(
+    (report: string, extra?: Record<string, string>) => {
+      const params = new URLSearchParams({ report, range });
+      if (range === "custom" && customStart && customEnd) {
+        params.set("start", customStart);
+        params.set("end", customEnd);
+      }
+      if (compare) params.set("compare", "1");
+      for (const [key, value] of Object.entries(extra ?? {})) {
+        params.set(key, value);
+      }
+      return `/api/admin/analytics?${params.toString()}`;
+    },
+    [range, customStart, customEnd, compare],
+  );
 
   const fetchAll = useCallback(async () => {
     try {
-      const [ovRes, artRes, trafficRes, catRes, trendRes] = await Promise.all([
-        fetch(buildQuery("overview")).then((r) => r.json()),
-        fetch(buildQuery("articles")).then((r) => r.json()),
-        fetch(buildQuery("traffic")).then((r) => r.json()),
-        fetch(buildQuery("categories")).then((r) => r.json()),
-        fetch(buildQuery("trend", { metric: trendMetric })).then((r) => r.json()),
-      ]);
-      if (ovRes.error === "db") { setDbAvailable(false); setLoading(false); return; }
+      const [overviewResponse, articleResponse, trafficResponse, categoryResponse, trendResponse] =
+        await Promise.all([
+          fetch(buildQuery("overview")).then((response) => response.json()),
+          fetch(buildQuery("articles")).then((response) => response.json()),
+          fetch(buildQuery("traffic")).then((response) => response.json()),
+          fetch(buildQuery("categories")).then((response) => response.json()),
+          fetch(buildQuery("trend", { metric: trendMetric })).then((response) =>
+            response.json(),
+          ),
+        ]);
+      if (overviewResponse.error === "db") {
+        setDbAvailable(false);
+        return;
+      }
       setDbAvailable(true);
-      setOverview(ovRes.current ?? null);
-      setPreviousOverview(ovRes.previous ?? null);
-      setArticles(artRes.articles ?? []);
-      setTraffic(trafficRes.traffic ?? []);
-      setCategories(catRes.categories ?? []);
-      setTrendData((trendRes.trend ?? []).map((t: { day: string; value: number }) => ({ label: t.day, value: t.value })));
+      setOverview(overviewResponse.current ?? null);
+      setPreviousOverview(overviewResponse.previous ?? null);
+      setArticles(articleResponse.articles ?? []);
+      setTraffic(trafficResponse.traffic ?? []);
+      setCategories(categoryResponse.categories ?? []);
+      setTrendData(
+        (trendResponse.trend ?? []).map((point: { day: string; value: number }) => ({
+          label: point.day,
+          value: point.value,
+        })),
+      );
     } catch {
       setDbAvailable(false);
     } finally {
@@ -285,143 +349,164 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
   }, [buildQuery, trendMetric]);
 
   useEffect(() => {
-    if (range !== "custom" || (customStart && customEnd)) {
-      // Defer the fetch so setLoading doesn't run synchronously in the effect.
-      let cancelled = false;
-      Promise.resolve().then(async () => {
-        if (cancelled) return;
-        setLoading(true);
-        await fetchAll();
-      });
-      return () => { cancelled = true; };
-    }
+    if (range === "custom" && (!customStart || !customEnd)) return;
+    let cancelled = false;
+    Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setLoading(true);
+      await fetchAll();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchAll, range, customStart, customEnd]);
 
-  // Refetch trend when metric changes.
-  useEffect(() => {
-    if (range === "custom" && (!customStart || !customEnd)) return;
-    fetch(buildQuery("trend", { metric: trendMetric }))
-      .then((r) => r.json())
-      .then((d) => setTrendData((d.trend ?? []).map((t: { day: string; value: number }) => ({ label: t.day, value: t.value }))))
-      .catch(() => {});
-  }, [trendMetric, buildQuery, range, customStart, customEnd]);
-
-  // Derived data
   const categoriesList = useMemo(
-    () => [...new Set(stories.map((s) => s.category))].sort(),
-    [stories]
+    () => [...new Set(articles.map((article) => article.category))].sort(),
+    [articles],
   );
   const authorsList = useMemo(
-    () => [...new Set(stories.map((s) => s.author).filter(Boolean))] as string[],
-    [stories]
+    () =>
+      [...new Set(articles.map((article) => article.author).filter(Boolean))].sort() as string[],
+    [articles],
   );
 
   const filteredArticles = useMemo(() => {
     let result = [...articles];
     if (search) {
-      const q = search.toLowerCase();
-      result = result.filter((a) => a.title.toLowerCase().includes(q) || a.slug.includes(q));
+      const query = search.toLowerCase();
+      result = result.filter(
+        (article) =>
+          article.title.toLowerCase().includes(query) ||
+          article.slug.toLowerCase().includes(query),
+      );
     }
-    if (statusFilter !== "all") result = result.filter((a) => a.status === statusFilter);
-    if (categoryFilter !== "all") result = result.filter((a) => a.category === categoryFilter);
-    if (authorFilter !== "all") result = result.filter((a) => a.author === authorFilter);
-    result.sort((a, b) => {
-      const av = a[sortKey];
-      const bv = b[sortKey];
-      if (typeof av === "string" && typeof bv === "string") {
-        return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+    if (statusFilter !== "all") {
+      result = result.filter((article) => article.status === statusFilter);
+    }
+    if (categoryFilter !== "all") {
+      result = result.filter((article) => article.category === categoryFilter);
+    }
+    if (authorFilter !== "all") {
+      result = result.filter((article) => article.author === authorFilter);
+    }
+    result.sort((left, right) => {
+      const a = left[sortKey];
+      const b = right[sortKey];
+      if (typeof a === "string" && typeof b === "string") {
+        return sortDir === "asc" ? a.localeCompare(b) : b.localeCompare(a);
       }
-      return sortDir === "asc" ? (av as number) - (bv as number) : (bv as number) - (av as number);
+      return sortDir === "asc"
+        ? Number(a) - Number(b)
+        : Number(b) - Number(a);
     });
     return result;
   }, [articles, search, statusFilter, categoryFilter, authorFilter, sortKey, sortDir]);
 
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
+  function handleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((direction) => (direction === "asc" ? "desc" : "asc"));
+    else {
       setSortKey(key);
       setSortDir("desc");
     }
-  };
+  }
 
-  const handleEdit = (a: ArticleRow) => {
-    const story = stories.find((s) => s.id === a.articleId);
-    if (story) onEditStory(story);
-  };
-  const handleDelete = (a: ArticleRow) => {
-    const story = stories.find((s) => s.id === a.articleId);
-    if (story) onDeleteStory(story);
-  };
+  function resolveEditorialStory(article: ArticleRow): StoryRow | null {
+    if (article.storyId == null) return null;
+    return (stories ?? []).find((story) => story.id === article.storyId) ?? null;
+  }
 
-  const handleExport = () => {
-    const params = new URLSearchParams({ range });
-    if (range === "custom" && customStart && customEnd) {
-      params.set("start", customStart);
-      params.set("end", customEnd);
-    }
-    window.open(`/api/admin/analytics/export?${params.toString()}`, "_blank");
-  };
+  // When the host route does not supply edit/delete callbacks (e.g. the
+  // standalone /admin/analytics page), pass `undefined` to RowMenu so it
+  // falls back to a link-based Edit action and hides Delete entirely.
+  // Returning `undefined` (rather than a no-op function) is what lets
+  // RowMenu's `if (onEdit)` / `if (onDelete)` branches work correctly.
+  const handleEdit = onEditStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onEditStory(story);
+      }
+    : undefined;
 
-  const donutData: DonutSlice[] = traffic.map((t) => ({
-    label: SOURCE_LABELS[t.sourceGroup] ?? t.sourceGroup,
-    value: t.readers,
+  const handleDelete = onDeleteStory
+    ? (article: ArticleRow) => {
+        const story = resolveEditorialStory(article);
+        if (story) onDeleteStory(story);
+      }
+    : undefined;
+
+  const donutData: DonutSlice[] = traffic.map((source) => ({
+    label: SOURCE_LABELS[source.sourceGroup] ?? source.sourceGroup,
+    value: source.readers,
   }));
-
-  const trendUnit = trendMetric === "engagement" ? "s" : "";
 
   if (!dbAvailable) {
     return (
       <div className="mt-8">
-        <EmptyState message="Analytics database tables are not set up yet. Run `node scripts/setup-db.mjs` to create the analytics tables, then reload this page." />
+        <EmptyState message="Analytics database tables are not available. Check the configured database and analytics migrations." />
       </div>
     );
   }
 
   return (
     <div className="mt-8 space-y-6">
-      {/* Date filter bar */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-white p-4 shadow-sm">
         <div className="flex flex-wrap gap-1.5">
-          {(Object.keys(PRESET_LABELS) as DatePreset[]).filter((p) => p !== "custom").map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setRange(p)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${range === p ? "bg-primary text-white" : "border border-border bg-white hover:bg-slate-50"}`}
-            >
-              {PRESET_LABELS[p]}
-            </button>
-          ))}
+          {(Object.keys(PRESET_LABELS) as DatePreset[])
+            .filter((preset) => preset !== "custom")
+            .map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setRange(preset)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                  range === preset
+                    ? "bg-primary text-white"
+                    : "border border-border bg-white hover:bg-slate-50"
+                }`}
+              >
+                {PRESET_LABELS[preset]}
+              </button>
+            ))}
           <button
             type="button"
             onClick={() => setRange("custom")}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${range === "custom" ? "bg-primary text-white" : "border border-border bg-white hover:bg-slate-50"}`}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+              range === "custom"
+                ? "bg-primary text-white"
+                : "border border-border bg-white hover:bg-slate-50"
+            }`}
           >
             Custom
           </button>
         </div>
         {range === "custom" && (
           <div className="flex items-center gap-2">
-            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="rounded-lg border border-border px-2 py-1.5 text-sm" />
+            <input
+              type="date"
+              value={customStart}
+              onChange={(event) => setCustomStart(event.target.value)}
+              className="rounded-lg border border-border px-2 py-1.5 text-sm"
+            />
             <span className="text-muted-foreground">to</span>
-            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="rounded-lg border border-border px-2 py-1.5 text-sm" />
+            <input
+              type="date"
+              value={customEnd}
+              onChange={(event) => setCustomEnd(event.target.value)}
+              className="rounded-lg border border-border px-2 py-1.5 text-sm"
+            />
           </div>
         )}
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={compare}
+            onChange={(event) => setCompare(event.target.checked)}
+          />
           Compare to previous period
         </label>
-        <button
-          type="button"
-          onClick={handleExport}
-          className="ml-auto rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
-        >
-          Export CSV
-        </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 border-b border-border">
         {([
           ["overview", "Overview"],
@@ -433,7 +518,11 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
             key={key}
             type="button"
             onClick={() => setActiveTab(key)}
-            className={`border-b-2 px-4 py-2 text-sm font-semibold ${activeTab === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`border-b-2 px-4 py-2 text-sm font-semibold ${
+              activeTab === key
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
           >
             {label}
           </button>
@@ -442,26 +531,64 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
 
       {loading && <p className="text-sm text-muted-foreground">Loading analytics…</p>}
 
-      {/* ---- Overview tab ---- */}
       {!loading && activeTab === "overview" && overview && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-7">
-            <KpiCard label="Article views" value={overview.totalViews} previousValue={previousOverview?.totalViews} />
-            <KpiCard label="Unique readers" value={overview.uniqueReaders} previousValue={previousOverview?.uniqueReaders} />
-            <KpiCard label="Avg. engagement" value={overview.avgEngagementSeconds} previousValue={previousOverview?.avgEngagementSeconds} format="duration" />
-            <KpiCard label="Avg. completion" value={overview.avgCompletionRate} previousValue={previousOverview?.avgCompletionRate} format="percent" />
-            <KpiCard label="Total shares" value={overview.totalShares} previousValue={previousOverview?.totalShares} />
-            <KpiCard label="Google clicks" value={overview.organicClicks} previousValue={previousOverview?.organicClicks} />
-            <KpiCard label="CTA actions" value={overview.ctaActions} previousValue={previousOverview?.ctaActions} />
+            <KpiCard
+              label="Article views"
+              value={overview.totalViews}
+              previousValue={previousOverview?.totalViews}
+            />
+            <KpiCard
+              label="Unique readers"
+              value={overview.uniqueReaders}
+              previousValue={previousOverview?.uniqueReaders}
+            />
+            <KpiCard
+              label="Avg. engagement"
+              value={overview.avgEngagementSeconds}
+              previousValue={previousOverview?.avgEngagementSeconds}
+              format="duration"
+            />
+            <KpiCard
+              label="Avg. completion"
+              value={overview.avgCompletionRate}
+              previousValue={previousOverview?.avgCompletionRate}
+              format="percent"
+            />
+            <KpiCard
+              label="Total shares"
+              value={overview.totalShares}
+              previousValue={previousOverview?.totalShares}
+            />
+            <KpiCard
+              label="Google clicks"
+              value={overview.organicClicks}
+              unavailable={overview.searchConsoleConnected === false}
+              note={
+                overview.searchConsoleConnected === false
+                  ? "Search Console not connected"
+                  : "Current Search Console query window"
+              }
+            />
+            <KpiCard
+              label="CTA actions"
+              value={overview.ctaActions}
+              previousValue={previousOverview?.ctaActions}
+            />
           </div>
 
-          {/* Trend chart */}
           <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold">Performance over time</h3>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-base font-semibold">Performance over time</h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Daily rollup metrics for the selected period.
+                </p>
+              </div>
               <select
                 value={trendMetric}
-                onChange={(e) => setTrendMetric(e.target.value)}
+                onChange={(event) => setTrendMetric(event.target.value)}
                 className="rounded-lg border border-border px-2 py-1 text-sm"
               >
                 <option value="views">Views</option>
@@ -472,25 +599,27 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
                 <option value="cta_conversions">CTA conversions</option>
               </select>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Daily {trendMetric.replace(/_/g, " ")} for the selected period. Each chart shows one metric to avoid mixing scales.</p>
             <div className="mt-4">
-              {trendData.length > 1 ? (
-                <LineChart data={trendData} unit={trendUnit} />
+              {trendMetric === "google_clicks" ? (
+                <EmptyState message="Daily Google-click trend is unavailable because Search Console is currently stored as a query-window cache, not daily data." />
+              ) : trendData.length > 1 ? (
+                <LineChart
+                  data={trendData}
+                  unit={trendMetric === "engagement" ? "s" : ""}
+                />
               ) : (
-                <EmptyState message="Not enough data yet. Trend data will appear once readers start viewing articles." />
+                <EmptyState message="Not enough daily data yet for this trend." />
               )}
             </div>
           </div>
 
-          {/* Traffic sources */}
           <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
             <h3 className="text-base font-semibold">Where readers come from</h3>
-            <p className="mt-1 text-xs text-muted-foreground">Traffic source attribution including UTM support. UTMs are not stripped before attribution.</p>
             <div className="mt-4 grid gap-6 lg:grid-cols-2">
-              {donutData.length > 0 ? (
+              {donutData.length ? (
                 <DonutChart data={donutData} />
               ) : (
-                <EmptyState message="Traffic source data will appear once readers start arriving." />
+                <EmptyState message="Traffic source data will appear once readers arrive." />
               )}
               {traffic.length > 0 && (
                 <div className="overflow-x-auto">
@@ -505,13 +634,23 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
                       </tr>
                     </thead>
                     <tbody>
-                      {traffic.map((t) => (
-                        <tr key={t.sourceGroup} className="border-b border-border/50">
-                          <td className="py-2 pr-4 font-medium">{SOURCE_LABELS[t.sourceGroup] ?? t.sourceGroup}</td>
-                          <td className="py-2 pr-4 text-right">{formatNumber(t.readers)}</td>
-                          <td className="py-2 pr-4 text-right text-muted-foreground">{t.percentage}%</td>
-                          <td className="py-2 pr-4 text-right text-muted-foreground">{formatDuration(t.engagementSeconds)}</td>
-                          <td className="py-2 text-right text-muted-foreground">{formatPct(t.completionRate)}</td>
+                      {traffic.map((source) => (
+                        <tr key={source.sourceGroup} className="border-b border-border/50">
+                          <td className="py-2 pr-4 font-medium">
+                            {SOURCE_LABELS[source.sourceGroup] ?? source.sourceGroup}
+                          </td>
+                          <td className="py-2 pr-4 text-right">
+                            {formatNumber(source.readers)}
+                          </td>
+                          <td className="py-2 pr-4 text-right text-muted-foreground">
+                            {source.percentage}%
+                          </td>
+                          <td className="py-2 pr-4 text-right text-muted-foreground">
+                            {formatDuration(source.engagementSeconds)}
+                          </td>
+                          <td className="py-2 text-right text-muted-foreground">
+                            {formatPct(source.completionRate)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -523,151 +662,213 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
         </div>
       )}
 
-      {/* ---- Performance table tab ---- */}
       {!loading && activeTab === "performance" && (
         <div className="space-y-4">
-          {/* Search + filter toggle */}
           <div className="flex flex-wrap items-center gap-3">
             <input
               type="search"
               placeholder="Search by title…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
               className="w-full max-w-xs rounded-lg border border-border px-3 py-2 text-sm"
             />
             <button
               type="button"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => setShowFilters((value) => !value)}
               className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium hover:bg-slate-50"
             >
               Filters {showFilters ? "▲" : "▼"}
             </button>
           </div>
+
           {showFilters && (
             <div className="flex flex-wrap gap-3 rounded-lg border border-border bg-surface p-4">
-              <label className="text-sm">
-                <span className="block text-xs text-muted-foreground">Status</span>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="mt-1 rounded-lg border border-border px-2 py-1.5 text-sm">
-                  <option value="all">All</option>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                </select>
-              </label>
-              <label className="text-sm">
-                <span className="block text-xs text-muted-foreground">Category</span>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="mt-1 rounded-lg border border-border px-2 py-1.5 text-sm">
-                  <option value="all">All</option>
-                  {categoriesList.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </label>
-              <label className="text-sm">
-                <span className="block text-xs text-muted-foreground">Author</span>
-                <select value={authorFilter} onChange={(e) => setAuthorFilter(e.target.value)} className="mt-1 rounded-lg border border-border px-2 py-1.5 text-sm">
-                  <option value="all">All</option>
-                  {authorsList.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </label>
+              <FilterSelect
+                label="Status"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  ["all", "All"],
+                  ["published", "Published"],
+                  ["inactive", "Inactive / historical"],
+                ]}
+              />
+              <FilterSelect
+                label="Category"
+                value={categoryFilter}
+                onChange={setCategoryFilter}
+                options={[["all", "All"], ...categoriesList.map((value) => [value, value] as [string, string])]}
+              />
+              <FilterSelect
+                label="Author"
+                value={authorFilter}
+                onChange={setAuthorFilter}
+                options={[["all", "All"], ...authorsList.map((value) => [value, value] as [string, string])]}
+              />
             </div>
           )}
 
-          {/* Table */}
           <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-sm">
             <table className="min-w-full divide-y divide-border text-sm">
               <thead className="bg-slate-50">
                 <tr>
                   {([
-                    ["title", "Article"], ["status", "Status"], ["publishedDate", "Published"],
-                    ["views", "Views"], ["readers", "Readers"], ["avgEngagementSeconds", "Engagement"],
-                    ["completionRate", "Completion"], ["shares", "Shares"], ["googleClicks", "Google"],
-                    ["ctaActions", "CTA"], ["impactScore", "Impact"],
+                    ["title", "Article"],
+                    ["publishedDate", "Published"],
+                    ["views", "Views"],
+                    ["readers", "Readers"],
+                    ["avgEngagementSeconds", "Engagement"],
+                    ["completionRate", "Completion"],
+                    ["shares", "Shares"],
+                    ["googleClicks", "Google"],
+                    ["ctaActions", "CTA"],
+                    ["impactScore", "Impact"],
                   ] as [SortKey, string][]).map(([key, label]) => (
-                    <th key={key} className="cursor-pointer whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground" onClick={() => handleSort(key)}>
+                    <th
+                      key={key}
+                      className="cursor-pointer whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      onClick={() => handleSort(key)}
+                    >
                       {label} {sortKey === key && (sortDir === "asc" ? "↑" : "↓")}
                     </th>
                   ))}
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Status
+                  </th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredArticles.length === 0 ? (
-                  <tr><td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">No articles match the current filters.</td></tr>
-                ) : filteredArticles.map((a) => (
-                  <tr key={a.articleId} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-3">
-                      <a href={`/admin/stories/${a.articleId}`} className="font-medium text-primary hover:underline">{a.title}</a>
-                      <div className="text-xs text-muted-foreground">/stories/{a.slug}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.status === "published" ? "bg-success-bg text-success-fg" : "bg-warning-bg text-warning-fg"}`}>
-                        {a.status === "published" ? "Published" : "Draft"}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{a.publishedDate}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatNumber(a.views)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatNumber(a.readers)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatDuration(a.avgEngagementSeconds)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatPct(a.completionRate)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatNumber(a.shares)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatNumber(a.googleClicks)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatNumber(a.ctaActions)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${a.impactScore >= 70 ? "bg-success-bg text-success-fg" : a.impactScore >= 40 ? "bg-warning-bg text-warning-fg" : "bg-slate-100 text-muted-foreground"}`}>
-                        {a.impactScore}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <RowMenu article={a} onEdit={handleEdit} onDelete={handleDelete} />
+                  <tr>
+                    <td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">
+                      No articles match the current filters.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredArticles.map((article) => {
+                    const adminHref = adminStoryHref(article);
+                    return (
+                      <tr
+                        key={article.analyticsArticleId}
+                        className="hover:bg-slate-50/50"
+                      >
+                        <td className="px-4 py-3">
+                          <a
+                            href={adminHref ? `${adminHref}?tab=analytics` : publicStoryHref(article)}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {article.title}
+                          </a>
+                          <div className="text-xs text-muted-foreground">
+                            /stories/{article.slug}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                          {article.publishedDate}
+                        </td>
+                        <Metric value={formatNumber(article.views)} />
+                        <Metric value={formatNumber(article.readers)} />
+                        <Metric value={formatDuration(article.avgEngagementSeconds)} muted />
+                        <Metric value={formatPct(article.completionRate)} muted />
+                        <Metric value={formatNumber(article.shares)} />
+                        <Metric value={formatNumber(article.googleClicks)} muted />
+                        <Metric value={formatNumber(article.ctaActions)} />
+                        <Metric value={String(article.impactScore)} />
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                              article.isActive
+                                ? "bg-success-bg text-success-fg"
+                                : "bg-slate-100 text-muted-foreground"
+                            }`}
+                          >
+                            {article.isActive ? "Published" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <RowMenu
+                            article={article}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* ---- Rankings tab ---- */}
       {!loading && activeTab === "rankings" && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <RankingCard title="Most viewed" articles={articles} metric="views" />
-          <RankingCard title="Most read / completed" articles={articles} metric="readers" />
-          <RankingCard title="Highest engagement" articles={articles} metric="avgEngagementSeconds" />
-          <RankingCard title="Most shared" articles={articles} metric="shares" />
-          <RankingCard title="Best Google performance" articles={articles} metric="googleClicks" />
-          <RankingCard title="Highest conversion" articles={articles} metric="ctaActions" />
-          <RankingCard title="Highest Impact Score" articles={articles} metric="impactScore" />
+          {([
+            ["Most viewed", "views"],
+            ["Most read / completed", "readers"],
+            ["Highest engagement", "avgEngagementSeconds"],
+            ["Most shared", "shares"],
+            ["Best Google performance", "googleClicks"],
+            ["Highest conversion", "ctaActions"],
+            ["Highest Impact Score", "impactScore"],
+          ] as [string, keyof ArticleRow][]).map(([title, metric]) => (
+            <RankingCard
+              key={title}
+              title={title}
+              articles={articles}
+              metric={metric}
+            />
+          ))}
         </div>
       )}
 
-      {/* ---- Category intelligence tab ---- */}
       {!loading && activeTab === "categories" && (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">Aggregate analytics by content category. Helps answer: <strong>what should Vantage write more about?</strong></p>
+          <p className="text-sm text-muted-foreground">
+            Aggregate analytics by content category. Search clicks reflect the
+            current Search Console query window.
+          </p>
           {categories.length === 0 ? (
-            <EmptyState message="Category intelligence will appear once published articles start receiving readers." />
+            <EmptyState message="Category intelligence will appear once analytics data exists." />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-sm">
               <table className="min-w-full divide-y divide-border text-sm">
                 <thead className="bg-slate-50">
                   <tr>
-                    {["Category", "Articles", "Total readers", "Avg readers/article", "Avg engagement", "Completion", "Search clicks", "Shares", "CTA conv.", "Avg impact"].map((h) => (
-                      <th key={h} className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                    {[
+                      "Category",
+                      "Articles",
+                      "Total readers",
+                      "Avg readers/article",
+                      "Avg engagement",
+                      "Completion",
+                      "Search clicks",
+                      "Shares",
+                      "CTA conv.",
+                    ].map((header) => (
+                      <th
+                        key={header}
+                        className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
+                        {header}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {categories.map((c) => (
-                    <tr key={c.category} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-3 font-medium">{c.category}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{c.articleCount}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{formatNumber(c.totalReaders)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatNumber(c.avgReadersPerArticle)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatDuration(c.avgEngagementSeconds)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatPct(c.completionRate)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatNumber(c.searchClicks)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{formatNumber(c.shares)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatPct(c.ctaConversionRate)}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{c.avgImpactScore || "—"}</td>
+                  {categories.map((category) => (
+                    <tr key={category.category}>
+                      <td className="px-4 py-3 font-medium">{category.category}</td>
+                      <Metric value={String(category.articleCount)} />
+                      <Metric value={formatNumber(category.totalReaders)} />
+                      <Metric value={formatNumber(category.avgReadersPerArticle)} muted />
+                      <Metric value={formatDuration(category.avgEngagementSeconds)} muted />
+                      <Metric value={formatPct(category.completionRate)} muted />
+                      <Metric value={formatNumber(category.searchClicks)} muted />
+                      <Metric value={formatNumber(category.shares)} />
+                      <Metric value={formatPct(category.ctaConversionRate)} muted />
                     </tr>
                   ))}
                 </tbody>
@@ -680,33 +881,91 @@ export function AnalyticsDashboard({ stories, onEditStory, onDeleteStory }: Anal
   );
 }
 
-// ---------------------------------------------------------------------------
-// Ranking card (for the Top Content tab)
-// ---------------------------------------------------------------------------
+function Metric({ value, muted = false }: { value: string; muted?: boolean }) {
+  return (
+    <td
+      className={`px-4 py-3 text-right tabular-nums ${
+        muted ? "text-muted-foreground" : ""
+      }`}
+    >
+      {value}
+    </td>
+  );
+}
 
-function RankingCard({ title, articles, metric }: {
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: [string, string][];
+}) {
+  return (
+    <label className="text-sm">
+      <span className="block text-xs text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-1 rounded-lg border border-border px-2 py-1.5 text-sm"
+      >
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function RankingCard({
+  title,
+  articles,
+  metric,
+}: {
   title: string;
   articles: ArticleRow[];
   metric: keyof ArticleRow;
 }) {
   const top = [...articles]
-    .sort((a, b) => (b[metric] as number) - (a[metric] as number))
+    .filter((article) => typeof article[metric] === "number")
+    .sort((left, right) => Number(right[metric]) - Number(left[metric]))
     .slice(0, 5);
-  const max = top.length > 0 ? (top[0][metric] as number) : 0;
-  const formatVal = (v: number) => metric === "avgEngagementSeconds" ? formatDuration(v) : formatNumber(v);
+
   return (
     <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
       <h3 className="text-sm font-semibold">{title}</h3>
       <div className="mt-3 space-y-2">
-        {top.length === 0 || max === 0 ? (
+        {top.length === 0 ? (
           <p className="text-sm text-muted-foreground">Not enough data yet.</p>
-        ) : top.map((a, i) => (
-          <div key={a.articleId} className="flex items-center gap-3">
-            <span className="w-5 text-xs font-bold text-muted-foreground">{i + 1}</span>
-            <a href={`/admin/stories/${a.articleId}`} className="flex-1 truncate text-sm font-medium text-primary hover:underline" title={a.title}>{a.title}</a>
-            <span className="text-sm tabular-nums text-muted-foreground">{formatVal(a[metric] as number)}</span>
-          </div>
-        ))}
+        ) : (
+          top.map((article, index) => (
+            <div
+              key={article.analyticsArticleId}
+              className="flex items-center gap-3"
+            >
+              <span className="w-5 text-xs font-bold text-muted-foreground">
+                {index + 1}
+              </span>
+              <a
+                href={publicStoryHref(article)}
+                className="flex-1 truncate text-sm font-medium text-primary hover:underline"
+                title={article.title}
+              >
+                {article.title}
+              </a>
+              <span className="text-sm tabular-nums text-muted-foreground">
+                {metric === "avgEngagementSeconds"
+                  ? formatDuration(Number(article[metric]))
+                  : formatNumber(Number(article[metric]))}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

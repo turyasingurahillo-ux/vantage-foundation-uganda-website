@@ -210,6 +210,32 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_actor_id ON audit_log(actor_id);
 --     soft-deleted (the admin UI labels orphaned rows as "removed article").
 -- ===========================================================================
 
+-- Analytics article registry. Maps every trackable published story (both
+-- static-manifest stories from content/stories.ts and database stories in the
+-- stories table) to a stable integer id used as article_id across all analytics
+-- tables. This decouples analytics identity from the editorial stories table so
+-- anonymous pageviews never need to create or modify editorial content records.
+--
+-- Seeded at build time by scripts/seed-analytics-registry.ts from all published
+-- stories (static + DB). The ingestion endpoint may also lazily create a row for
+-- a slug that has been validated as published via the canonical resolver — this
+-- is an analytics-only record (slug + cached title/category), NOT editorial
+-- content, and ensures no analytics is silently lost for stories published
+-- between builds.
+CREATE TABLE IF NOT EXISTS analytics_articles (
+  id SERIAL PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL DEFAULT '',
+  category TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT 'static' CHECK (source IN ('static', 'db')),
+  published_date DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_articles_slug ON analytics_articles(slug);
+CREATE INDEX IF NOT EXISTS idx_analytics_articles_source ON analytics_articles(source);
+
 -- Per-reader, per-article, per-day dedup + scroll-milestone tracking.
 -- One row per anonymous reader per article per calendar day. The reader_hash
 -- is an HMAC-SHA256 of the vantage_reader cookie value keyed with ADMIN_SECRET

@@ -25,8 +25,6 @@ function splitSql(sql) {
     const ch = sql[i];
     const next = sql[i + 1] ?? "";
 
-    // Handle line comments (-- ... \n). Must be checked before the semicolon
-    // branch so that semicolons inside comments don't trigger a split.
     if (inLineComment) {
       current += ch;
       if (ch === "\n") {
@@ -34,7 +32,13 @@ function splitSql(sql) {
       }
       continue;
     }
-    if (ch === "-" && next === "-" && !inSingleQuote && !inDoubleQuote && dollarTag === null) {
+    if (
+      ch === "-" &&
+      next === "-" &&
+      !inSingleQuote &&
+      !inDoubleQuote &&
+      dollarTag === null
+    ) {
       inLineComment = true;
       current += ch;
       continue;
@@ -43,7 +47,6 @@ function splitSql(sql) {
     current += ch;
 
     if (dollarTag !== null) {
-      // Inside a dollar-quoted block; look for the closing $tag$.
       if (ch === "$") {
         const rest = sql.slice(i);
         if (rest.startsWith(dollarTag)) {
@@ -60,7 +63,6 @@ function splitSql(sql) {
     } else if (ch === '"' && !inSingleQuote) {
       inDoubleQuote = !inDoubleQuote;
     } else if (ch === "$" && !inSingleQuote && !inDoubleQuote) {
-      // Check for dollar-quote start: $tag$
       const match = sql.slice(i).match(/^\$(\w*)\$/);
       if (match) {
         dollarTag = match[0];
@@ -68,7 +70,6 @@ function splitSql(sql) {
         i += match[0].length - 1;
       }
     } else if (ch === ";" && !inSingleQuote && !inDoubleQuote) {
-      // End of statement.
       const trimmed = current.trim();
       if (trimmed.length > 0) {
         statements.push(trimmed);
@@ -85,23 +86,66 @@ function splitSql(sql) {
   return statements;
 }
 
+async function executeScript(sql, script, label) {
+  for (const statement of splitSql(script)) {
+    await sql.query(statement);
+    console.log(`[${label}] Executed:`, statement.split("\n")[0].trim(), "...");
+  }
+}
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
     console.error("Error: DATABASE_URL is not set.");
-    console.error("Set it in your environment or in .env.local, then run this script again.");
+    console.error(
+      "Set it in your environment or in .env.local, then run this script again.",
+    );
     process.exit(1);
   }
 
   const sql = neon(url);
-  const schema = await readFile(join(__dirname, "..", "lib", "db", "schema.sql"), "utf8");
+  const schema = await readFile(
+    join(__dirname, "..", "lib", "db", "schema.sql"),
+    "utf8",
+  );
+  const analyticsLifecycle = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "phase2c-analytics-lifecycle.sql",
+    ),
+    "utf8",
+  );
+  const casePipeline = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "case-management-pipeline.sql",
+    ),
+    "utf8",
+  );
+  const orgPipeline = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "organisation-relationship-pipeline.sql",
+    ),
+    "utf8",
+  );
 
-  const statements = splitSql(schema);
-
-  for (const statement of statements) {
-    await sql.query(statement);
-    console.log("Executed:", statement.split("\n")[0].trim(), "...");
-  }
+  await executeScript(sql, schema, "schema");
+  await executeScript(sql, analyticsLifecycle, "phase2c-analytics-lifecycle");
+  await executeScript(sql, casePipeline, "case-management-pipeline");
+  await executeScript(sql, orgPipeline, "organisation-relationship-pipeline");
 
   console.log("Database setup complete.");
 }

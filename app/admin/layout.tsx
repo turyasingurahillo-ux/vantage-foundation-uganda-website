@@ -1,16 +1,30 @@
 import type { Metadata } from "next";
+import { Source_Sans_3 } from "next/font/google";
+import "../globals.css";
 
-// Centralized noindex for all admin routes. Individual admin pages can still
-// override this if needed, but this ensures no admin page is ever indexed
-// even if someone forgets to add robots metadata.
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-source-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  robots: { index: false, follow: false },
+  title: {
+    default: "Vantage Foundation Uganda",
+    template: `%s | Vantage Foundation Uganda`,
+  },
 };
 
-export default function AdminLayout({
+export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
-  return children;
+}>) {
+  return (
+    <html lang="en" className={`${sourceSans.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        {children}
+      </body>
+    </html>
+  );
 }

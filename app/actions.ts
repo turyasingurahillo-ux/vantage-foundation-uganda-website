@@ -22,6 +22,8 @@ import {
 } from "@/lib/email";
 import { sendContactNotification } from "@/lib/contact-notify";
 import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
+import { suggestCaseTypeFromCategory } from "@/lib/case-types";
+import { seedCaseFromContactSubmission } from "@/lib/db/cases";
 import { getDefaultInbox, resolveInboxFor } from "@/lib/contact-inbox";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -279,6 +281,24 @@ export async function submitContact(
         error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
         category,
       });
+    }
+
+    // Seed the case-workflow fields (source, suggested case type) on the
+    // freshly-stored row. Non-fatal: if the case migration has not run or the
+    // seed fails, the legacy message is already stored and the case defaults
+    // (source='website_form', workflow_status='new') apply via the column
+    // defaults. The suggested case type is derived from the contact category
+    // so the inbox starts with a reasonable triage hint; admins refine it.
+    if (messageId !== null) {
+      try {
+        await seedCaseFromContactSubmission(
+          messageId,
+          category,
+          suggestCaseTypeFromCategory(category),
+        );
+      } catch {
+        // Non-fatal — the message is already stored.
+      }
     }
   }
 

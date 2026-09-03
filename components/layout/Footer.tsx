@@ -10,6 +10,7 @@ import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/shared/So
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { I18nDictionary } from "@/lib/i18n/dictionaries";
 import { getPageContent } from "@/lib/i18n/content/pages";
+import { WhatsAppButtonClient } from "@/components/shared/WhatsAppButtonClient";
 
 export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18nDictionary }) {
   const n = dictionary.navigation;
@@ -167,6 +168,16 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
                 </a>
               </li>
             </ul>
+            <div className="mt-4">
+              <WhatsAppButtonClient
+                number={site.contact.whatsapp}
+                size="sm"
+                variant="outline"
+                context="footer quick contact"
+                position="footer"
+                className="border-white/30 text-white hover:bg-white/10"
+              />
+            </div>
             <div className="mt-4 space-y-2">
               {site.contact.offices.map((office, index) => (
                 <p key={office.label} className="inline-flex items-start gap-2 text-sm text-white/70">

@@ -60,6 +60,64 @@ otherwise the site shows a "Contact Vantage" link instead of an address.
 Full architecture, the anti-spam layers, and the outstanding Cloudflare/DNS/Gmail
 actions: **[docs/email-privacy-and-contact.md](docs/email-privacy-and-contact.md)**.
 
+## Case-management pipeline
+The contact system is not merely an inbox — it is an operational relationship
+and case-management pipeline. Vantage HQ should tell the organisation what each
+relationship needs next, who owns it, what decision was made, and what
+ultimately happened.
+
+**Architecture**: case fields are an additive enrichment of `contact_messages`,
+not a separate `cases` table. This avoids a destructive migration and avoids
+requiring joins for every existing message query. The legacy `status` field
+remains the message-delivery/correspondence state; new case fields use
+`workflow_status` and related columns.
+
+**Key files**:
+- `lib/case-types.ts` — shared domain model (workflow status, case type,
+  source, priority, risk, strategic value, outcome, decline reason, referral
+  outcome, programme, filters). Client/server safe — no secrets.
+- `lib/db/cases.ts` — case data access layer (seed from contact submission,
+  manual intake, search with operational filters, counts, upcoming actions,
+  update, notes, first-response stamping).
+- `lib/db/migrations/case-management-pipeline.sql` — additive, idempotent
+  schema migration. Wired into `scripts/setup-db.mjs`.
+- `app/api/admin/cases/update/route.ts` — case workflow updates (status,
+  owner, priority, next action, due date, outcome, decline, referral).
+  Audited.
+- `app/api/admin/cases/note/route.ts` — internal notes (never emailed, never
+  public). Audited.
+- `app/api/admin/cases/intake/route.ts` — manual external enquiry intake
+  (WhatsApp, phone, social media, referral, walk-in). Audited.
+
+**Separation of concerns**: a successful email reply sets the message delivery
+state to `replied` and stamps `first_response_at`, but does NOT change the
+case workflow state. Case closure requires an explicit operational decision
+and outcome. This directly supports the objective: Vantage HQ should know what
+happens next, who owns it and what ultimately happened.
+
+## WhatsApp quick-contact
+WhatsApp is the prominent quick-contact channel on the public site, while the
+structured contact form is preserved for formal enquiries. The WhatsApp number
+is a public contact channel — it is NOT the protected operational mailbox.
+
+**Key files**:
+- `content/site.ts` — `contact.whatsapp` field (display form, e.g.
+  "+256 786 585 216").
+- `lib/whatsapp.ts` — `normaliseWhatsAppNumber` (strips formatting, converts
+  local 0 prefix to 256 country code, handles 00 international prefix),
+  `buildWhatsAppUrl` (wa.me URL with prefilled message), aria-label builder.
+- `components/shared/WhatsAppButton.tsx` — server component (no JS needed).
+- `components/shared/WhatsAppButtonClient.tsx` — client component with
+  `whatsapp_contact_click` analytics tracking.
+- `app/api/analytics/whatsapp-click/route.ts` — privacy-safe ingestion
+  endpoint (no IPs, names, emails; anonymous reader cookie HMAC-hashed
+  server-side; rate-limited).
+
+**Public CTAs**: WhatsApp is the quick-contact path on `/contact`, `/get-
+involved`, and the footer. The structured form remains for formal partnership
+enquiries, grant/funding enquiries, safeguarding matters, and detailed
+requests requiring categorisation.
+
 ## Editing content
 All non-code content lives in the `content/` folder as TypeScript modules. To update a project, story, team member, partner or report, edit the relevant file. Placeholder data is marked with `[...]` or the `placeholder` boolean. Replace placeholder content with verified information before public launch.
 
@@ -96,10 +154,10 @@ Copy `.env.example` to `.env.local` and set:
 - `/admin/login` — sign in with a named admin username + password, or leave username blank and use `ADMIN_SECRET` (bootstrap mode, only when zero named admins exist). The first admin is created via bootstrap; subsequent logins should use named accounts.
 - `/admin/donations` — view and verify/reject donor submissions. Donations are stored with status `pending` and are only marked `verified` after an administrator confirms the transfer against the official bank statement. Every status change is written to the immutable `audit_log` with the actor identity, before/after state, and IP.
 - `/admin/media` — upload and manage photos, documents, and logos stored in Cloudflare R2. New uploads default to `pending` consent and `unpublished`; set both before publishing. The browser uploads directly to R2 via a presigned PUT URL (issued by `/api/admin/media/presign`), then the server confirms the object via HEAD and records it in the `media_objects` table. R2 object keys are stored (never signed URLs) so the DB stays stable; presigned GET URLs are minted at render time. Create/update/delete actions are written to `audit_log`.
-- `/admin/messages` — the contact inbox. Read submissions, filter by New / Awaiting response / Replied / Archived / All, search by sender, topic or body, and reply to the enquirer directly from the conversation view. Replies are stored in `contact_message_replies` (never appended to the original message) and sent through the shared `lib/email.ts` transport, threaded onto the previous reply via In-Reply-To/References. The recipient is read from the stored row — the browser only submits a message id — and each composer carries a one-shot idempotency key, so a double-click cannot send twice. A conversation only becomes `replied` once the provider accepts the mail; a rejected send is kept as `failed` and moves the conversation to `awaiting_response`. Replies and status changes are written to `audit_log`. "Resend internal notification" is a separate secondary action that re-notifies the team and does not email the enquirer. Inbound replies are Phase 2 — see docs/email-privacy-and-contact.md §7a.
+- `/admin/messages` — **Cases & Enquiries**, the case-management workspace. This is not merely a contact inbox — it tracks every relationship and enquiry through triage to outcome. The legacy message-delivery state (`status`: new / awaiting_response / replied / archived) is preserved for email correspondence tracking, and a separate case workflow state (`workflow_status`: new / triage / awaiting_vantage / awaiting_external / under_review / due_diligence / meeting_scheduled / decision_required / accepted / referred / declined / completed / archived) records what happens next in the relationship. A successful email reply sets the delivery state to `replied` and stamps `first_response_at` for SLA reporting, but does NOT complete the case — the admin decides what happens next via the workflow controls. Filter by workflow status, active cases, overdue actions, safeguarding concerns, high priority, or all. Search by sender, topic, case type or body. Reply to the enquirer directly from the conversation view. Internal notes (never emailed to the enquirer, never public) record operational context. Outcome, decline and referral controls record what ultimately happened. Manual "Log enquiry" intake creates cases from non-website sources (WhatsApp, phone, social media, referral, walk-in). Replies are stored in `contact_message_replies` (never appended to the original message) and sent through the shared `lib/email.ts` transport, threaded onto the previous reply via In-Reply-To/References. The recipient is read from the stored row — the browser only submits a message id — and each composer carries a one-shot idempotency key, so a double-click cannot send twice. A conversation only becomes `replied` once the provider accepts the mail; a rejected send is kept as `failed` and moves the conversation to `awaiting_response`. Replies, status changes, case updates, notes and intake are written to `audit_log`. "Resend internal notification" is a separate secondary action that re-notifies the team and does not email the enquirer. Inbound replies are Phase 2 — see docs/email-privacy-and-contact.md §7a. Case-management key files: `lib/case-types.ts` (domain model), `lib/db/cases.ts` (data layer), `lib/db/migrations/case-management-pipeline.sql` (additive schema), `app/api/admin/cases/{update,note,intake}/route.ts` (API routes).
 - `/admin/stories` — write, edit and publish Stories & Insights entries stored in the `stories` table. Stories can use Markdown bodies and optional hero images uploaded through the media presign flow. New entries default to drafts; publishing is explicit. Public `/stories` routes merge database entries with the static `content/stories.ts` manifest. The page now opens to a **Content Analytics & Intelligence Dashboard** with KPI summary, trend chart, traffic source breakdown, sortable performance table, Top Content rankings, and Category Intelligence. A view toggle switches to the story editor. CSV export is available for donor/board/grant reporting.
 - `/admin/stories/[id]` — individual article analytics view with Edit/Analytics tabs. The Analytics tab shows performance overview, Article Impact Score (0–100 composite), reading behaviour funnel (25/50/75/90% scroll milestones), traffic source attribution with UTM support, Google Search Console performance (when configured), sharing analytics by platform, CTA/impact tracking (donations, volunteering, partnerships, newsletter sign-ups), and a trend chart. The Edit tab provides the full story editor.
-- `/admin` — main admin dashboard with a Content Performance card summarising this month's content KPIs and the top performing article, plus quick links to donation verifications and other admin sections.
+- `/admin` — main admin dashboard with case-pipeline attention cards (untriaged, awaiting Vantage, overdue, safeguarding, high priority, active cases), upcoming actions (overdue/today/this week), legacy attention cards (pending donations, new messages, awaiting response, draft stories, media pending consent), a Content Performance card summarising this month's content KPIs and the top performing article, plus quick links to donation verifications and other admin sections.
 - `/admin/admins` — create and disable named admin accounts. Passwords are hashed with scrypt (`lib/password.ts`). Disabled admins cannot log in but are retained for audit history. Admins cannot disable their own account.
 - `/admin/audit` — read-only view of the immutable `audit_log` table. Every state-changing admin action (donation verification, media CRUD, admin create/disable) is recorded with the actor identity, before/after JSON snapshot, and IP address.
 

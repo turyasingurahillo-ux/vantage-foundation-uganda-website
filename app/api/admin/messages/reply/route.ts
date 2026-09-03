@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { z } from "zod";
 import {
   getContactMessageById,
   markContactMessageReplied,
@@ -12,12 +11,14 @@ import {
   markReplyFailed,
   markReplySent,
 } from "@/lib/db/contact-replies";
-import { REPLY_MAX_LENGTH, sendContactReply } from "@/lib/contact-reply";
+import { sendContactReply } from "@/lib/contact-reply";
+import { parseReplyForm } from "@/lib/reply-validation";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
+import { stampFirstResponseIfFirst } from "@/lib/db/cases";
 
 /**
  * Sends an administrator's reply to whoever submitted a contact form.
@@ -35,19 +36,19 @@ import { appendAuditLog } from "@/lib/db/audit";
  * called, then moved to `sent` or `failed`. The conversation is only marked
  * replied off the back of a `sent` row, so a provider rejection is never
  * displayed as a delivered reply, and a failed reply can be retried.
+ *
+ * Case model: a successful reply sets the MESSAGE DELIVERY state to `replied`
+ * (the legacy `status` column) and stamps `first_response_at` for SLA
+ * reporting, but does NOT change the CASE WORKFLOW state (`workflow_status`).
+ * The admin decides what happens next in the relationship — e.g. "please send
+ * your registration certificate" means the case is `awaiting_external`, not
+ * completed — via the case workspace controls. A failed reply does not mark
+ * the case resolved either; the conversation moves to `awaiting_response`.
+ *
+ * Validation lives in `lib/reply-validation.ts` so every failure mode maps
+ * onto a fixed application error code (`empty`, `too-long`, `invalid`) rather
+ * than leaking raw Zod messages into a redirect URL.
  */
-
-const schema = z.object({
-  id: z.coerce.number().int().positive(),
-  body: z
-    .string()
-    .trim()
-    .min(1, "empty")
-    .max(REPLY_MAX_LENGTH, "too-long"),
-  // Generated per composer mount. UNIQUE in the schema, so a double submit
-  // collapses onto the same row instead of sending twice.
-  idempotencyKey: z.string().min(8).max(100),
-});
 
 function back(request: Request, id: number | string, params: string) {
   return NextResponse.redirect(
@@ -78,15 +79,14 @@ export async function POST(request: Request) {
     return back(request, "", "error=csrf");
   }
 
-  const parsed = schema.safeParse({
+  const parsed = parseReplyForm({
     id: formData.get("id"),
     body: formData.get("body"),
     idempotencyKey: formData.get("idempotencyKey"),
   });
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0]?.message ?? "invalid";
+  if (!parsed.ok) {
     const rawId = String(formData.get("id") ?? "");
-    return back(request, rawId, `error=${encodeURIComponent(issue)}`);
+    return back(request, rawId, `error=${parsed.code}`);
   }
 
   const { id, body, idempotencyKey } = parsed.data;
@@ -145,6 +145,18 @@ export async function POST(request: Request) {
       result.providerStatus ?? null,
     );
     await markContactMessageReplied(message.id);
+
+    // Stamp the first-response timestamp for SLA reporting. This records
+    // when the first OUTBOUND reply was sent, separate from the case
+    // workflow status — a reply does NOT complete the case. The admin
+    // decides whether the case is now awaiting_external (e.g. "please send
+    // your registration certificate"), awaiting_vantage (e.g. "we will
+    // review this"), or another state, via the case workspace controls.
+    try {
+      await stampFirstResponseIfFirst(message.id);
+    } catch {
+      // Non-fatal — SLA stamp is bookkeeping, not gating.
+    }
 
     await appendAuditLog({
       actorId,
