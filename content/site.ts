@@ -37,7 +37,7 @@ export const site: SiteConfig = {
   socials: {
     instagram: "https://www.instagram.com/vantagefoundationuganda/",
     linkedin: "https://ug.linkedin.com/company/vantagefoundation",
-    youtube: "https://www.youtube.com/@vantagefoundation",
+    youtube: "https://www.youtube.com/@VantageFoundationUganda",
   },
   bankDetails: {
     bankName: "Housing Finance Bank",
