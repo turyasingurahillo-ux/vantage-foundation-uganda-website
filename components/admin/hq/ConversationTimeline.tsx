@@ -7,6 +7,7 @@ interface ConversationTimelineProps {
   message: ContactMessageRow;
   replies: ContactReplyRow[];
   adminNames: Record<string, string>;
+  onRetry?: (reply: ContactReplyRow) => void;
 }
 
 function actorLabel(
@@ -30,6 +31,7 @@ export function ConversationTimeline({
   message,
   replies,
   adminNames,
+  onRetry,
 }: ConversationTimelineProps) {
   return (
     <div className="space-y-4">
@@ -105,11 +107,23 @@ export function ConversationTimeline({
             <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
               {reply.body}
             </p>
-            {reply.sendStatus === "failed" && reply.errorDetail && (
-              <p className="mt-2 text-xs text-destructive-fg">
-                Delivery failed: {reply.errorDetail}. Send a new reply to
-                retry.
-              </p>
+            {reply.sendStatus === "failed" && (
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {reply.errorDetail && (
+                  <p className="text-xs text-destructive-fg">
+                    Delivery failed: {reply.errorDetail}.
+                  </p>
+                )}
+                {isOutbound && onRetry && (
+                  <button
+                    type="button"
+                    onClick={() => onRetry(reply)}
+                    className="text-xs font-semibold text-primary underline hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    Retry this reply
+                  </button>
+                )}
+              </div>
             )}
           </div>
         );

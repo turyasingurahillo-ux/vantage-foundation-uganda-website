@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { formatDateTime, formatDate } from "@/lib/format";
@@ -84,6 +87,10 @@ export function CaseDetail({
   fromAddress,
   preserveParams,
 }: CaseDetailProps) {
+  const [retry, setRetry] = useState<{ id: number; body: string } | null>(
+    null,
+  );
+
   return (
     <div className="flex flex-col max-h-[70vh]">
       {/* Mobile back link */}
@@ -158,6 +165,7 @@ export function CaseDetail({
             message={caseRow}
             replies={replies}
             adminNames={adminNames}
+            onRetry={(reply) => setRetry({ id: reply.id, body: reply.body })}
           />
         </div>
 
@@ -171,6 +179,8 @@ export function CaseDetail({
             csrfToken={csrfToken}
             csrfFieldName={csrfFieldName}
             maxLength={REPLY_MAX_LENGTH}
+            retryOfReplyId={retry?.id}
+            initialBody={retry?.body ?? ""}
           />
         </div>
 
