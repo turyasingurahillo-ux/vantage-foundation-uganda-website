@@ -1,13 +1,11 @@
-import { site } from "@/content/site";
 import { Container } from "@/components/shared/Container";
 import { Sparkles, MapPin, Heart, Users } from "lucide-react";
+import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
-export function TrustStrip() {
+export function TrustStrip({ copy }: { copy: HomepageSectionContent["trust"] }) {
   const trustItems = [
-    { icon: Sparkles, text: `Youth-led since ${site.founded}` },
-    { icon: MapPin, text: "Uganda-based" },
-    { icon: Heart, text: "100% volunteer-run" },
-    { icon: Users, text: "Community-centred" },
+    { icon: Sparkles, text: copy[0] }, { icon: MapPin, text: copy[1] },
+    { icon: Heart, text: copy[2] }, { icon: Users, text: copy[3] },
   ];
 
   return (

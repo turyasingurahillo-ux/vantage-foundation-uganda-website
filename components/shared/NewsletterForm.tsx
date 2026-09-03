@@ -22,12 +22,25 @@ interface NewsletterFormProps {
   idPrefix?: string;
   /** Context-specific submit copy. */
   submitLabel?: string;
+  dictionary?: {
+    emailAddress: string;
+    enterEmail: string;
+    newsletterConsent: string;
+    subscribe: string;
+    subscribing: string;
+    unsubscribePrivacy: string;
+  };
+  privacyLabel?: string;
+  privacyHref?: string;
 }
 
 export function NewsletterForm({
   light = false,
   idPrefix = "newsletter",
   submitLabel = "Subscribe",
+  dictionary,
+  privacyLabel,
+  privacyHref,
 }: NewsletterFormProps) {
   const [state, formAction, pending] = useActionState(submitNewsletter, initialState);
   const emailId = `${idPrefix}-email`;
@@ -39,14 +52,14 @@ export function NewsletterForm({
     <form action={formAction} className="space-y-3" noValidate>
       <HoneypotFields />
       <label htmlFor={emailId} className="sr-only">
-        Email address
+        {dictionary?.emailAddress ?? "Email address"}
       </label>
       <input
         id={emailId}
         type="email"
         name="email"
         required
-        placeholder="Enter your email"
+        placeholder={dictionary?.enterEmail ?? "Enter your email"}
         className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         aria-invalid={state.fieldErrors?.email ? true : undefined}
         aria-describedby={state.fieldErrors?.email ? emailErrorId : undefined}
@@ -66,14 +79,19 @@ export function NewsletterForm({
           htmlFor={consentId}
           className={`text-xs ${light ? "text-white/90" : "text-muted-foreground"}`}
         >
-          I agree to receive updates from Vantage Foundation Uganda.
+          {dictionary?.newsletterConsent ?? "I agree to receive updates from Vantage Foundation Uganda."}
         </label>
       </div>
       <FieldError id={consentErrorId} message={state.fieldErrors?.consent} />
       <Button type="submit" disabled={pending} size="sm" className="w-full">
-        {pending ? "Subscribing..." : submitLabel}
+        {pending ? (dictionary?.subscribing ?? "Subscribing...") : (dictionary?.subscribe ?? submitLabel)}
       </Button>
-      <FormPrivacyNotice text="You can unsubscribe at any time. See our" light={light} />
+      <FormPrivacyNotice
+        text={dictionary?.unsubscribePrivacy ?? "You can unsubscribe at any time. See our"}
+        light={light}
+        privacyLabel={privacyLabel}
+        privacyHref={privacyHref}
+      />
       {state.message && (
         <p
           role="status"

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, List } from "lucide-react";
 import { ReadingProgress } from "@/components/shared/ReadingProgress";
 import { cn } from "@/lib/utils";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
 export interface GuideNavigationItem {
   id: string;
@@ -99,10 +101,13 @@ function NavigationLinks({
 export function GuideNavigation({
   items,
   targetId = "career-guide-content",
+  locale = "en",
 }: {
   items: GuideNavigationItem[];
   targetId?: string;
+  locale?: Locale;
 }) {
+  const t = getPageContent(locale).ui.guide;
   const [mobileOpen, setMobileOpen] = useState(false);
   const activeId = useActiveSection(items);
   const activeLabel = items.find((item) => item.id === activeId)?.label;
@@ -123,10 +128,10 @@ export function GuideNavigation({
             <List className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
             <span>
               <span className="block text-xs font-bold uppercase tracking-[0.08em] text-primary">
-                Jump to section
+                {t.jumpToSection}
               </span>
               <span className="block truncate text-sm text-slate-600">
-                {activeLabel ?? "Start here"}
+                {activeLabel ?? t.startHere}
               </span>
             </span>
           </span>
@@ -142,7 +147,7 @@ export function GuideNavigation({
           <nav
             id="guide-mobile-sections"
             className="max-h-[min(62vh,32rem)] overflow-y-auto border-t border-border pb-2 pt-3"
-            aria-label="Career guide sections"
+            aria-label={t.careerGuideSections}
           >
             <NavigationLinks
               items={items}
@@ -156,10 +161,10 @@ export function GuideNavigation({
       <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
         <nav
           className="max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain border-l border-border pl-4 pr-2"
-          aria-label="On this page"
+          aria-label={t.onThisPage}
         >
           <p className="mb-3 px-2.5 text-xs font-bold uppercase tracking-[0.1em] text-primary">
-            On this page
+            {t.onThisPage}
           </p>
           <NavigationLinks items={items} activeId={activeId} />
         </nav>

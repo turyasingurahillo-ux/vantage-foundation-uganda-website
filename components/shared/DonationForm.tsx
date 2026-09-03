@@ -10,14 +10,29 @@ import { Button } from "@/components/ui/Button";
 import { HoneypotFields } from "@/components/shared/HoneypotFields";
 import { FieldError } from "@/components/shared/FieldError";
 import { FormPrivacyNotice } from "@/components/shared/FormPrivacyNotice";
-import { suggestedAmounts, donationCampaigns } from "@/content/donate";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import type { DonationFormCopy, DonationCampaign } from "@/lib/i18n/content/engagement";
+
+interface DonationFormProps {
+  form: DonationFormCopy;
+  campaigns: DonationCampaign[];
+  suggestedAmounts: { value: number; label: string }[];
+  privacyLabel: string;
+  locale?: Locale;
+}
 
 const initialState: FormState = {
   success: false,
   message: "",
 };
 
-export function DonationForm() {
+export function DonationForm({
+  form,
+  campaigns,
+  suggestedAmounts,
+  privacyLabel,
+  locale = "en",
+}: DonationFormProps) {
   const [amount, setAmount] = useState<string>("");
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [custom, setCustom] = useState("");
@@ -31,7 +46,7 @@ export function DonationForm() {
 
       <fieldset>
         <legend>
-          <Label>Choose an amount (UGX)</Label>
+          <Label>{form.amountLegend}</Label>
         </legend>
         <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {suggestedAmounts.map((item) => (
@@ -56,12 +71,12 @@ export function DonationForm() {
       </fieldset>
 
       <div>
-        <Label htmlFor="custom-amount">Or enter a custom amount</Label>
+        <Label htmlFor="custom-amount">{form.customAmountLabel}</Label>
         <Input
           id="custom-amount"
           type="number"
           min={1}
-          placeholder="Enter amount in UGX"
+          placeholder={form.customAmountPlaceholder}
           value={custom}
           onChange={(e) => {
             setCustom(e.target.value);
@@ -76,7 +91,7 @@ export function DonationForm() {
 
       <fieldset>
         <legend>
-          <Label>Frequency</Label>
+          <Label>{form.frequencyLegend}</Label>
         </legend>
         <div className="mt-2 flex gap-2">
           <button
@@ -89,7 +104,7 @@ export function DonationForm() {
                 : "border-border bg-white hover:bg-surface"
             }`}
           >
-            One-time
+            {form.oneTime}
           </button>
           <button
             type="button"
@@ -101,18 +116,18 @@ export function DonationForm() {
                 : "border-border bg-white hover:bg-surface"
             }`}
           >
-            Monthly pledge
+            {form.monthly}
           </button>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          A monthly pledge is a manual commitment, not an automatic recurring payment.
+          {form.frequencyNote}
         </p>
       </fieldset>
 
       <input type="hidden" name="frequency" value={frequency} />
 
       <div>
-        <Label htmlFor="campaign">Support a specific project</Label>
+        <Label htmlFor="campaign">{form.campaignLabel}</Label>
         <Select
           id="campaign"
           name="campaign"
@@ -121,7 +136,7 @@ export function DonationForm() {
           aria-invalid={state.fieldErrors?.campaign ? true : undefined}
           aria-describedby={state.fieldErrors?.campaign ? "campaign-error" : undefined}
         >
-          {donationCampaigns.map((campaign) => (
+          {campaigns.map((campaign) => (
             <option key={campaign.id} value={campaign.id}>
               {campaign.label}
             </option>
@@ -131,7 +146,7 @@ export function DonationForm() {
       </div>
 
       <div>
-        <Label htmlFor="donor-name">Name</Label>
+        <Label htmlFor="donor-name">{form.nameLabel}</Label>
         <Input
           id="donor-name"
           name="name"
@@ -144,7 +159,7 @@ export function DonationForm() {
       </div>
 
       <div>
-        <Label htmlFor="donor-email">Email</Label>
+        <Label htmlFor="donor-email">{form.emailLabel}</Label>
         <Input
           id="donor-email"
           name="email"
@@ -158,32 +173,36 @@ export function DonationForm() {
       </div>
 
       <div>
-        <Label htmlFor="donor-phone">Phone (optional)</Label>
+        <Label htmlFor="donor-phone">{form.phoneLabel}</Label>
         <Input id="donor-phone" name="phone" type="tel" className="mt-1.5" />
       </div>
 
       <div>
         <Label htmlFor="donor-transaction">
-          Transaction reference (optional)
+          {form.transactionLabel}
         </Label>
         <Input
           id="donor-transaction"
           name="transactionReference"
-          placeholder="Bank transfer reference"
+          placeholder={form.transactionPlaceholder}
           className="mt-1.5"
         />
       </div>
 
       <div>
-        <Label htmlFor="donor-message">Message (optional)</Label>
+        <Label htmlFor="donor-message">{form.messageLabel}</Label>
         <Input id="donor-message" name="message" className="mt-1.5" />
       </div>
 
       <Button type="submit" disabled={pending || !displayAmount} className="w-full">
-        {pending ? "Submitting..." : "Confirm donation intent"}
+        {pending ? form.submitPending : form.submitLabel}
       </Button>
 
-      <FormPrivacyNotice text="We will only use your details to process your donation and send a receipt. See our" />
+      <FormPrivacyNotice
+        text={form.privacyNotice}
+        privacyLabel={privacyLabel}
+        privacyHref={localePath("/privacy", locale)}
+      />
 
       {state.message && (
         <p

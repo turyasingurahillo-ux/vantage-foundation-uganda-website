@@ -13,13 +13,24 @@ import { FormPrivacyNotice } from "@/components/shared/FormPrivacyNotice";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
 import { CONTACT_CATEGORIES } from "@/lib/contact-categories";
 import { CheckCircle2 } from "lucide-react";
+import { localePath, type Locale } from "@/lib/i18n/config";
+
+type ContactFormCopy = {
+  fullName: string; email: string; organisation: string; phone: string;
+  subject: string; selectCategory: string; categoryHint: string; message: string;
+  sending: string; sendMessage: string; messageReceived: string; replyTime: string;
+  contactPrivacy: string;
+  categories: Record<string, string>;
+};
 
 const initialState: FormState = {
   success: false,
   message: "",
 };
 
-export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }) {
+export function ContactForm({ defaultSubject = "", dictionary, locale = "en", privacyLabel = "Privacy Policy" }: {
+  defaultSubject?: string; dictionary?: ContactFormCopy; locale?: Locale; privacyLabel?: string;
+}) {
   const [state, formAction, pending] = useActionState(submitContact, initialState);
 
   // Success state: replace the form with a confirmation rather than leaving a
@@ -35,10 +46,10 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
           className="mx-auto h-10 w-10 text-success"
           aria-hidden="true"
         />
-        <h3 className="mt-4 text-lg font-semibold">Message received</h3>
+        <h3 className="mt-4 text-lg font-semibold">{dictionary?.messageReceived ?? "Message received"}</h3>
         <p className="mt-2 text-sm text-muted-foreground">{state.message}</p>
         <p className="mt-4 text-sm text-muted-foreground">
-          We aim to reply within five working days.
+          {dictionary?.replyTime ?? "We aim to reply within five working days."}
         </p>
       </div>
     );
@@ -50,7 +61,7 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
 
       <div>
         <Label htmlFor="name">
-          Full name <span aria-hidden="true">*</span>
+          {dictionary?.fullName ?? "Full name"} <span aria-hidden="true">*</span>
           <span className="sr-only">(required)</span>
         </Label>
         <Input
@@ -68,7 +79,7 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
 
       <div>
         <Label htmlFor="email">
-          Email <span aria-hidden="true">*</span>
+          {dictionary?.email ?? "Email"} <span aria-hidden="true">*</span>
           <span className="sr-only">(required)</span>
         </Label>
         <Input
@@ -86,7 +97,7 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
       </div>
 
       <div>
-        <Label htmlFor="organisation">Organisation (optional)</Label>
+        <Label htmlFor="organisation">{dictionary?.organisation ?? "Organisation"}</Label>
         <Input
           id="organisation"
           name="organisation"
@@ -105,7 +116,7 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
       </div>
 
       <div>
-        <Label htmlFor="phone">Phone (optional)</Label>
+        <Label htmlFor="phone">{dictionary?.phone ?? "Phone"}</Label>
         <Input
           id="phone"
           name="phone"
@@ -121,7 +132,7 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
 
       <div>
         <Label htmlFor="subject">
-          What is your message about? <span aria-hidden="true">*</span>
+          {dictionary?.subject ?? "What is your message about?"} <span aria-hidden="true">*</span>
           <span className="sr-only">(required)</span>
         </Label>
         <Select
@@ -135,22 +146,22 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
             state.fieldErrors?.subject ? "subject-error" : "subject-hint"
           }
         >
-          <option value="">Select a category</option>
+          <option value="">{dictionary?.selectCategory ?? "Select a category"}</option>
           {CONTACT_CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
-              {c.label}
+              {dictionary?.categories[c.value] ?? c.label}
             </option>
           ))}
         </Select>
         <p id="subject-hint" className="mt-1.5 text-xs text-muted-foreground">
-          Choosing a category helps us route your message to the right team.
+          {dictionary?.categoryHint ?? "Choosing a category helps us route your message to the right team."}
         </p>
         <FieldError id="subject-error" message={state.fieldErrors?.subject} />
       </div>
 
       <div>
         <Label htmlFor="message">
-          Message <span aria-hidden="true">*</span>
+          {dictionary?.message ?? "Message"} <span aria-hidden="true">*</span>
           <span className="sr-only">(required)</span>
         </Label>
         <Textarea
@@ -166,13 +177,13 @@ export function ContactForm({ defaultSubject = "" }: { defaultSubject?: string }
         <FieldError id="message-error" message={state.fieldErrors?.message} />
       </div>
 
-      <TurnstileWidget />
+      <TurnstileWidget locale={locale} />
 
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Sending..." : "Send message"}
+        {pending ? (dictionary?.sending ?? "Sending...") : (dictionary?.sendMessage ?? "Send message")}
       </Button>
 
-      <FormPrivacyNotice text="We will only use your details to respond to your enquiry. See our" />
+      <FormPrivacyNotice text={dictionary?.contactPrivacy ?? "We will only use your details to respond to your enquiry. See our"} privacyLabel={privacyLabel} privacyHref={localePath("/privacy", locale)} />
 
       {state.message && (
         <p

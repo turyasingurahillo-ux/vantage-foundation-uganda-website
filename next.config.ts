@@ -95,7 +95,7 @@ const nextConfig: NextConfig = {
     // Allow our own brand SVG logos to be served via next/image. These are
     // trusted, hand-authored assets in /public/brand/logos/ — not user uploads.
     dangerouslyAllowSVG: true,
-    contentDispositionType: "attachment",
+    contentDispositionType: "inline",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Admin-uploaded media served via presigned R2 GET URLs (see
     // lib/media-public.ts / /admin/media). Wildcard matches any Cloudflare R2

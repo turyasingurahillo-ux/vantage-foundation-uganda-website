@@ -60,10 +60,14 @@ test.describe("Homepage", () => {
     await expect(page.getByText("100% volunteer-run")).toBeVisible();
 
     // Impact section
-    await expect(page.getByRole("heading", { name: /impact/i })).toBeVisible();
+    await expect(
+      page.locator("main").getByRole("heading", { name: /evidence with context/i })
+    ).toBeVisible();
 
     // Programmes section
-    await expect(page.getByRole("heading", { name: /four programmes/i })).toBeVisible();
+    await expect(
+      page.locator("main").getByRole("heading", { name: /our areas of work/i })
+    ).toBeVisible();
 
     // Final CTA
     await expect(page.getByRole("heading", { name: /help us create one more advantage/i })).toBeVisible();

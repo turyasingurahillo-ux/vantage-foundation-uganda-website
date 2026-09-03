@@ -2,14 +2,19 @@ import Link from "next/link";
 import { TeamMember } from "@/types";
 import { Card } from "@/components/ui/Card";
 import { ImageOrPlaceholder } from "./ImageOrPlaceholder";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 interface TeamCardProps {
   member: TeamMember;
   /** Resolved presigned URL from an /admin/media upload, if one exists. */
   photoOverrideSrc?: string;
+  locale?: Locale;
 }
 
-export function TeamCard({ member, photoOverrideSrc }: TeamCardProps) {
+export function TeamCard({ member, photoOverrideSrc, locale = "en" }: TeamCardProps) {
+  const c = getPageContent(locale).common;
+
   return (
     <Card className="overflow-hidden text-center">
       <div className="relative aspect-square overflow-hidden">
@@ -23,7 +28,7 @@ export function TeamCard({ member, photoOverrideSrc }: TeamCardProps) {
       </div>
       <div className="p-5">
         <h3 className="text-base font-semibold leading-snug">
-          <Link href={`/about-us/team/${member.slug}`} className="hover:text-primary">
+          <Link href={localePath(`/about-us/team/${member.slug}`, locale)} className="hover:text-primary">
             {member.displayName}
           </Link>
         </h3>
@@ -32,10 +37,10 @@ export function TeamCard({ member, photoOverrideSrc }: TeamCardProps) {
           {member.shortBio}
         </p>
         <Link
-          href={`/about-us/team/${member.slug}`}
+          href={localePath(`/about-us/team/${member.slug}`, locale)}
           className="mt-3 inline-flex text-sm font-semibold text-primary hover:underline"
         >
-          Read full bio
+          {c.readFullBio}
         </Link>
       </div>
     </Card>

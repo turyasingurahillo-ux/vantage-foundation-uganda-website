@@ -4,6 +4,7 @@ import {
   resolveSocialImage,
   type SocialImageCandidate,
 } from "@/lib/social-image";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 type PublicPageMetadata = {
   title: string;
@@ -23,6 +24,23 @@ type PublicPageMetadata = {
   publishedTime?: string;
   modifiedTime?: string;
   authors?: string[];
+  locale?: Locale;
+  /**
+   * Whether the *principal content* of this page exists in the requested
+   * language, not merely the navigation around it.
+   *
+   * Pages built from the dictionaries (home, about, legal, FAQ …) are truly
+   * localized and advertise `en`/`de`/`fr`/`x-default` alternates.
+   *
+   * Editorial detail pages — a story, project, programme or team biography —
+   * have a translated shell wrapped around an English body. Claiming a German
+   * alternate for those would tell search engines a German version exists
+   * when it does not, and would put three near-duplicate pages into the
+   * index. For those we emit no `hreflang` and point every localized variant
+   * at the English URL as the canonical, so the versions consolidate onto one
+   * indexable page. See docs/internationalization.md.
+   */
+  contentLocalized?: boolean;
 };
 
 export function createPublicMetadata({
@@ -35,7 +53,11 @@ export function createPublicMetadata({
   publishedTime,
   modifiedTime,
   authors,
+  locale = "en",
+  contentLocalized = true,
 }: PublicPageMetadata): Metadata {
+  const localizedPath = localePath(path, locale);
+  const canonicalPath = contentLocalized ? localizedPath : localePath(path, "en");
   const socialTitle = title.includes(site.name)
     ? title
     : `${title} | ${site.name}`;
@@ -60,9 +82,12 @@ export function createPublicMetadata({
   const openGraphBase = {
     title: socialTitle,
     description,
-    url: path,
+    url: localizedPath,
     siteName: site.name,
-    locale: "en_UG",
+    locale: locale === "de" ? "de_DE" : locale === "fr" ? "fr_FR" : "en_UG",
+    alternateLocale: ["en_UG", "de_DE", "fr_FR"].filter(
+      (value) => value !== (locale === "de" ? "de_DE" : locale === "fr" ? "fr_FR" : "en_UG"),
+    ),
     images: [openGraphImage],
   };
 
@@ -70,7 +95,17 @@ export function createPublicMetadata({
     title,
     description,
     alternates: {
-      canonical: path,
+      canonical: canonicalPath,
+      ...(contentLocalized
+        ? {
+            languages: {
+              en: localePath(path, "en"),
+              de: localePath(path, "de"),
+              fr: localePath(path, "fr"),
+              "x-default": localePath(path, "en"),
+            },
+          }
+        : {}),
     },
     openGraph:
       type === "article"

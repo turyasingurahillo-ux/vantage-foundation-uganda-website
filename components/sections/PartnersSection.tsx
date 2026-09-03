@@ -4,8 +4,9 @@ import { getPublishedLogos } from "@/lib/media-public";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { PartnerCard } from "@/components/shared/PartnerCard";
+import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
-export async function PartnersSection() {
+export async function PartnersSection({ copy }: { copy: HomepageSectionContent["partners"] }) {
   // Static partners form the canonical source. Any logo uploaded via /admin/media
   // overrides or supplements the same partner by name, but never duplicates it.
   const staticPartners = getPublishedPartners();
@@ -35,9 +36,7 @@ export async function PartnersSection() {
     <section className="py-16 md:py-24 lg:py-32">
       <Container>
         <SectionHeader
-          eyebrow="Partners"
-          title="Verified relationships"
-          description="Each relationship is described narrowly so a banking service, in-kind contribution or programme collaboration is never overstated."
+          eyebrow={copy.eyebrow} title={copy.title} description={copy.description}
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

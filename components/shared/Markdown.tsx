@@ -12,11 +12,14 @@ import {
   type EvidenceStatus,
 } from "@/components/guides/GuideBadges";
 import { headingId as slugifyHeading } from "@/lib/heading-id";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
 interface MarkdownProps {
   children: string;
   className?: string;
   variant?: "default" | "article" | "guide" | "compact";
+  locale?: Locale;
   pullQuoteAttribution?: string;
   /**
    * Render VERIFIED / ACT NOW style markers as badges. Defaults to on for the
@@ -101,11 +104,13 @@ export function Markdown({
   children,
   className,
   variant = "default",
+  locale = "en",
   pullQuoteAttribution,
   statusBadges,
   idPrefix,
   resolveImageSize,
 }: MarkdownProps) {
+  const ui = getPageContent(locale).ui.markdown;
   const isArticle = variant === "article" || variant === "guide";
   const isGuide = variant === "guide";
   const isCompact = variant === "compact";
@@ -277,13 +282,13 @@ export function Markdown({
             return (
               <div className="my-8">
                 <p className="mb-2 flex items-center justify-end text-xs font-semibold text-muted-foreground md:hidden">
-                  Swipe to compare <span aria-hidden="true">→</span>
+                  {ui.swipeToCompare}
                 </p>
                 <div
                   className="relative overflow-x-auto rounded-xl border border-border bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
                   tabIndex={0}
                   role="region"
-                  aria-label="Scrollable comparison table"
+                  aria-label={ui.scrollableTable}
                 >
                   <table className="w-full min-w-[42rem] border-collapse text-left text-[0.9375rem] leading-relaxed">
                     {children}

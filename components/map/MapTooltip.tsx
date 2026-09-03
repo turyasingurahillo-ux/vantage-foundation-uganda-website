@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import { programmeLabel, type ProgrammeId } from "@/lib/design-tokens";
 import type { ReachDistrict } from "@/content/reach";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import { localePath, type Locale } from "@/lib/i18n/config";
 
 export type DistrictStatus = "active" | "completed" | "planned" | "reached";
 
@@ -18,14 +20,8 @@ export interface MapTooltipProps {
   projection: (point: [number, number]) => [number, number] | null;
   viewW: number;
   viewH: number;
+  locale?: Locale;
 }
-
-const STATUS_LABEL: Record<DistrictStatus, string> = {
-  active: "Active project",
-  completed: "Completed project",
-  planned: "Planned project",
-  reached: "Area reached",
-};
 
 const BADGE_VARIANT: Record<
   DistrictStatus,
@@ -37,8 +33,22 @@ const BADGE_VARIANT: Record<
   reached: "outline",
 };
 
-export function MapTooltip({ selected, projection, viewW, viewH }: MapTooltipProps) {
+export function MapTooltip({
+  selected,
+  projection,
+  viewW,
+  viewH,
+  locale = "en",
+}: MapTooltipProps) {
   if (!selected) return null;
+
+  const t = getPageContent(locale).ui.map;
+  const statusLabels: Record<DistrictStatus, string> = {
+    active: t.activeProject,
+    completed: t.completedProject,
+    planned: t.plannedProject,
+    reached: t.areaReached,
+  };
 
   const [lon, lat] = [selected.district.longitude, selected.district.latitude];
   const projected = projection([lon, lat]);
@@ -62,7 +72,9 @@ export function MapTooltip({ selected, projection, viewW, viewH }: MapTooltipPro
         <h4 className="text-sm font-semibold text-foreground">
           {selected.district.district}
         </h4>
-        <Badge variant={BADGE_VARIANT[selected.status]}>{STATUS_LABEL[selected.status]}</Badge>
+        <Badge variant={BADGE_VARIANT[selected.status]}>
+          {statusLabels[selected.status]}
+        </Badge>
       </div>
 
       {selected.district.description ? (
@@ -82,7 +94,7 @@ export function MapTooltip({ selected, projection, viewW, viewH }: MapTooltipPro
           {selected.projects.map((p) => (
             <li key={p.slug}>
               <Link
-                href={`/projects/${p.slug}`}
+                href={localePath(`/projects/${p.slug}`, locale)}
                 className="pointer-events-auto text-xs text-primary underline-offset-4 hover:underline"
               >
                 {p.title}

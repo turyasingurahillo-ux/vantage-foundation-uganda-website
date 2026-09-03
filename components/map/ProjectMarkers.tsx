@@ -19,7 +19,6 @@ export interface ProjectMarkersProps {
   selected: string | null;
   idBase: string;
   onSelect: (name: string) => void;
-  onToggle: (name: string) => void;
 }
 
 const STATUS_FILL: Record<DistrictStatus, string> = {
@@ -36,7 +35,6 @@ export function ProjectMarkers({
   selected,
   idBase,
   onSelect,
-  onToggle,
 }: ProjectMarkersProps) {
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden={false}>
@@ -48,15 +46,8 @@ export function ProjectMarkers({
           <button
             key={marker.name}
             type="button"
-            onClick={() => onToggle(marker.name)}
-            onMouseEnter={() => onSelect(marker.name)}
+            onClick={() => onSelect(marker.name)}
             onFocus={() => onSelect(marker.name)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onToggle(marker.name);
-              }
-            }}
             aria-expanded={isSelected}
             aria-controls={`${idBase}-${marker.name}`}
             aria-label={`${marker.name} on the map: view details`}

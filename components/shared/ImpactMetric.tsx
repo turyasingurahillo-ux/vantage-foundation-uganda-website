@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
 /**
  * The three tiers of impact measurement, ordered from immediate to long-term.
@@ -6,29 +8,33 @@ import { cn } from "@/lib/utils";
  */
 export type ImpactTier = "output" | "outcome" | "long-term";
 
-const tierConfig: Record<
+const badgeClassForTier: Record<
   ImpactTier,
-  { label: string; description: string; badgeClass: string }
+  { badgeClass: string }
 > = {
   output: {
-    label: "Output",
-    description: "What we delivered",
     badgeClass:
       "bg-primary-light text-primary border-primary/20",
   },
   outcome: {
-    label: "Outcome",
-    description: "The change we saw",
     badgeClass:
       "bg-primary text-white border-primary",
   },
   "long-term": {
-    label: "Long-term impact",
-    description: "The future we are building",
     badgeClass:
       "bg-charcoal text-white border-charcoal",
   },
 };
+
+function tierConfig(locale: Locale, tier: ImpactTier) {
+  const i = getPageContent(locale).impact;
+  const map: Record<ImpactTier, { label: string; description: string }> = {
+    output: { label: i.outputBadge, description: i.outputDescription },
+    outcome: { label: i.outcomeBadge, description: i.outcomeDescription },
+    "long-term": { label: i.longTermBadge, description: i.longTermDescription },
+  };
+  return map[tier];
+}
 
 interface ImpactMetricProps {
   tier: ImpactTier;
@@ -37,30 +43,25 @@ interface ImpactMetricProps {
   /** Optional supporting detail shown beneath the text. */
   detail?: string;
   className?: string;
+  locale?: Locale;
 }
 
-/**
- * A single impact measurement item with a tier badge (Output / Outcome /
- * Long-term impact). Used on the impact page and on project pages to make
- * the measurement hierarchy explicit rather than presenting three flat lists.
- *
- * The tier badge is always paired with a text label (WCAG 1.4.1) — colour is
- * decorative, not the sole indicator.
- */
 export function ImpactMetric({
   tier,
   text,
   detail,
   className,
+  locale = "en",
 }: ImpactMetricProps) {
-  const cfg = tierConfig[tier];
+  const cfg = tierConfig(locale, tier);
+  const styles = badgeClassForTier[tier];
   return (
     <li className={cn("flex flex-col gap-2", className)}>
       <div className="flex items-center gap-2">
         <span
           className={cn(
             "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
-            cfg.badgeClass,
+            styles.badgeClass,
           )}
         >
           {cfg.label}
@@ -85,6 +86,7 @@ interface ImpactMetricListProps {
   title?: string;
   description?: string;
   className?: string;
+  locale?: Locale;
 }
 
 export function ImpactMetricList({
@@ -92,6 +94,7 @@ export function ImpactMetricList({
   title,
   description,
   className,
+  locale = "en",
 }: ImpactMetricListProps) {
   // Order: outputs first, then outcomes, then long-term.
   const order: ImpactTier[] = ["output", "outcome", "long-term"];
@@ -114,6 +117,7 @@ export function ImpactMetricList({
             tier={item.tier}
             text={item.text}
             detail={item.detail}
+            locale={locale}
           />
         ))}
       </ul>

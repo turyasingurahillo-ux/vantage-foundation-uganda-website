@@ -17,6 +17,8 @@ interface LazySectionProps {
   rootMargin?: string;
   /** Optional className for the placeholder. */
   className?: string;
+  /** Optional test id for the placeholder, useful for driving lazy E2E tests. */
+  dataTestId?: string;
 }
 
 /**
@@ -27,22 +29,24 @@ interface LazySectionProps {
  *
  * Use this for heavy below-the-fold client components (interactive maps,
  * galleries, filter UIs) to reduce initial JS execution time on mobile.
+ *
+ * The initial `visible` state is `false` so server and client render the
+ * same placeholder during hydration. Browsers that do not support
+ * IntersectionObserver will not auto-reveal the section; the heavy children
+ * are client-only and below-the-fold, so a missing observer is acceptable.
  */
 export function LazySection({
   children,
   placeholderHeight = "400px",
   rootMargin = "200px",
   className,
+  dataTestId,
 }: LazySectionProps) {
-  // If IntersectionObserver is not available (very old browsers, SSR),
-  // render immediately rather than showing a permanent placeholder.
-  const [visible, setVisible] = useState(
-    typeof IntersectionObserver === "undefined",
-  );
+  const [visible, setVisible] = useState(false);
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!ref || visible) return;
+    if (!ref || typeof IntersectionObserver === "undefined") return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -55,7 +59,7 @@ export function LazySection({
     );
     observer.observe(ref);
     return () => observer.disconnect();
-  }, [ref, visible, rootMargin]);
+  }, [ref, rootMargin]);
 
   if (visible) {
     return <>{children}</>;
@@ -67,6 +71,7 @@ export function LazySection({
       style={{ height: placeholderHeight }}
       className={className}
       aria-hidden="true"
+      data-testid={dataTestId}
     />
   );
 }

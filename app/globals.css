@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Height-based responsive variant for landscape phones, foldable covers and
+   split-screen windows. Width breakpoints cannot detect these short layouts. */
+@custom-variant short (@media (max-height: 420px));
+
 /* ==========================================================================
    Vantage Foundation Uganda — Design Tokens
    Single source of truth for the visual identity system.
@@ -266,6 +270,20 @@ body {
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* The mobile menu owns the dynamic viewport while its normal-flow content
+   scrolls inside #mobile-menu-scroll. The 100vh declarations are fallbacks;
+   100dvh follows browser chrome on modern mobile engines. */
+.mobile-nav-overlay {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
 }
 
 @media (prefers-reduced-motion: reduce) {

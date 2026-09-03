@@ -5,6 +5,9 @@ import { ImageOrPlaceholder } from "./ImageOrPlaceholder";
 import { formatContentDate } from "@/lib/content-date";
 import { DEFAULT_LANDSCAPE_FOCAL_POINT, estimateReadingTime } from "@/lib/story-article";
 import type { Story } from "@/types";
+import type { Locale } from "@/lib/i18n/config";
+import { localePath } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 /**
  * RelatedStories — a horizontally scrollable carousel of further reading.
@@ -19,9 +22,14 @@ import type { Story } from "@/types";
  */
 interface RelatedStoriesProps {
   stories: Story[];
+  locale?: Locale;
 }
 
-export function RelatedStories({ stories }: RelatedStoriesProps) {
+export function RelatedStories({ stories, locale = "en" }: RelatedStoriesProps) {
+  const p = getPageContent(locale);
+  const c = p.common;
+  const s = p.story;
+
   if (stories.length === 0) return null;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -40,12 +48,12 @@ export function RelatedStories({ stories }: RelatedStoriesProps) {
   return (
     <div className="mt-16">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h2 className="text-2xl font-bold">More stories &amp; insights</h2>
+        <h2 className="text-2xl font-bold">{s.moreStories}</h2>
         <Link
-          href="/stories"
+          href={localePath("/stories", locale)}
           className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
         >
-          Browse all stories &rarr;
+          {c.browseAllStories} &rarr;
         </Link>
       </div>
 
@@ -55,21 +63,24 @@ export function RelatedStories({ stories }: RelatedStoriesProps) {
         data-testid="related-stories-carousel"
       >
         {stories.map((story) => (
-          <RelatedStoryCard key={story.slug} story={story} />
+          <RelatedStoryCard key={story.slug} story={story} locale={locale} />
         ))}
       </div>
     </div>
   );
 }
 
-function RelatedStoryCard({ story }: { story: Story }) {
+function RelatedStoryCard({ story, locale = "en" }: { story: Story; locale?: Locale }) {
+  const c = getPageContent(locale).common;
+  const ui = getPageContent(locale).ui.contentTypes;
   const readingTime = story.readingTimeMinutes ?? estimateReadingTime(story.body);
-  const contentType = story.contentType ?? "Story";
+  const contentTypeKey = (story.contentType ?? "story").toLowerCase() as keyof typeof ui;
+  const contentType = ui[contentTypeKey] ?? ui.story;
 
   return (
     <article className="group w-[16.5rem] shrink-0 snap-start sm:w-[19rem]">
       <Link
-        href={`/stories/${story.slug}`}
+        href={localePath(`/stories/${story.slug}`, locale)}
         className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       >
         <div className="relative aspect-[16/10] overflow-hidden bg-surface-strong">
@@ -95,7 +106,7 @@ function RelatedStoryCard({ story }: { story: Story }) {
             {story.excerpt}
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
-            {formatContentDate(story.date)} · {readingTime} min read
+            {formatContentDate(story.date)} · {c.minRead.replace("{minutes}", String(readingTime))}
           </p>
         </div>
       </Link>

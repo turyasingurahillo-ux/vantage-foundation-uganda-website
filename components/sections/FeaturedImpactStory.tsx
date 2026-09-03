@@ -2,11 +2,12 @@ import { getPublishedStories } from "@/content/stories";
 import { Container } from "@/components/shared/Container";
 import { ImageWithOverlay } from "@/components/shared/ImageWithOverlay";
 import { Button } from "@/components/ui/Button";
+import { localePath, type Locale } from "@/lib/i18n/config";
+import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
-export function FeaturedImpactStory() {
+export function FeaturedImpactStory({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["stories"] }) {
   const [story] = getPublishedStories();
   if (!story) return null;
-  const contentType = story.contentType ?? "Story";
 
   return (
     <section className="bg-white py-16 md:py-24 lg:py-32">
@@ -29,15 +30,15 @@ export function FeaturedImpactStory() {
           </h2>
           <p className="mt-4 max-w-xl text-white/90">{story.excerpt}</p>
           <div className="mt-6 flex flex-wrap gap-4">
-            <Button href={`/stories/${story.slug}`} variant="secondary">
-              Read the {contentType}
+            <Button href={localePath(`/stories/${story.slug}`, locale)} variant="secondary">
+              {copy.read}
             </Button>
             <Button
-              href="/donate"
+              href={localePath("/donate", locale)}
               variant="outline"
               className="border-white text-white hover:bg-white/10"
             >
-              Support This Work
+              {copy.support}
             </Button>
           </div>
         </ImageWithOverlay>

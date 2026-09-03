@@ -4,19 +4,28 @@ import type { InstagramPost } from "@/types";
 import { Card } from "@/components/ui/Card";
 import { truncateCaption, getMediaTypeLabel } from "@/lib/instagram/scoring";
 
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
+
 interface InstagramPostCardProps {
   post: InstagramPost;
+  locale?: Locale;
 }
 
-export function InstagramPostCard({ post }: InstagramPostCardProps) {
+export function InstagramPostCard({ post, locale = "en" }: InstagramPostCardProps) {
+  const ui = getPageContent(locale).ui.instagram;
   const displayUrl = post.thumbnailUrl || post.mediaUrl;
-  const altText = truncateCaption(post.caption, 100) || `Instagram ${getMediaTypeLabel(post.mediaType)}`;
+  const typeKey = post.mediaType as keyof typeof ui.mediaTypes;
+  const mediaLabel = ui.mediaTypes[typeKey] ?? getMediaTypeLabel(post.mediaType);
+  const altText = truncateCaption(post.caption, 100) || `Instagram ${mediaLabel}`;
   const isVideo = post.mediaType === "VIDEO" || post.mediaType === "REEL";
   const isCarousel = post.mediaType === "CAROUSEL_ALBUM";
+  const dateLocale =
+    locale === "fr" ? "fr-FR" : locale === "de" ? "de-DE" : "en-GB";
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString("en-GB", {
+      return new Date(iso).toLocaleDateString(dateLocale, {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -51,7 +60,7 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur">
             {isVideo && <Play className="h-3 w-3" fill="currentColor" aria-hidden="true" />}
             {isCarousel && <Images className="h-3 w-3" aria-hidden="true" />}
-            <span className="sr-only">{getMediaTypeLabel(post.mediaType)}</span>
+            <span className="sr-only">{mediaLabel}</span>
           </div>
         )}
 
@@ -59,12 +68,12 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
         {post.featuredCampaign && (
           <div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-xs font-semibold text-white">
             <Heart className="h-3 w-3" fill="currentColor" aria-hidden="true" />
-            Featured
+            {ui.featured}
           </div>
         )}
         {post.pinned && !post.featuredCampaign && (
           <div className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-primary backdrop-blur">
-            Popular
+            {ui.popular}
           </div>
         )}
       </div>
@@ -79,7 +88,7 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           {isVideo && <Film className="h-3.5 w-3.5" aria-hidden="true" />}
           {isCarousel && <Images className="h-3.5 w-3.5" aria-hidden="true" />}
           {!isVideo && !isCarousel && <Camera className="h-3.5 w-3.5" aria-hidden="true" />}
-          <span>{getMediaTypeLabel(post.mediaType)}</span>
+          <span>{mediaLabel}</span>
           {post.timestamp && (
             <>
               <span aria-hidden="true">·</span>
@@ -93,9 +102,9 @@ export function InstagramPostCard({ post }: InstagramPostCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface"
-          aria-label={`View ${getMediaTypeLabel(post.mediaType)} on Instagram${post.caption ? `: ${truncateCaption(post.caption, 60)}` : ""}`}
+          aria-label={`${ui.viewOnInstagram}${post.caption ? `: ${truncateCaption(post.caption, 60)}` : ""}`}
         >
-          View on Instagram
+          {ui.viewOnInstagram}
         </a>
       </div>
     </Card>

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 export interface BreadcrumbItem {
   label: string;
@@ -17,20 +19,24 @@ interface BreadcrumbsProps {
    * and must always render in full.
    */
   truncateCurrent?: boolean;
+  locale?: Locale;
 }
 
 export function Breadcrumbs({
   items,
   className,
   truncateCurrent = true,
+  locale = "en",
 }: BreadcrumbsProps) {
+  const c = getPageContent(locale).common;
+
   return (
     <nav
       className={cn(
         "min-w-0 text-sm text-muted-foreground",
-        className
+        className,
       )}
-      aria-label="Breadcrumb"
+      aria-label={c.breadcrumb}
     >
       <ol className="flex min-w-0 items-center gap-2">
         {items.map((item, index) => {
@@ -40,7 +46,7 @@ export function Breadcrumbs({
               key={`${item.label}-${index}`}
               className={cn(
                 "flex items-center gap-2",
-                isLast && truncateCurrent ? "min-w-0 flex-1" : "shrink-0"
+                isLast && truncateCurrent ? "min-w-0 flex-1" : "shrink-0",
               )}
             >
               {item.href && !isLast ? (
@@ -54,7 +60,7 @@ export function Breadcrumbs({
                 <span
                   className={cn(
                     isLast && "text-foreground",
-                    isLast && truncateCurrent && "block truncate"
+                    isLast && truncateCurrent && "block truncate",
                   )}
                   aria-current={isLast ? "page" : undefined}
                   title={isLast && truncateCurrent ? item.label : undefined}

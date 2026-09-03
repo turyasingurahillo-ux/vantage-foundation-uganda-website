@@ -22,8 +22,18 @@ import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { Markdown } from "@/components/shared/Markdown";
 import { NewsletterForm } from "@/components/shared/NewsletterForm";
 import { ArticleShareButtons } from "@/components/shared/ArticleShareButtons";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
-export function CareerGuideHero({ story }: { story: Story }) {
+export function CareerGuideHero({
+  story,
+  locale = "en",
+}: {
+  story: Story;
+  locale?: Locale;
+}) {
+  const t = getPageContent(locale).ui.guide;
+  const c = getPageContent(locale).common;
   const verifiedDate = story.updatedAt ?? story.date;
 
   return (
@@ -53,7 +63,7 @@ export function CareerGuideHero({ story }: { story: Story }) {
               For Ugandan medical graduates &amp; health professionals
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3" aria-label="Guide shortcuts">
+            <div className="mt-7 flex flex-wrap gap-3" aria-label={t.guideShortcuts}>
               <a
                 href="#1-your-next-30-days"
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-navy transition-colors hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
@@ -78,31 +88,38 @@ export function CareerGuideHero({ story }: { story: Story }) {
             <dl className="mt-8 grid gap-x-6 gap-y-3 border-t border-white/15 pt-6 text-sm text-white/75 sm:grid-cols-2">
               <div className="grid grid-cols-[1rem_1fr] items-start gap-2">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                <dt className="sr-only">Author</dt>
+                <dt className="sr-only">{t.author}</dt>
                 <dd>{story.author ?? "Vantage Foundation Uganda"}</dd>
               </div>
               <div className="grid grid-cols-[1rem_1fr] items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                <dt className="sr-only">Location</dt>
+                <dt className="sr-only">{t.location}</dt>
                 <dd>{story.location ?? "Uganda"}</dd>
               </div>
               <div className="grid grid-cols-[1rem_1fr] items-start gap-2">
                 <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                <dt className="sr-only">Published</dt>
-                <dd>Published {formatContentDate(story.date)}</dd>
+                <dt className="sr-only">{t.published}</dt>
+                <dd>
+                  {t.published} {formatContentDate(story.date)}
+                </dd>
               </div>
               {story.readingTimeMinutes && (
                 <div className="grid grid-cols-[1rem_1fr] items-start gap-2">
                   <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                  <dt className="sr-only">Reading time</dt>
-                  <dd>About {story.readingTimeMinutes} minutes</dd>
+                  <dt className="sr-only">{t.readingTime}</dt>
+                  <dd>
+                    {c.minRead.replace(
+                      "{minutes}",
+                      String(story.readingTimeMinutes),
+                    )}
+                  </dd>
                 </div>
               )}
             </dl>
 
             <div className="mt-6 border-l-2 border-deep-teal bg-white/[0.06] px-4 py-3">
               <p className="text-sm font-bold text-white">
-                Last verified: {formatContentDate(verifiedDate)}
+                {t.lastVerified}: {formatContentDate(verifiedDate)}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-white/65">
                 Opportunities and funding information change frequently. Vantage
@@ -407,7 +424,8 @@ export function VerificationPanel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function CareerAlertsCta({ story }: { story: Story }) {
+export function CareerAlertsCta({ story, locale = "en" }: { story: Story; locale?: Locale }) {
+  const t = getPageContent(locale).ui.guide;
   return (
     <section
       id="career-alerts"
@@ -417,44 +435,43 @@ export function CareerAlertsCta({ story }: { story: Story }) {
       <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr] lg:items-start">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-deep-teal">
-            Do not miss the next opportunity
+            {t.careerAlertsEyebrow}
           </p>
           <h2 id="career-alerts-title" className="mt-2 text-3xl font-bold tracking-tight">
-            Get verified Vantage career alerts
+            {t.careerAlertsTitle}
           </h2>
           <p className="mt-3 max-w-2xl leading-relaxed text-white/70">
-            Scholarships, research roles, internships, training opportunities and
-            major updates for Ugandan health professionals.
+            {t.careerAlertsDescription}
           </p>
           <div className="mt-6 max-w-md">
             <NewsletterForm
               light
               idPrefix="career-alerts"
-              submitLabel="Get career alerts"
+              submitLabel={getPageContent(locale).ui.newsletter.careerAlerts}
             />
           </div>
         </div>
 
         <div className="border-t border-white/15 pt-7 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
           <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-white/65">
-            Help keep this guide useful
+            {t.helpKeepThisGuide}
           </h3>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/contact"
               className="inline-flex min-h-11 items-center rounded-lg border border-white/30 px-4 py-2 text-sm font-bold text-white hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal"
             >
-              Report an opportunity
+              {t.reportOpportunity}
             </Link>
             <Link
               href="/contact"
               className="inline-flex min-h-11 items-center rounded-lg border border-white/30 px-4 py-2 text-sm font-bold text-white hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal"
             >
-              Report a correction
+              {t.reportCorrection}
             </Link>
           </div>
           <div className="mt-7 rounded-lg bg-white p-4 text-foreground">
-            <ArticleShareButtons slug={story.slug} title={story.title} />
+            <ArticleShareButtons slug={story.slug} title={story.title} locale={locale} />
           </div>
         </div>
       </div>

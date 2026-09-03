@@ -9,6 +9,7 @@ import { WaterBodies, type Lake } from "./WaterBodies";
 import { AdministrativeBoundaries, type BoundaryRegion } from "./AdministrativeBoundaries";
 import { ProjectMarkers, type MapMarker } from "./ProjectMarkers";
 import { MapTooltip, type DistrictMeta } from "./MapTooltip";
+import type { Locale } from "@/lib/i18n/config";
 
 interface MapProperties {
   layer: string;
@@ -23,7 +24,7 @@ interface UgandaMapProps {
   selected: string | null;
   idBase: string;
   onSelect: (name: string) => void;
-  onToggle: (name: string) => void;
+  locale?: Locale;
 }
 
 export function UgandaMap({
@@ -31,7 +32,7 @@ export function UgandaMap({
   selected,
   idBase,
   onSelect,
-  onToggle,
+  locale = "en",
 }: UgandaMapProps) {
   const {
     projection,
@@ -118,7 +119,7 @@ export function UgandaMap({
         ))}
 
         <UgandaBoundary d={ugandaPath} />
-        <WaterBodies lakes={lakePaths} />
+        <WaterBodies lakes={lakePaths} locale={locale} />
         <AdministrativeBoundaries regions={regionPaths} />
       </svg>
 
@@ -129,7 +130,6 @@ export function UgandaMap({
         selected={selected}
         idBase={idBase}
         onSelect={onSelect}
-        onToggle={onToggle}
       />
 
       <MapTooltip
@@ -137,6 +137,7 @@ export function UgandaMap({
         projection={projectPoint}
         viewW={VIEW_W}
         viewH={VIEW_H}
+        locale={locale}
       />
     </div>
   );

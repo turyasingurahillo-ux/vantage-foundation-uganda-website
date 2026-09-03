@@ -1,10 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { MediaAsset } from "@/types";
 import { BLUR_DATA_URL } from "@/lib/blur-placeholder";
+import { getPageContent } from "@/lib/i18n/content/pages";
+import type { Locale } from "@/lib/i18n/config";
 
 interface GalleryGridProps {
   images: MediaAsset[];
@@ -14,6 +17,8 @@ const THUMBNAIL_SIZES = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw
 const LIGHTBOX_SIZES = "(max-width: 1024px) 100vw, 1024px";
 
 export function GalleryGrid({ images }: GalleryGridProps) {
+  const { locale } = useParams() as { locale?: Locale };
+  const g = getPageContent(locale ?? "en").ui.gallery;
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -35,15 +40,12 @@ export function GalleryGrid({ images }: GalleryGridProps) {
     return () => dialog.removeEventListener("close", handleClose);
   }, []);
 
-  const goToOffset = useCallback(
-    (offset: number) => {
-      setOpenIndex((current) => {
-        if (current === null) return current;
-        return (current + offset + images.length) % images.length;
-      });
-    },
-    [images.length]
-  );
+  const goToOffset = (offset: number) => {
+    setOpenIndex((current) => {
+      if (current === null) return current;
+      return (current + offset + images.length) % images.length;
+    });
+  };
 
   const handleDialogKeyDown = (event: React.KeyboardEvent<HTMLDialogElement>) => {
     if (event.key === "ArrowRight") {
@@ -66,7 +68,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
   if (images.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-12 text-center">
-        <p className="text-muted-foreground">No photos are available yet.</p>
+        <p className="text-muted-foreground">{g.empty}</p>
       </div>
     );
   }
@@ -81,7 +83,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
             key={image.id}
             type="button"
             onClick={() => setOpenIndex(index)}
-            aria-label={`View photo: ${image.alt}`}
+            aria-label={g.viewPhoto.replace("{alt}", image.alt)}
             className="group relative aspect-square overflow-hidden rounded-xl bg-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <Image
@@ -101,7 +103,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
         ref={dialogRef}
         onKeyDown={handleDialogKeyDown}
         onClick={handleDialogClick}
-        aria-label="Photo viewer"
+        aria-label={g.photoViewer}
         className="max-h-[90vh] w-[95vw] max-w-5xl rounded-2xl border-0 bg-transparent p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm"
       >
         {current && (
@@ -113,7 +115,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
               <button
                 type="button"
                 onClick={() => setOpenIndex(null)}
-                aria-label="Close photo viewer"
+                aria-label={g.closePhotoViewer}
                 autoFocus
                 className="rounded-full p-1.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
@@ -134,7 +136,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
               <button
                 type="button"
                 onClick={() => goToOffset(-1)}
-                aria-label="Previous photo"
+                aria-label={g.previousPhoto}
                 className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <ChevronLeft className="h-6 w-6" aria-hidden="true" />
@@ -142,7 +144,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
               <button
                 type="button"
                 onClick={() => goToOffset(1)}
-                aria-label="Next photo"
+                aria-label={g.nextPhoto}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <ChevronRight className="h-6 w-6" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -103,7 +104,7 @@ export default async function AdminAuditPage({
 
         {/* Filters */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <a
+          <Link
             href="/admin/audit"
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
               !resourceType && !action
@@ -112,9 +113,9 @@ export default async function AdminAuditPage({
             }`}
           >
             All
-          </a>
+          </Link>
           {["donation", "media", "story"].map((rt) => (
-            <a
+            <Link
               key={rt}
               href={`/admin/audit?resourceType=${rt}`}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
@@ -124,7 +125,7 @@ export default async function AdminAuditPage({
               }`}
             >
               {rt.charAt(0).toUpperCase() + rt.slice(1)}
-            </a>
+            </Link>
           ))}
         </div>
 

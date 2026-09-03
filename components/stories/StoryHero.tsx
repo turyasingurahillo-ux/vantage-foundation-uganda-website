@@ -4,40 +4,23 @@ import { Badge } from "@/components/ui/Badge";
 import { formatContentDate } from "@/lib/content-date";
 import type { HeroFraming } from "@/lib/story-article";
 import type { Story } from "@/types";
+import type { Locale } from "@/lib/i18n/config";
+import { getPageContent } from "@/lib/i18n/content/pages";
 
 interface StoryHeroProps {
   story: Story;
   framing: HeroFraming;
   readingTime: number;
+  locale?: Locale;
 }
 
-/**
- * StoryHero — the opening of a story page.
- *
- * The hero breaks out of the reading column and runs the full width of the
- * viewport, so a widescreen monitor gets imagery rather than empty margin.
- * Which shape it takes depends on the photograph:
- *
- * - `cinematic`: landscape sources fill a wide band with the headline set over
- *   a bottom scrim.
- * - `portrait`: tall sources keep their own proportions in a column beside the
- *   headline. A portrait photograph forced into a cinematic band shows only a
- *   narrow strip of its height, which is what cropped through subjects' faces.
- * - `textOnly`: stories with no hero image keep the brand colour band.
- */
-export function StoryHero({ story, framing, readingTime }: StoryHeroProps) {
+export function StoryHero({ story, framing, readingTime, locale = "en" }: StoryHeroProps) {
   const contentType = story.contentType ?? "Story";
   const kicker = `${contentType} · ${story.category}`;
 
   if (framing.variant === "cinematic") {
     return (
       <section className="relative isolate bg-navy text-white" data-testid="story-hero">
-        {/*
-          Below `md` the photograph sits above the headline rather than behind
-          it: on a phone the text block covers most of the band, and an overlay
-          would hide the very subject the photograph is there to show. From
-          `md` up it moves behind the copy and fills the section.
-        */}
         <div className="relative aspect-[16/10] w-full overflow-hidden md:absolute md:inset-0 md:-z-10 md:aspect-auto">
           <ImageOrPlaceholder
             src={story.heroImage}
@@ -48,8 +31,6 @@ export function StoryHero({ story, framing, readingTime }: StoryHeroProps) {
             objectPosition={framing.objectPosition}
             containerClassName="h-full w-full"
           />
-          {/* Scrim: opaque enough at the base to hold display type at AA, and
-              clear at the top so the photograph is still the subject. */}
           <div
             className="absolute inset-0 hidden bg-gradient-to-t from-black/90 via-black/60 to-black/25 md:block"
             aria-hidden="true"
@@ -65,7 +46,7 @@ export function StoryHero({ story, framing, readingTime }: StoryHeroProps) {
             <p className="mt-4 max-w-[38rem] text-base text-white/90 sm:text-lg">
               {story.excerpt}
             </p>
-            <StoryByline story={story} readingTime={readingTime} tone="onImage" />
+            <StoryByline story={story} readingTime={readingTime} tone="onImage" locale={locale} />
           </div>
         </Container>
 
@@ -89,12 +70,10 @@ export function StoryHero({ story, framing, readingTime }: StoryHeroProps) {
                 {story.title}
               </h1>
               <p className="mt-4 text-base text-white/90 sm:text-lg">{story.excerpt}</p>
-              <StoryByline story={story} readingTime={readingTime} tone="onImage" />
+              <StoryByline story={story} readingTime={readingTime} tone="onImage" locale={locale} />
             </div>
 
             <figure className="order-1 lg:order-2">
-              {/* 4:5 sits close to the 3:4 these photographs are shot at, so
-                  the crop trims edges rather than removing the subject. */}
               <div className="relative mx-auto aspect-[4/5] w-full max-w-[22rem] overflow-hidden rounded-2xl shadow-xl lg:max-w-none">
                 <ImageOrPlaceholder
                   src={story.heroImage}
@@ -125,7 +104,7 @@ export function StoryHero({ story, framing, readingTime }: StoryHeroProps) {
           <Badge variant="accent">{kicker}</Badge>
           <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{story.title}</h1>
           <p className="mt-4 text-lg text-white/90">{story.excerpt}</p>
-          <StoryByline story={story} readingTime={readingTime} tone="onBrand" />
+          <StoryByline story={story} readingTime={readingTime} tone="onBrand" locale={locale} />
         </div>
       </Container>
     </section>
@@ -140,22 +119,22 @@ function StoryKicker({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Byline strip: author, date, tags and reading time. Tags and reading time sit
- * with the byline (rather than at the foot of the article) so a reader can see
- * the subject and the commitment before deciding to read.
- */
 function StoryByline({
   story,
   readingTime,
   tone,
+  locale = "en",
 }: {
   story: Story;
   readingTime: number;
   tone: "onImage" | "onBrand";
+  locale?: Locale;
 }) {
+  const c = getPageContent(locale).common;
+  const s = getPageContent(locale).story;
+
   const meta = [
-    story.author && `By ${story.author}`,
+    story.author,
     story.role,
     story.location,
   ].filter(Boolean) as string[];
@@ -170,14 +149,14 @@ function StoryByline({
           <time dateTime={story.date}>{formatContentDate(story.date)}</time>
         )}
         {story.updatedAt && story.updatedAt !== story.date && (
-          <span>Updated {formatContentDate(story.updatedAt)}</span>
+          <span>{s.updated} {formatContentDate(story.updatedAt)}</span>
         )}
       </div>
 
       <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
         <span>{story.category}</span>
         <span aria-hidden="true">·</span>
-        <span>{readingTime} min read</span>
+        <span>{c.minRead.replace("{minutes}", String(readingTime))}</span>
       </p>
 
       {story.tags && story.tags.length > 0 && (
