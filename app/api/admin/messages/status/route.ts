@@ -3,8 +3,14 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import {
   getContactMessageById,
+  setContactMessageArchived,
   setContactMessageStatus,
 } from "@/lib/db/contact";
+import {
+  buildInboxUrl,
+  parseInboxContext,
+  type InboxContext,
+} from "@/lib/admin/inbox-context";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -12,22 +18,34 @@ import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 
 /**
- * Moves a conversation between workflow states (archive, reopen, mark as
- * needing a response).
+ * Moves a conversation through the inbox workflow.
  *
- * `replied` is deliberately not accepted: a conversation only becomes replied
+ * Archiving is a separate action from the response state, because they answer
+ * different questions: "have we replied?" and "is this still on the desk?".
+ * Conflating them meant filing a conversation away destroyed the record of
+ * whether it had been answered, and taking it back out invented a state it had
+ * never been in. Each action here moves exactly one of the two.
+ *
+ * `replied` is deliberately not settable: a conversation only becomes replied
  * when the email provider accepts an actual reply, so an administrator cannot
  * mark something answered that was never sent.
  */
 
+const ACTIONS = ["mark-new", "needs-reply", "archive", "unarchive"] as const;
+type Action = (typeof ACTIONS)[number];
+
 const schema = z.object({
   id: z.coerce.number().int().positive(),
-  status: z.enum(["new", "awaiting_response", "archived"]),
+  action: z.enum(ACTIONS),
 });
 
-function back(request: Request, params: string) {
+function back(
+  request: Request,
+  context: InboxContext,
+  extra: Record<string, string | number>,
+) {
   return NextResponse.redirect(
-    new URL(`/admin/messages?${params}`, request.url),
+    new URL(buildInboxUrl(context, extra), request.url),
     303,
   );
 }
@@ -42,53 +60,92 @@ export async function POST(request: Request) {
   }
   const { actorId } = session;
 
+  const formData = await request.formData();
+  const context = parseInboxContext(formData);
+
   const ip = getClientIp(request.headers);
   if (!rateLimit({ key: `admin-msg-status:${ip}`, limit: 30, windowMs: 60_000 })) {
     logWarn("message_status_rate_limited", { ip });
-    return back(request, "error=rate-limited");
+    return back(request, context, { error: "rate-limited" });
   }
 
-  const formData = await request.formData();
   if (!validateCsrf(cookieStore, formData)) {
     logWarn("message_status_csrf_failed", {});
-    return back(request, "error=csrf");
+    return back(request, context, { error: "csrf" });
   }
 
   const parsed = schema.safeParse({
     id: formData.get("id"),
-    status: formData.get("status"),
+    action: formData.get("action"),
   });
   if (!parsed.success) {
-    return back(request, "error=invalid");
+    return back(request, context, { error: "invalid" });
   }
+  const { id, action } = parsed.data;
 
   try {
-    const message = await getContactMessageById(parsed.data.id);
+    const message = await getContactMessageById(id);
     if (!message) {
-      return back(request, "error=notfound");
+      return back(request, context, { error: "notfound" });
     }
 
-    await setContactMessageStatus(message.id, parsed.data.status);
+    const before = {
+      status: message.status,
+      archived: Boolean(message.archivedAt),
+    };
+
+    switch (action) {
+      case "mark-new":
+        await setContactMessageStatus(message.id, "new");
+        break;
+      case "needs-reply":
+        await setContactMessageStatus(message.id, "awaiting_response");
+        break;
+      case "archive":
+        // Response state is untouched: a replied conversation is still a
+        // replied conversation once it is filed away.
+        await setContactMessageArchived(message.id, true);
+        break;
+      case "unarchive":
+        await setContactMessageArchived(message.id, false);
+        break;
+    }
+
+    const after = {
+      status:
+        action === "mark-new"
+          ? "new"
+          : action === "needs-reply"
+            ? "awaiting_response"
+            : message.status,
+      archived: action === "archive" ? true : action === "unarchive" ? false : before.archived,
+    };
 
     await appendAuditLog({
       actorId,
       action: "contact_message.status",
       resourceType: "contact_message",
       resourceId: message.id,
-      before: { status: message.status },
-      after: { status: parsed.data.status },
+      before,
+      after,
       ip,
     });
 
-    logInfo("message_status_changed", {
-      id: message.id,
-      status: parsed.data.status,
-    });
-    return back(request, `status=1&filter=${message.status}`);
+    logInfo("message_status_changed", { id: message.id, action });
+    // Stay exactly where they were — same tab, same search, same page. An
+    // archived conversation has left the tab they are on, so it is no longer
+    // expanded there.
+    const stay =
+      action === "archive" && context.open === message.id
+        ? { ...context, open: null }
+        : context;
+    // A code, not a sentence: the page owns the wording, so the URL cannot be
+    // used to put arbitrary text in front of an administrator.
+    return back(request, stay, { done: action });
   } catch (err) {
     logError("message_status_error", {
       error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
     });
-    return back(request, "error=server");
+    return back(request, context, { error: "server" });
   }
 }

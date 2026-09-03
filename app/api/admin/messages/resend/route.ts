@@ -6,6 +6,11 @@ import {
   markContactMessageEmailed,
 } from "@/lib/db/contact";
 import { sendContactNotification } from "@/lib/contact-notify";
+import {
+  buildInboxUrl,
+  parseInboxContext,
+  type InboxContext,
+} from "@/lib/admin/inbox-context";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -29,9 +34,13 @@ const schema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-function back(request: Request, params: string) {
+function back(
+  request: Request,
+  context: InboxContext,
+  extra: Record<string, string | number>,
+) {
   return NextResponse.redirect(
-    new URL(`/admin/messages?${params}`, request.url),
+    new URL(buildInboxUrl(context, extra), request.url),
     303,
   );
 }
@@ -46,27 +55,29 @@ export async function POST(request: Request) {
   }
   const { actorId } = session;
 
+  const formData = await request.formData();
+  const context = parseInboxContext(formData);
+
   const ip = getClientIp(request.headers);
   if (!rateLimit({ key: `admin-msg-resend:${ip}`, limit: 20, windowMs: 60_000 })) {
     logWarn("message_resend_rate_limited", { ip });
-    return back(request, "error=rate-limited");
+    return back(request, context, { error: "rate-limited" });
   }
 
-  const formData = await request.formData();
   if (!validateCsrf(cookieStore, formData)) {
     logWarn("message_resend_csrf_failed", {});
-    return back(request, "error=csrf");
+    return back(request, context, { error: "csrf" });
   }
 
   const parsed = schema.safeParse({ id: formData.get("id") });
   if (!parsed.success) {
-    return back(request, "error=invalid");
+    return back(request, context, { error: "invalid" });
   }
 
   try {
     const message = await getContactMessageById(parsed.data.id);
     if (!message) {
-      return back(request, "error=notfound");
+      return back(request, context, { error: "notfound" });
     }
 
     const sent = await sendContactNotification(
@@ -83,7 +94,7 @@ export async function POST(request: Request) {
 
     if (!sent) {
       logWarn("message_resend_failed", { id: message.id });
-      return back(request, "error=send");
+      return back(request, context, { error: "notify" });
     }
 
     await markContactMessageEmailed(message.id, true);
@@ -99,11 +110,11 @@ export async function POST(request: Request) {
     });
 
     logInfo("message_resend_ok", { id: message.id, category: message.category });
-    return back(request, "resent=1");
+    return back(request, context, { resent: 1 });
   } catch (err) {
     logError("message_resend_error", {
       error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
     });
-    return back(request, "error=server");
+    return back(request, context, { error: "server" });
   }
 }

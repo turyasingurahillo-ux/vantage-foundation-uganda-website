@@ -9,10 +9,17 @@ import {
 import {
   createPendingReply,
   getLastSentReply,
+  getReplyForMessage,
   markReplyFailed,
   markReplySent,
 } from "@/lib/db/contact-replies";
 import { REPLY_MAX_LENGTH, sendContactReply } from "@/lib/contact-reply";
+import {
+  buildInboxUrl,
+  parseInboxContext,
+  withOpen,
+  type InboxContext,
+} from "@/lib/admin/inbox-context";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
@@ -30,6 +37,8 @@ import { appendAuditLog } from "@/lib/db/audit";
  *    arbitrary address
  *  - the body is length-bounded and must contain real text
  *  - sends are rate limited per admin IP
+ *  - the redirect target is rebuilt from validated fields, never from a URL
+ *    supplied by the browser
  *
  * Delivery model: the reply row is written as `pending` before the provider is
  * called, then moved to `sent` or `failed`. The conversation is only marked
@@ -44,14 +53,20 @@ const schema = z.object({
     .trim()
     .min(1, "empty")
     .max(REPLY_MAX_LENGTH, "too-long"),
-  // Generated per composer mount. UNIQUE in the schema, so a double submit
-  // collapses onto the same row instead of sending twice.
+  // Generated per composer render. UNIQUE per conversation in the schema, so a
+  // double submit collapses onto the same row instead of sending twice.
   idempotencyKey: z.string().min(8).max(100),
+  /** Set when this reply replaces a failed attempt. Validated below. */
+  retryOf: z.coerce.number().int().positive().optional(),
 });
 
-function back(request: Request, id: number | string, params: string) {
+function back(
+  request: Request,
+  context: InboxContext,
+  extra: Record<string, string | number>,
+) {
   return NextResponse.redirect(
-    new URL(`/admin/messages?open=${id}&${params}`, request.url),
+    new URL(buildInboxUrl(context, extra), request.url),
     303,
   );
 }
@@ -66,36 +81,54 @@ export async function POST(request: Request) {
   }
   const { actorId } = session;
 
+  const formData = await request.formData();
+  const context = parseInboxContext(formData);
+
   const ip = getClientIp(request.headers);
   if (!rateLimit({ key: `admin-msg-reply:${ip}`, limit: 10, windowMs: 60_000 })) {
     logWarn("message_reply_rate_limited", { ip });
-    return back(request, "", "error=rate-limited");
+    return back(request, context, { error: "rate-limited" });
   }
 
-  const formData = await request.formData();
   if (!validateCsrf(cookieStore, formData)) {
     logWarn("message_reply_csrf_failed", {});
-    return back(request, "", "error=csrf");
+    return back(request, context, { error: "csrf" });
   }
 
   const parsed = schema.safeParse({
     id: formData.get("id"),
     body: formData.get("body"),
     idempotencyKey: formData.get("idempotencyKey"),
+    retryOf: formData.get("retryOf") || undefined,
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0]?.message ?? "invalid";
-    const rawId = String(formData.get("id") ?? "");
-    return back(request, rawId, `error=${encodeURIComponent(issue)}`);
+    return back(request, context, { error: issue });
   }
 
-  const { id, body, idempotencyKey } = parsed.data;
+  const { id, body, idempotencyKey, retryOf } = parsed.data;
+  // Whatever tab they were on, the conversation they just replied to should be
+  // the one that is open when they land back.
+  const here = withOpen(context, id);
 
   try {
     // Recipient comes from the database, never from the request.
     const message = await getContactMessageById(id);
     if (!message) {
-      return back(request, id, "error=notfound");
+      return back(request, here, { error: "notfound" });
+    }
+
+    // A retry must name a genuinely failed attempt on THIS conversation.
+    // Anything else — a reply id from someone else's message, a pending
+    // attempt whose outcome nobody has established, an already-delivered one —
+    // is refused rather than quietly ignored, because sending it would be
+    // sending a second copy of an email that may already have arrived.
+    if (retryOf !== undefined) {
+      const original = await getReplyForMessage(message.id, retryOf);
+      if (!original || original.sendStatus !== "failed") {
+        logWarn("message_reply_bad_retry", { id: message.id });
+        return back(request, here, { error: "retry-invalid" });
+      }
     }
 
     const { reply, alreadyExisted } = await createPendingReply({
@@ -104,17 +137,45 @@ export async function POST(request: Request) {
       recipientEmail: message.email,
       adminActorId: actorId,
       idempotencyKey,
+      retryOfReplyId: retryOf,
     });
 
     // A replayed submission (double-click, browser retry) hits the unique
-    // index and lands here. Never send a second copy.
+    // index and lands here. Never send a second copy — but do report what the
+    // existing attempt actually did.
+    //
+    // The three states are genuinely different and were previously collapsed
+    // into two, which meant a reply still waiting on the provider was reported
+    // to the administrator as delivered:
+    //
+    //   sent    the email went out; the replay is a no-op and this is success
+    //   failed  the provider rejected it; offer the retry, do not claim success
+    //   pending nobody knows yet. Saying "replied" here would be a lie, and
+    //           sending again risks a duplicate email to a member of the
+    //           public. The conversation view shows the in-flight attempt and,
+    //           once it is old enough to be doubtful, asks the administrator
+    //           to establish what happened.
     if (alreadyExisted) {
-      logWarn("message_reply_duplicate", { id: message.id });
-      return back(
-        request,
-        id,
-        reply.sendStatus === "failed" ? "error=send" : "replied=1",
-      );
+      // Defence in depth: the unique index is scoped to (message_id,
+      // idempotency_key), so this cannot be another conversation's reply.
+      // Assert it anyway rather than trusting a schema invariant at runtime.
+      if (reply.messageId !== message.id) {
+        logError("message_reply_idempotency_mismatch", { id: message.id });
+        return back(request, here, { error: "server" });
+      }
+
+      logWarn("message_reply_duplicate", {
+        id: message.id,
+        sendStatus: reply.sendStatus,
+      });
+
+      if (reply.sendStatus === "sent") {
+        return back(request, here, { replied: 1 });
+      }
+      if (reply.sendStatus === "failed") {
+        return back(request, here, { error: "send" });
+      }
+      return back(request, here, { error: "in-flight" });
     }
 
     const previous = await getLastSentReply(message.id);
@@ -132,11 +193,11 @@ export async function POST(request: Request) {
     if (!result.ok) {
       await markReplyFailed(reply.id, result.error ?? "unknown error");
       // The enquirer is still waiting, so the conversation owes a response.
-      if (message.status !== "archived") {
+      if (message.status !== "awaiting_response") {
         await setContactMessageStatus(message.id, "awaiting_response");
       }
       logWarn("message_reply_send_failed", { id: message.id });
-      return back(request, id, "error=send");
+      return back(request, here, { error: "send" });
     }
 
     await markReplySent(
@@ -152,7 +213,11 @@ export async function POST(request: Request) {
       resourceType: "contact_message",
       resourceId: message.id,
       before: { status: message.status },
-      after: { status: "replied", replyId: reply.id },
+      after: {
+        status: "replied",
+        replyId: reply.id,
+        ...(retryOf ? { retryOf } : {}),
+      },
       ip,
     });
 
@@ -160,12 +225,13 @@ export async function POST(request: Request) {
       id: message.id,
       replyId: reply.id,
       category: message.category,
+      retry: Boolean(retryOf),
     });
-    return back(request, id, "replied=1");
+    return back(request, here, { replied: 1 });
   } catch (err) {
     logError("message_reply_error", {
       error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
     });
-    return back(request, id, "error=server");
+    return back(request, here, { error: "server" });
   }
 }
