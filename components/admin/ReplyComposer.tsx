@@ -11,7 +11,13 @@ import { useState } from "react";
  *
  * The key is generated once per mount. If the admin submits twice, both
  * requests carry the same key, the second collides with the UNIQUE index
- * server-side, and no second email is sent.
+ * server-side, and no second email is sent. A retry deliberately gets a
+ * different key — it is a new attempt, not a replay of the failed one — which
+ * `serverKey` supplies from the page render so it works with JavaScript off.
+ *
+ * `context` carries where in the inbox the administrator is (tab, search,
+ * page). The server validates every field and rebuilds the URL itself; these
+ * are hints, not a destination.
  */
 export function ReplyComposer({
   messageId,
@@ -22,6 +28,11 @@ export function ReplyComposer({
   /** Passed in rather than imported: lib/csrf is server-only. */
   csrfFieldName,
   maxLength,
+  context,
+  initialBody = "",
+  retryOfReplyId,
+  serverKey,
+  autoFocus = false,
 }: {
   messageId: number;
   recipientName: string;
@@ -30,15 +41,19 @@ export function ReplyComposer({
   csrfToken: string;
   csrfFieldName: string;
   maxLength: number;
+  context: Record<string, string>;
+  initialBody?: string;
+  retryOfReplyId?: number;
+  serverKey: string;
+  autoFocus?: boolean;
 }) {
-  const [idempotencyKey] = useState(
-    () => `${messageId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-  );
+  const [idempotencyKey] = useState(() => serverKey);
   const [pending, setPending] = useState(false);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialBody);
 
   const empty = value.trim().length === 0;
   const textareaId = `reply-body-${messageId}`;
+  const isRetry = typeof retryOfReplyId === "number";
 
   return (
     <form
@@ -56,16 +71,30 @@ export function ReplyComposer({
       <input type="hidden" name={csrfFieldName} value={csrfToken} />
       <input type="hidden" name="id" value={messageId} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+      {isRetry && (
+        <input type="hidden" name="retryOf" value={retryOfReplyId} />
+      )}
+      {Object.entries(context).map(([name, fieldValue]) => (
+        <input key={name} type="hidden" name={name} value={fieldValue} />
+      ))}
 
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <label htmlFor={textareaId} className="text-sm font-semibold">
-          Reply to {recipientName}
+          {isRetry ? "Retry reply to" : "Reply to"} {recipientName}
         </label>
         <p className="text-xs text-muted-foreground">
           To <span className="font-medium">{recipientEmail}</span>
           {fromAddress ? <> · from {fromAddress}</> : null}
         </p>
       </div>
+
+      {isRetry && (
+        <p className="mt-2 rounded-md border border-warning-fg/30 bg-warning-bg p-3 text-xs text-warning-fg">
+          This is the text of the reply that failed to send. Edit it if you want
+          to, then send. The failed attempt stays in the conversation below as a
+          record — it is not overwritten.
+        </p>
+      )}
 
       <textarea
         id={textareaId}
@@ -76,6 +105,11 @@ export function ReplyComposer({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={pending}
+        // Focus follows the action that opened the composer, so replying is
+        // keyboard-only from the inbox: activate Reply, start typing. The page
+        // suppresses it when it is showing a banner, so that a send failure is
+        // never scrolled past on the way to the text box.
+        autoFocus={autoFocus}
         placeholder={`Write your reply to ${recipientName}…`}
         aria-describedby={`${textareaId}-hint`}
         className="mt-2 w-full rounded-lg border border-border p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60"
@@ -95,7 +129,7 @@ export function ReplyComposer({
             disabled={pending || empty}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending ? "Sending…" : "Send reply"}
+            {pending ? "Sending…" : isRetry ? "Send retry" : "Send reply"}
           </button>
         </div>
       </div>

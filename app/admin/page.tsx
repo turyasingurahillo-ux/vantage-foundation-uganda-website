@@ -5,7 +5,12 @@ import { cookies } from "next/headers";
 import { verifySessionToken, sessionCookieName } from "@/lib/session";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getDonations } from "@/lib/db";
-import { getContactMessageCounts } from "@/lib/db/contact";
+import {
+  getContactMessageCounts,
+  CONTACT_RESPONSE_TARGET_HOURS,
+  type ContactMessageCounts,
+} from "@/lib/db/contact";
+import { describeTime } from "@/lib/relative-time";
 import { Container } from "@/components/shared/Container";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { Badge } from "@/components/ui/Badge";
@@ -37,15 +42,11 @@ export default async function AdminDashboardPage() {
 
   // Contact enquiries. Until SMTP is configured no notification email goes out,
   // so this dashboard is the only place an unanswered enquiry becomes visible.
-  let unhandledMessages = 0;
-  let notEmailedMessages = 0;
-  let contactMessagesAvailable = true;
+  let contactCounts: ContactMessageCounts | null = null;
   try {
-    const counts = await getContactMessageCounts();
-    unhandledMessages = counts.unhandled;
-    notEmailedMessages = counts.notEmailed;
+    contactCounts = await getContactMessageCounts();
   } catch {
-    contactMessagesAvailable = false;
+    contactCounts = null;
   }
 
   return (
@@ -82,18 +83,53 @@ export default async function AdminDashboardPage() {
                   Donations database not configured.
                 </div>
               )}
-              {contactMessagesAvailable ? (
-                <Link href="/admin/messages" className="flex items-center justify-between rounded-lg border border-border p-4 hover:bg-slate-50">
+              {contactCounts ? (
+                <Link href="/admin/messages" className="flex items-center justify-between gap-4 rounded-lg border border-border p-4 hover:bg-slate-50">
                   <div>
                     <div className="font-medium">Contact messages</div>
+                    {/* One operational signal beyond the raw count: how long
+                        the longest-waiting enquirer has actually been waiting.
+                        A count of nine says nothing about whether the oldest
+                        arrived an hour ago or a fortnight ago. */}
                     <div className="text-sm text-muted-foreground">
-                      {notEmailedMessages > 0
-                        ? "Nobody was emailed about these — reply from here"
-                        : "Enquiries submitted through the website"}
+                      {contactCounts.unhandled === 0
+                        ? "Every enquiry has been handled"
+                        : contactCounts.notEmailed > 0
+                          ? "Nobody was emailed about these — reply from here"
+                          : "Enquiries submitted through the website"}
                     </div>
+                    {contactCounts.oldestUnhandledAt && (
+                      <div
+                        className={
+                          contactCounts.overdue > 0
+                            ? "mt-1 text-sm font-medium text-destructive"
+                            : "mt-1 text-sm text-muted-foreground"
+                        }
+                      >
+                        Oldest waiting{" "}
+                        {describeTime(contactCounts.oldestUnhandledAt).text}
+                        {contactCounts.overdue > 0 ? (
+                          <>
+                            {" · "}
+                            {contactCounts.overdue} over{" "}
+                            {CONTACT_RESPONSE_TARGET_HOURS}h
+                          </>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
-                  <Badge variant={unhandledMessages > 0 ? "warning" : "success"}>
-                    {unhandledMessages} unhandled
+                  <Badge
+                    variant={
+                      contactCounts.overdue > 0
+                        ? "destructive"
+                        : contactCounts.unhandled > 0
+                          ? "warning"
+                          : "success"
+                    }
+                  >
+                    {contactCounts.unhandled === 0
+                      ? "All clear"
+                      : `${contactCounts.unhandled} unhandled`}
                   </Badge>
                 </Link>
               ) : (
