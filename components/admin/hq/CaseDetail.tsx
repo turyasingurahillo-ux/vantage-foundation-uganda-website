@@ -1,10 +1,6 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { formatDateTime, formatDate } from "@/lib/format";
-import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import { ConversationTimeline } from "@/components/admin/hq/ConversationTimeline";
 import { CaseWorkflowControls } from "@/components/admin/hq/CaseWorkflowControls";
 import { CaseOutcomeControls } from "@/components/admin/hq/CaseOutcomeControls";
@@ -87,10 +83,6 @@ export function CaseDetail({
   fromAddress,
   preserveParams,
 }: CaseDetailProps) {
-  const [retry, setRetry] = useState<{ id: number; body: string } | null>(
-    null,
-  );
-
   return (
     <div className="flex flex-col max-h-[70vh]">
       {/* Mobile back link */}
@@ -165,22 +157,10 @@ export function CaseDetail({
             message={caseRow}
             replies={replies}
             adminNames={adminNames}
-            onRetry={(reply) => setRetry({ id: reply.id, body: reply.body })}
-          />
-        </div>
-
-        {/* Reply composer */}
-        <div className="mt-6 border-t border-border pt-5">
-          <ReplyComposer
-            messageId={caseRow.id}
-            recipientName={caseRow.name}
-            recipientEmail={caseRow.email}
             fromAddress={fromAddress}
             csrfToken={csrfToken}
             csrfFieldName={csrfFieldName}
             maxLength={REPLY_MAX_LENGTH}
-            retryOfReplyId={retry?.id}
-            initialBody={retry?.body ?? ""}
           />
         </div>
 

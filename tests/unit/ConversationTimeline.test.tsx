@@ -41,6 +41,13 @@ function makeReply(
   };
 }
 
+const commonProps = {
+  fromAddress: "reply@vantagefoundation.org",
+  csrfToken: "test-csrf",
+  csrfFieldName: "csrf_token",
+  maxLength: 5000,
+};
+
 describe("ConversationTimeline", () => {
   it("renders the original submission with sender name", () => {
     render(
@@ -48,6 +55,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -62,6 +70,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply()]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText("Vantage Foundation Uganda")).toBeInTheDocument();
@@ -74,6 +83,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply({ sendStatus: "sent" })]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText("Sent")).toBeInTheDocument();
@@ -90,6 +100,7 @@ describe("ConversationTimeline", () => {
           }),
         ]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText("Not sent")).toBeInTheDocument();
@@ -104,6 +115,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply({ sendStatus: "pending" })]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText("Sending")).toBeInTheDocument();
@@ -115,6 +127,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply({ adminActorId: "1" })]}
         adminNames={{ "1": "Hillary" }}
+        {...commonProps}
       />,
     );
     expect(screen.getByText(/Sent by Hillary/)).toBeInTheDocument();
@@ -126,6 +139,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply({ adminActorId: "999" })]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.getByText(/Sent by Vantage admin/)).toBeInTheDocument();
@@ -137,6 +151,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={[makeReply({ adminActorId: undefined })]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     expect(screen.queryByText(/Sent by/)).not.toBeInTheDocument();
@@ -151,6 +166,7 @@ describe("ConversationTimeline", () => {
         message={message}
         replies={[]}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     // The whitespace-pre-wrap class ensures whitespace is preserved
@@ -179,6 +195,7 @@ describe("ConversationTimeline", () => {
         message={makeMessage()}
         replies={replies}
         adminNames={{}}
+        {...commonProps}
       />,
     );
     const replyBodies = container.querySelectorAll(

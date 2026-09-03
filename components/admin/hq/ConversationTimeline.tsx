@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format";
+import { ReplyComposer } from "@/components/admin/ReplyComposer";
 import type { ContactMessageRow } from "@/lib/db/contact";
 import type { ContactReplyRow } from "@/lib/db/contact-replies";
 
@@ -7,7 +11,10 @@ interface ConversationTimelineProps {
   message: ContactMessageRow;
   replies: ContactReplyRow[];
   adminNames: Record<string, string>;
-  onRetry?: (reply: ContactReplyRow) => void;
+  fromAddress: string;
+  csrfToken: string;
+  csrfFieldName: string;
+  maxLength: number;
 }
 
 function actorLabel(
@@ -25,14 +32,23 @@ function actorLabel(
  * outbound replies in order.
  *
  * Message and reply bodies are rendered as plain text (whitespace-pre-wrap)
- * — never as HTML.
+ * — never as HTML. A failed outbound reply can be retried; clicking the
+ * retry link pre-fills the composer with the original body and tags the new
+ * attempt with the failed reply's id.
  */
 export function ConversationTimeline({
   message,
   replies,
   adminNames,
-  onRetry,
+  fromAddress,
+  csrfToken,
+  csrfFieldName,
+  maxLength,
 }: ConversationTimelineProps) {
+  const [retry, setRetry] = useState<{ id: number; body: string } | null>(
+    null,
+  );
+
   return (
     <div className="space-y-4">
       {/* Original submission */}
@@ -114,10 +130,10 @@ export function ConversationTimeline({
                     Delivery failed: {reply.errorDetail}.
                   </p>
                 )}
-                {isOutbound && onRetry && (
+                {isOutbound && (
                   <button
                     type="button"
-                    onClick={() => onRetry(reply)}
+                    onClick={() => setRetry({ id: reply.id, body: reply.body })}
                     className="text-xs font-semibold text-primary underline hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   >
                     Retry this reply
@@ -128,6 +144,21 @@ export function ConversationTimeline({
           </div>
         );
       })}
+
+      {/* Reply composer */}
+      <div className="border-t border-border pt-5">
+        <ReplyComposer
+          messageId={message.id}
+          recipientName={message.name}
+          recipientEmail={message.email}
+          fromAddress={fromAddress}
+          csrfToken={csrfToken}
+          csrfFieldName={csrfFieldName}
+          maxLength={maxLength}
+          retryOfReplyId={retry?.id}
+          initialBody={retry?.body ?? ""}
+        />
+      </div>
     </div>
   );
 }
