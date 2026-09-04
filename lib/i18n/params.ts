@@ -3,8 +3,12 @@ import { isLocale, type Locale } from "./config";
 
 /**
  * The shape every route under `app/[locale]` receives.
+ *
+ * Next.js passes `params` as a `Promise<unknown>` in async layouts and pages
+ * (the exact runtime shape is `{ locale: string }`). This wide type lets the
+ * generated route-group validator stay happy while `resolveLocale` narrows it.
  */
-export type LocaleParams = Promise<{ locale: string }>;
+export type LocaleParams = Promise<unknown>;
 
 /**
  * Resolves the locale from the route segment.
@@ -21,7 +25,8 @@ export type LocaleParams = Promise<{ locale: string }>;
  * explicit for any caller that reaches it another way.
  */
 export async function resolveLocale(params: LocaleParams): Promise<Locale> {
-  const { locale } = await params;
+  const resolved = (await params) as { locale?: string };
+  const { locale } = resolved;
   if (!isLocale(locale)) notFound();
   return locale;
 }

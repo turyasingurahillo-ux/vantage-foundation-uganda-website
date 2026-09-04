@@ -176,6 +176,7 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
                 context="footer quick contact"
                 position="footer"
                 className="border-white/30 text-white hover:bg-white/10"
+                label={c.whatsappUs}
               />
             </div>
             <div className="mt-4 space-y-2">

@@ -75,6 +75,7 @@ export const englishDictionary = {
     // has no approved translation yet. Honest beats machine-translated.
     originalLanguageNotice:
       "This article is currently available in English only. The rest of the site is available in your language.",
+    whatsappUs: "WhatsApp us",
   },
   errors: {
     notFoundTitle: "Page not found",
@@ -142,6 +143,8 @@ export const englishDictionary = {
     privateEmailHelp: "Use the form on this page — choose a category and your message goes straight to the right team.",
     sendTitle: "Send us a message",
     sendDescription: "Fill out the form below and we will respond as soon as possible.",
+    whatsappTitle: "Quick question? Chat to us on WhatsApp",
+    whatsappDescription: "The fastest way to reach Vantage Foundation Uganda. Send us a message and we will get back to you.",
   },
   forms: {
     fullName: "Full name",
@@ -206,6 +209,7 @@ const de: DeepPartial<Dictionary> = {
     breadcrumb: "Navigationspfad", home: "Startseite", backTo: "Zurück zu", lastUpdated: "Zuletzt aktualisiert", programmeSuffix: "Programm",
     reviewedAnnually: "Diese Seite wird jährlich überprüft.", loading: "Wird geladen…",
     originalLanguageNotice: "Dieser Beitrag liegt derzeit nur auf Englisch vor. Die übrige Website steht in Ihrer Sprache zur Verfügung.",
+    whatsappUs: "Per WhatsApp schreiben",
   },
   errors: {
     notFoundTitle: "Seite nicht gefunden",
@@ -239,6 +243,8 @@ const de: DeepPartial<Dictionary> = {
     title: "Kontakt", description: "Wir freuen uns, von Ihnen zu hören. Kontaktieren Sie uns zu Spenden, freiwilligem Engagement, Partnerschaften oder allgemeinen Anliegen.",
     email: "E-Mail", phone: "Telefon", location: "Standort", privateEmailHelp: "Nutzen Sie das Formular auf dieser Seite – wählen Sie eine Kategorie, damit Ihre Nachricht direkt das zuständige Team erreicht.",
     sendTitle: "Nachricht senden", sendDescription: "Füllen Sie das Formular aus. Wir antworten so bald wie möglich.",
+    whatsappTitle: "Kurze Frage? Schreiben Sie uns auf WhatsApp",
+    whatsappDescription: "Der schnellste Weg, Vantage Foundation Uganda zu erreichen. Schreiben Sie uns eine Nachricht und wir melden uns bei Ihnen.",
   },
   forms: {
     fullName: "Vollständiger Name", email: "E-Mail", emailAddress: "E-Mail-Adresse", organisation: "Organisation", phone: "Telefon",
@@ -282,6 +288,7 @@ const fr: DeepPartial<Dictionary> = {
     breadcrumb: "Fil d’Ariane", home: "Accueil", backTo: "Retour à", lastUpdated: "Dernière mise à jour", programmeSuffix: "Programme",
     reviewedAnnually: "Cette page est révisée chaque année.", loading: "Chargement…",
     originalLanguageNotice: "Cet article n’est actuellement disponible qu’en anglais. Le reste du site est disponible dans votre langue.",
+    whatsappUs: "Nous écrire sur WhatsApp",
   },
   errors: {
     notFoundTitle: "Page introuvable",
@@ -315,6 +322,8 @@ const fr: DeepPartial<Dictionary> = {
     title: "Nous contacter", description: "Nous serons heureux de vous lire. Contactez-nous au sujet des dons, du bénévolat, des partenariats ou pour toute question générale.",
     email: "E-mail", phone: "Téléphone", location: "Adresse", privateEmailHelp: "Utilisez le formulaire de cette page et choisissez une catégorie : votre message sera transmis directement à l’équipe concernée.",
     sendTitle: "Envoyez-nous un message", sendDescription: "Remplissez le formulaire ci-dessous. Nous vous répondrons dès que possible.",
+    whatsappTitle: "Question rapide ? Contactez-nous sur WhatsApp",
+    whatsappDescription: "Le moyen le plus rapide de joindre Vantage Foundation Uganda. Envoyez-nous un message et nous vous répondrons.",
   },
   forms: {
     fullName: "Nom complet", email: "E-mail", emailAddress: "Adresse e-mail", organisation: "Organisation", phone: "Téléphone",
@@ -323,6 +332,164 @@ const fr: DeepPartial<Dictionary> = {
     enterEmail: "Saisissez votre e-mail", newsletterConsent: "J’accepte de recevoir des nouvelles de Vantage Foundation Uganda.", subscribe: "S’abonner", subscribing: "Abonnement…",
     unsubscribePrivacy: "Vous pouvez vous désabonner à tout moment. Consultez notre", contactPrivacy: "Nous utiliserons vos coordonnées uniquement pour répondre à votre demande. Consultez notre",
     categories: { general: "Question générale", partnerships: "Partenariats", grants: "Subventions et financement", programmes: "Programmes", volunteering: "Bénévolat", media: "Médias / presse", research: "Recherche", donation: "Aide concernant un don", safeguarding: "Question de protection", other: "Autre" },
+  },
+};
+
+const es: DeepPartial<Dictionary> = {
+  meta: {
+    siteTitle: "Vantage Foundation Uganda | Impacto impulsado por la comunidad",
+    siteDescription:
+      "Vantage Foundation Uganda es una organización sin fines de lucro liderada por jóvenes que mejora el acceso a la salud, la educación, el agua potable y la ayuda humanitaria en comunidades desatendidas de Uganda.",
+    keywords: [
+      "Vantage Foundation Uganda",
+      "ONG Uganda",
+      "salud comunitaria Uganda",
+      "educación financiera Uganda",
+      "ayuda humanitaria Uganda",
+      "WASH Uganda",
+      "organización juvenil Uganda",
+    ],
+  },
+  language: { label: "Idioma", change: "Cambiar idioma", changing: "Cambiando idioma…" },
+  navigation: {
+    main: "Navegación principal", mobile: "Navegación móvil", openMenu: "Abrir menú", closeMenu: "Cerrar menú",
+    about: "Sobre nosotros", ourStory: "Nuestra historia", team: "Equipo", governance: "Gobernanza",
+    reportsAccountability: "Informes y rendición de cuentas", contact: "Contacto", programmes: "Programas",
+    humanitarian: "Asistencia humanitaria", wash: "Agua, saneamiento e higiene", impact: "Impacto",
+    projects: "Proyectos", whereWeWork: "Dónde trabajamos", impactResults: "Resultados de impacto", reports: "Informes",
+    stories: "Historias y perspectivas", getInvolved: "Participa", donate: "Donar", volunteer: "Voluntariado",
+    partner: "Asociarse", sponsor: "Patrocinar", csr: "Responsabilidad social corporativa",
+  },
+  common: {
+    learnMore: "Más información", readMore: "Leer más", viewAll: "Ver todo", required: "obligatorio", optional: "opcional",
+    privacy: "Privacidad", terms: "Términos", safeguarding: "Protección", accessibility: "Accesibilidad",
+    allRightsReserved: "Todos los derechos reservados.", skipToContent: "Saltar al contenido principal",
+    breadcrumb: "Ruta de navegación", home: "Inicio", backTo: "Volver a", lastUpdated: "Última actualización", programmeSuffix: "Programa",
+    reviewedAnnually: "Esta página se revisa anualmente.", loading: "Cargando…",
+    originalLanguageNotice: "Este artículo está disponible actualmente solo en inglés. El resto del sitio está disponible en tu idioma.",
+    whatsappUs: "Escríbenos por WhatsApp",
+  },
+  errors: {
+    notFoundTitle: "Página no encontrada",
+    notFoundDescription: "Es posible que la página que busques se haya movido, cambiado de nombre o ya no esté disponible.",
+    returnHome: "Volver al inicio", contactUs: "Contáctanos", popularPages: "Páginas populares",
+    errorEyebrow: "Algo salió mal", errorTitle: "Se produjo un error",
+    errorDescription: "Lo sentimos: algo salió mal al cargar esta página. Vuelve a intentarlo o contáctanos si el problema persiste.",
+    tryAgain: "Intentar de nuevo", errorId: "ID de error",
+  },
+  footer: {
+    summary: "Vantage Foundation Uganda Limited es una organización sin fines de lucro liderada por jóvenes que mejora el acceso a la salud, la educación, el agua potable y el apoyo humanitario en comunidades desatendidas de Uganda.",
+    impactAccountability: "Impacto y rendición de cuentas", contactVantage: "Contactar con Vantage", newsletter: "Boletín",
+    newsletterDescription: "Recibe actualizaciones sobre nuestro trabajo, historias y formas de apoyar.",
+    jinjaOffice: "Oficina de Jinja", ishakaOffice: "Oficina de Ishaka", easternRegion: "Región Oriental", bushenyiDistrict: "Distrito de Bushenyi",
+  },
+  home: {
+    heroEyebrow: "Liderada por jóvenes. Con raíces comunitarias.", heroTitle: "Cambiando el mundo, una ventaja a la vez",
+    heroDescription: "Vantage Foundation Uganda es una organización sin fines de lucro liderada por jóvenes que mejora el acceso a la salud, la educación, el agua potable y el apoyo humanitario en comunidades desatendidas de Uganda.",
+    exploreWork: "Descubre nuestro trabajo", whoWeAre: "Quiénes somos", ourImpact: "Nuestro impacto", areasTitle: "Nuestras áreas de trabajo",
+    areasDescription: "Cuatro programas interconectados diseñados en torno a las realidades que enfrentan las comunidades.", joinUs: "Únete",
+    finalTitle: "Ayúdanos a crear una ventaja más", finalDescription: "Tu apoyo amplía el acceso a la atención de salud, la educación, el agua potable y el apoyo humanitario para las comunidades que más lo necesitan.",
+    donateNow: "Dona ahora", stayInLoop: "Mantente informado", stayDescription: "Suscríbete para recibir actualizaciones de proyectos, historias y oportunidades para apoyar nuestra labor.",
+  },
+  about: {
+    title: "Sobre Vantage Foundation Uganda", description: "Liderada por jóvenes, centrada en la comunidad y comprometida con una ventaja más a la vez.", mission: "Misión", vision: "Visión", values: "Valores",
+    whoWeServe: "A quién servimos", whoWeServeDescription: "Nos enfocamos en las personas y los lugares que a menudo quedan al margen del desarrollo convencional.",
+    targetBeneficiaries: "Beneficiarios prioritarios", approach: "Nuestro enfoque", meetTeam: "Conoce al equipo", teamDescription: "Liderada por jóvenes e impulsada por voluntarios.",
+    fullTeam: "Conoce al equipo completo", governanceTitle: "Gobernanza y rendición de cuentas", governanceDescription: "Trabajamos para alcanzar los más altos estándares de transparencia y protección.",
+  },
+  contact: {
+    title: "Contáctanos", description: "Nos encantaría saber de ti. Escríbenos para donaciones, voluntariado, alianzas o consultas generales.",
+    email: "Correo electrónico", phone: "Teléfono", location: "Ubicación", privateEmailHelp: "Usa el formulario de esta página: elige una categoría y tu mensaje llegará directamente al equipo adecuado.",
+    sendTitle: "Envíanos un mensaje", sendDescription: "Completa el siguiente formulario y te responderemos lo antes posible.",
+    whatsappTitle: "¿Pregunta rápida? Escríbenos por WhatsApp",
+    whatsappDescription: "La forma más rápida de contactar a Vantage Foundation Uganda. Envíanos un mensaje y te responderemos.",
+  },
+  forms: {
+    fullName: "Nombre completo", email: "Correo electrónico", emailAddress: "Dirección de correo electrónico", organisation: "Organización", phone: "Teléfono",
+    subject: "¿Sobre qué trata tu mensaje?", selectCategory: "Selecciona una categoría", categoryHint: "Elegir una categoría nos ayuda a dirigir tu mensaje al equipo correcto.",
+    message: "Mensaje", sending: "Enviando…", sendMessage: "Enviar mensaje", messageReceived: "Mensaje recibido", replyTime: "Nos proponemos responder en un plazo de cinco días laborables.",
+    enterEmail: "Introduce tu correo electrónico", newsletterConsent: "Acepto recibir actualizaciones de Vantage Foundation Uganda.", subscribe: "Suscribirse", subscribing: "Suscribiendo…",
+    unsubscribePrivacy: "Puedes cancelar tu suscripción en cualquier momento. Consulta nuestra", contactPrivacy: "Solo usaremos tus datos para responder a tu consulta. Consulta nuestra",
+    categories: { general: "Consulta general", partnerships: "Alianzas", grants: "Subvenciones y financiación", programmes: "Programas", volunteering: "Voluntariado", media: "Medios / prensa", research: "Investigación", donation: "Apoyo con donaciones", safeguarding: "Consulta de protección", other: "Otro" },
+  },
+};
+
+const ar: DeepPartial<Dictionary> = {
+  meta: {
+    siteTitle: "Vantage Foundation Uganda | تأثير بقيادة المجتمع",
+    siteDescription:
+      "Vantage Foundation Uganda هي مؤسسة شبابية غير ربحية تعمل على تحسين الوصول إلى الصحة والتعليم والمياه النظيفة والدعم الإنساني في المجتمعات الأكثر حرمانًا في أوغندا.",
+    keywords: [
+      "Vantage Foundation Uganda",
+      "منظمة خيرية أوغندا",
+      "الصحة المجتمعية أوغندا",
+      "التوعية المالية أوغندا",
+      "المساعدات الإنسانية أوغندا",
+      "WASH أوغندا",
+      "منظمات شبابية أوغندا",
+    ],
+  },
+  language: { label: "اللغة", change: "تغيير اللغة", changing: "جارٍ تغيير اللغة…" },
+  navigation: {
+    main: "التنقل الرئيسي", mobile: "التنقل على الجوال", openMenu: "فتح القائمة", closeMenu: "إغلاق القائمة",
+    about: "نبذة عنا", ourStory: "قصتنا", team: "الفريق", governance: "الحوكمة",
+    reportsAccountability: "التقارير والمساءلة", contact: "تواصل", programmes: "البرامج",
+    humanitarian: "المساعدة الإنسانية", wash: "المياه والصرف الصحي والنظافة", impact: "التأثير",
+    projects: "المشاريع", whereWeWork: "أين نعمل", impactResults: "نتائج التأثير", reports: "التقارير",
+    stories: "القصص والرؤى", getInvolved: "شارك معنا", donate: "تبرع", volunteer: "تطوع",
+    partner: "كن شريكًا", sponsor: "راعٍ", csr: "المسؤولية الاجتماعية للشركات",
+  },
+  common: {
+    learnMore: "اعرف المزيد", readMore: "اقرأ المزيد", viewAll: "عرض الكل", required: "مطلوب", optional: "اختياري",
+    privacy: "الخصوصية", terms: "الشروط", safeguarding: "الحماية", accessibility: "إمكانية الوصول",
+    allRightsReserved: "جميع الحقوق محفوظة.", skipToContent: "تخطّ إلى المحتوى الرئيسي",
+    breadcrumb: "مسار التصفح", home: "الرئيسية", backTo: "العودة إلى", lastUpdated: "آخر تحديث", programmeSuffix: "برنامج",
+    reviewedAnnually: "تُراجع هذه الصفحة سنويًا.", loading: "جارٍ التحميل…",
+    originalLanguageNotice: "هذا المقال متاح حاليًا بالإنجليزية فقط. بقية الموقع متاح بلغتك.",
+    whatsappUs: "تواصل معنا عبر واتساب",
+  },
+  errors: {
+    notFoundTitle: "الصفحة غير موجودة",
+    notFoundDescription: "قد تكون الصفحة التي تبحث عنها قد نُقلت أو أُعيد تسميتها أو لم تعد متاحة.",
+    returnHome: "العودة إلى الرئيسية", contactUs: "تواصل معنا", popularPages: "الصفحات الشائعة",
+    errorEyebrow: "حدث خطأ ما", errorTitle: "حدث خطأ",
+    errorDescription: "نعتذر — حدث خطأ ما أثناء تحميل هذه الصفحة. يرجى المحاولة مرة أخرى أو التواصل معنا إذا استمرت المشكلة.",
+    tryAgain: "حاول مرة أخرى", errorId: "معرّف الخطأ",
+  },
+  footer: {
+    summary: "Vantage Foundation Uganda Limited مؤسسة شبابية غير ربحية تعمل على تحسين الوصول إلى الصحة والتعليم والمياه النظيفة والدعم الإنساني في المجتمعات الأكثر حرمانًا في أوغندا.",
+    impactAccountability: "التأثير والمساءلة", contactVantage: "التواصل مع Vantage", newsletter: "النشرة البريدية",
+    newsletterDescription: "احصل على تحديثات حول عملنا وقصصنا وطرق الدعم.",
+    jinjaOffice: "مكتب جينجا", ishakaOffice: "مكتب إيشاكا", easternRegion: "المنطقة الشرقية", bushenyiDistrict: "مقاطعة بوشيني",
+  },
+  home: {
+    heroEyebrow: "يقودها الشباب. وتنطلق من المجتمع.", heroTitle: "نغيّر العالم، ميزةً تلو الأخرى",
+    heroDescription: "Vantage Foundation Uganda هي مؤسسة شبابية غير ربحية تعمل على تحسين الوصول إلى الصحة والتعليم والمياه النظيفة والدعم الإنساني في المجتمعات الأكثر حرمانًا في أوغندا.",
+    exploreWork: "استكشف عملنا", whoWeAre: "من نحن", ourImpact: "تأثيرنا", areasTitle: "مجالات عملنا",
+    areasDescription: "أربع برامج مترابطة صُممت استنادًا إلى الواقع الذي تواجهه المجتمعات.", joinUs: "انضم إلينا",
+    finalTitle: "ساعدنا على تحقيق ميزة إضافية", finalDescription: "دعمك يوسّع الوصول إلى الرعاية الصحية والتعليم والمياه النظيفة والدعم الإنساني للمجتمعات الأكثر حاجةً.",
+    donateNow: "تبرّع الآن", stayInLoop: "ابقَ على اطلاع", stayDescription: "اشترك لتلقّي تحديثات المشاريع والقصص وفرص دعم عملنا.",
+  },
+  about: {
+    title: "نبذة عن Vantage Foundation Uganda", description: "مؤسسة شبابية ترتكز على المجتمع وتلتزم بتقديم ميزة إضافية في كل مرة.", mission: "الرسالة", vision: "الرؤية", values: "القيم",
+    whoWeServe: "من نخدم", whoWeServeDescription: "نركز على الأشخاص والأماكن التي غالبًا ما تُهمَل في التنمية السائدة.",
+    targetBeneficiaries: "الفئات المستهدفة", approach: "نهجنا", meetTeam: "تعرّف على الفريق", teamDescription: "بقيادة الشباب وتدفعها روح التطوع.",
+    fullTeam: "تعرّف على الفريق بالكامل", governanceTitle: "الحوكمة والمساءلة", governanceDescription: "نعمل بما يضمن أعلى معايير الشفافية والحماية.",
+  },
+  contact: {
+    title: "تواصل معنا", description: "يسعدنا تواصلك معنا. تواصل معنا بخصوص التبرعات أو التطوع أو الشراكات أو الاستفسارات العامة.",
+    email: "البريد الإلكتروني", phone: "الهاتف", location: "الموقع", privateEmailHelp: "استخدم النموذج في هذه الصفحة — اختر الفئة وسيصل رسالتك مباشرة إلى الفريق المعني.",
+    sendTitle: "أرسل لنا رسالة", sendDescription: "املأ النموذج أدناه وسنرد عليك في أقرب وقت ممكن.",
+    whatsappTitle: "سؤال سريع؟ تواصل معنا عبر واتساب",
+    whatsappDescription: "أسرع طريقة للتواصل مع Vantage Foundation Uganda. أرسل لنا رسالة وسنرد عليك.",
+  },
+  forms: {
+    fullName: "الاسم الكامل", email: "البريد الإلكتروني", emailAddress: "عنوان البريد الإلكتروني", organisation: "المنظمة", phone: "الهاتف",
+    subject: "ما موضوع رسالتك؟", selectCategory: "اختر الفئة", categoryHint: "اختيار الفئة يساعدنا في توجيه رسالتك إلى الفريق المناسب.",
+    message: "الرسالة", sending: "جارٍ الإرسال…", sendMessage: "إرسال الرسالة", messageReceived: "تم استلام الرسالة", replyTime: "نهدف إلى الرد خلال خمسة أيام عمل.",
+    enterEmail: "أدخل بريدك الإلكتروني", newsletterConsent: "أوافق على تلقّي تحديثات من Vantage Foundation Uganda.", subscribe: "اشترك", subscribing: "جارٍ الاشتراك…",
+    unsubscribePrivacy: "يمكنك إلغاء الاشتراك في أي وقت. راجع", contactPrivacy: "سنستخدم بياناتك فقط للرد على استفسارك. راجع",
+    categories: { general: "استفسار عام", partnerships: "الشراكات", grants: "المنح والتمويل", programmes: "البرامج", volunteering: "التطوع", media: "الإعلام / الصحافة", research: "البحث", donation: "دعم التبرع", safeguarding: "مسألة حماية", other: "أخرى" },
   },
 };
 
@@ -356,6 +523,8 @@ const dictionaries: Record<Locale, Dictionary> = {
   en: englishDictionary,
   de: mergeWithEnglish(englishDictionary as unknown as Dictionary, de),
   fr: mergeWithEnglish(englishDictionary as unknown as Dictionary, fr),
+  es: mergeWithEnglish(englishDictionary as unknown as Dictionary, es),
+  ar: mergeWithEnglish(englishDictionary as unknown as Dictionary, ar),
 };
 
 export async function getDictionary(locale: Locale): Promise<Dictionary> {

@@ -147,7 +147,7 @@ function DesktopNavItem({ item, pathname }: { item: NavEntry; pathname: string }
         />
       </button>
       {open && (
-        <ul className="absolute left-0 top-full z-50 mt-1 min-w-[15rem] rounded-lg border border-border bg-white py-2 shadow-lg">
+        <ul className="absolute start-0 top-full z-50 mt-1 min-w-[15rem] rounded-lg border border-border bg-white py-2 shadow-lg">
           {item.children.map((child) => (
             <li key={child.href}>
               <Link
@@ -224,7 +224,7 @@ function MobileNavItem({
         aria-expanded={expanded}
         aria-controls={panelId}
         className={cn(
-          "flex min-h-[56px] w-full items-center justify-between gap-4 py-2 text-left text-lg font-medium short:min-h-[48px] short:py-1",
+          "flex min-h-[56px] w-full items-center justify-between gap-4 py-2 text-start text-lg font-medium short:min-h-[48px] short:py-1",
           active ? "text-primary" : "text-foreground",
         )}
       >
@@ -238,7 +238,7 @@ function MobileNavItem({
         />
       </button>
       {expanded && (
-        <ul id={panelId} className="flex flex-col pb-2 pl-4">
+        <ul id={panelId} className="flex flex-col pb-2 ps-4">
           {item.children.map((child) => (
             <li key={child.href}>
               <Link
@@ -443,7 +443,7 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
                   data-mobile-menu-close
                   onClick={closeMenu}
                   aria-label={n.closeMenu}
-                  className="-mr-2 inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md"
+                  className="-me-2 inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md"
                 >
                   <X className="h-6 w-6" aria-hidden="true" />
                 </button>

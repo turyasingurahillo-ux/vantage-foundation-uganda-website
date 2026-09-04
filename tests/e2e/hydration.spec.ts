@@ -20,14 +20,18 @@ const LAZY_ROUTES = [
   "/",
   "/de",
   "/fr",
+  "/es",
+  "/ar",
   "/projects/kasaale-deep-borehole",
   "/de/projects/kasaale-deep-borehole",
   "/fr/projects/kasaale-deep-borehole",
+  "/es/projects/kasaale-deep-borehole",
+  "/ar/projects/kasaale-deep-borehole",
 ];
 
 // Controls: same layout and locale plumbing, no LazySection. These guard
 // against a fix that trades one hydration mismatch for another.
-const CONTROL_ROUTES = ["/impact", "/de/impact"];
+const CONTROL_ROUTES = ["/impact", "/de/impact", "/es/about-us", "/ar/about-us"];
 
 const HYDRATION_PATTERN = /minified react error #(418|423|425)|hydrat|did not match|server rendered/i;
 
@@ -91,7 +95,7 @@ test("the lazily rendered reach map is absent until scrolled to, then renders", 
 
 // Form routes that render <HoneypotFields>. Guard against SSR/client
 // nondeterminism in the hidden loadedAt / submissionId values.
-const HONEYPOT_ROUTES = ["/contact", "/de/contact", "/donate"];
+const HONEYPOT_ROUTES = ["/contact", "/de/contact", "/es/contact", "/ar/contact", "/donate"];
 
 for (const route of HONEYPOT_ROUTES) {
   test(`honeypot fields on ${route} hydrate without mismatch and populate`, async ({ page }) => {

@@ -60,6 +60,38 @@ export const aboutContent: Record<Locale, AboutContent> = {
     ],
     imageAlt: "Vantage Foundation Uganda travaillant avec une communauté",
   },
+  es: {
+    intro: [
+      "Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes, establecida en diciembre de 2020. Nuestra historia se parece a la de muchos jóvenes: nuestras vidas comenzaron a pequeña escala, pero una sola chispa puede encender un cambio duradero. Somos un trabajo en progreso que sostiene una luz para quienes son más jóvenes que nosotros, porque podemos identificarnos con ellos, y a través de esto nos hemos convertido en agentes de cambio.",
+      "Imaginamos medios de vida mejorados en comunidades de Uganda y África. Hoy, ayudamos a los jóvenes de Uganda a alcanzar su máximo potencial a través de la salud, la educación, la ayuda humanitaria y el agua, saneamiento e higiene.",
+    ],
+    mission: "Cambiar el mundo, una oportunidad a la vez.",
+    vision: "Medios de vida mejorados en comunidades de Uganda y África Oriental.",
+    values: ["Crecimiento", "Sostenibilidad", "Seguridad", "Inclusión"],
+    beneficiaries: ["Jóvenes en zonas rurales", "Mujeres y niñas", "Niños y huérfanos", "Personas en distritos remotos y asentamientos urbanos informales"],
+    approach: "Identificamos distritos y comunidades que las ONG internacionales más grandes suelen pasar por alto y fortalecemos el alcance de las redes de seguridad social existentes. Reconocemos que el desarrollo es secuencial: sin salud y nutrición, la educación no puede ser asimilada; sin educación, no se puede escapar de la pobreza.",
+    governance: [
+      "Vantage Foundation Uganda opera completamente a través de voluntarios, sin gastos en salarios. A medida que crecemos, estamos formalizando estructuras de gobernanza, políticas de protección e informes financieros para que cada donante, socio y comunidad pueda confiar en cómo se utilizan los recursos.",
+      "Los informes anuales, estados financieros e informes de proyectos se publicarán en nuestra página de Informes y Rendición de Cuentas.",
+    ],
+    imageAlt: "Vantage Foundation Uganda trabajando con una comunidad",
+  },
+  ar: {
+    intro: [
+      "Vantage Foundation Uganda هي منظمة غير ربحية يقودها الشباب، تأسست في ديسمبر 2020. قصتنا تشبه قصة كثير من الشباب: حياتنا بدأت بشكل متواضع، ومع ذلك يمكن للشرارة الواحدة أن تشعل تغييرًا دائمًا. نحن مشروع قيد التقدم يحمل ضوءًا لمن هم أصغر منا لأننا نستطيع التعاطف معهم — ومن خلال ذلك أصبحنا صانعي تغيير.",
+      "نحن نتطلع إلى تحسين سبل العيش في مجتمعات أوغندا وأفريقيا. اليوم، نساعد الشباب في أوغندا على تحقيق إمكاناتهم الكاملة من خلال الصحة والتعليم والإغاثة الإنسانية والمياه والصرف الصحي والنظافة.",
+    ],
+    mission: "تغيير العالم، ميزة واحدة في كل مرة.",
+    vision: "تحسين سبل العيش في مجتمعات أوغندا وشرق أفريقيا.",
+    values: ["النمو", "الاستدامة", "السلامة", "الشمول"],
+    beneficiaries: ["الشباب في المناطق الريفية", "النساء والفتيات", "الأطفال والأيتام", "الأشخاص في المناطق النائية والتجمعات الحضرية العشوائية"],
+    approach: "نحدد المناطق والمجتمعات التي تغفلها المنظمات غير الحكومية الدولية الكبرى غالبًا، ونعزز وصول شبكات الأمان الاجتماعي القائمة. ندرك أن التنمية متسلسلة: بلا صحة وتغذية، لا يمكن استيعاب التعليم؛ وبلا تعليم، لا يمكن الفرار من الفقر.",
+    governance: [
+      "تعمل Vantage Foundation Uganda بالكامل من خلال المتطوعين، دون أي رواتب. ومع نمونا، نعمل على إضفاء الطابع الرسمي على هياكل الحوكمة وسياسات الحماية والإبلاغ المالي، بحيث يمكن لكل متبرع وشريك ومجتمع الوثوق بكيفية استخدام الموارد.",
+      "سيتم نشر التقارير السنوية والبيانات المالية وتقارير المشاريع في صفحة التقارير والمساءلة الخاصة بنا.",
+    ],
+    imageAlt: "Vantage Foundation Uganda تعمل مع مجتمع",
+  },
 };
 
 export type HomepageSectionContent = {
@@ -109,5 +141,29 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
       { title: "Faire un don", description: "Financez un projet, une campagne ou notre fonctionnement général.", cta: "Donner maintenant" }, { title: "Devenir bénévole", description: "Donnez de votre temps comme mentor, soignant, éducateur ou soutien logistique.", cta: "Devenir bénévole" }, { title: "Devenir partenaire", description: "Collaborez avec nous sur les programmes, le financement ou l’expertise technique.", cta: "Devenir partenaire" }, { title: "Parrainer", description: "Soutenez un projet, un événement ou un besoin communautaire précis.", cta: "Parrainer un projet" }, { title: "Collaborer", description: "Participez à une campagne, un atelier ou une mobilisation communautaire.", cta: "Nous contacter" }, { title: "Responsabilité sociétale", description: "Alignez votre démarche RSE sur l’impact auprès des jeunes et des communautés.", cta: "Échanger sur la RSE" },
     ] },
     flagship: { eyebrow: "Projet phare", location: "Lieu", timeline: "Calendrier", beneficiaries: "Bénéficiaires", funding: "Financement", read: "Lire le récit complet", support: "Soutenir ce projet" },
+  },
+  es: {
+    trust: ["Dirigida por jóvenes desde diciembre de 2020", "Con sede en Uganda", "100 % voluntaria", "Centrada en la comunidad"],
+    impact: { eyebrow: "Impacto", title: "Evidencia con contexto", description: "Cada cifra principal está vinculada al programa, lugar, período de reporte y método de conteo que la respalda.", note: "Estas son cifras del equipo de programa y no se presentan como resultados auditados de forma independiente. Los informes públicos de respaldo se vincularán a medida que sean aprobados para su publicación.", cta: "Explora nuestro impacto" },
+    about: { eyebrow: "Sobre Vantage", title: "Liderazgo local. Ventajas prácticas. Cambio duradero.", paragraphs: ["Fundada en diciembre de 2020, Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que responde a las barreras que impiden el acceso a la atención médica esencial, conocimientos financieros prácticos, agua limpia y apoyo digno para los hogares.", "Trabajamos con jóvenes, familias y comunidades vulnerables en distritos rurales y asentamientos urbanos informales. La participación comunitaria y el liderazgo juvenil dan forma a cómo se diseña y se entrega cada programa."], cta: "Lee nuestra historia", imageAlt: "Jóvenes ugandeses participando en una actividad de aprendizaje comunitario de Vantage Foundation" },
+    stories: { eyebrow: "Historias y perspectivas", title: "Voces e ideas de nuestra comunidad", description: "Reflexiones, investigaciones y actualizaciones de programas de los jóvenes, voluntarios y líderes que dan forma a nuestro trabajo.", cta: "Leer Historias y perspectivas", read: "Leer la historia", support: "Apoyar este trabajo" },
+    instagram: { title: "Popular en Instagram", description: "Descubre las historias, programas y momentos comunitarios que llegan a más personas.", follow: "Sigue a Vantage Foundation Uganda en Instagram", postsLabel: "Publicaciones populares de Instagram" },
+    partners: { eyebrow: "Socios", title: "Relaciones verificadas", description: "Cada relación se describe con precisión para que un servicio bancario, contribución en especie o colaboración de programa nunca se exagere." },
+    involved: { eyebrow: "Participa", title: "Únete al movimiento", description: "Hay muchas formas de ayudar a crear una oportunidad más para una persona joven, una familia o una comunidad.", cards: [
+      { title: "Donar", description: "Financia un proyecto, una campaña o nuestras operaciones generales.", cta: "Donar ahora" }, { title: "Ser voluntario", description: "Comparte tu tiempo como mentor, trabajador de salud, educador o ayudante de logística.", cta: "Ser voluntario" }, { title: "Socios", description: "Colabora en programas, financiamiento o experiencia técnica.", cta: "Asociarse con nosotros" }, { title: "Patrocinar", description: "Patrocina un proyecto, evento o necesidad comunitaria específica.", cta: "Patrocinar un proyecto" }, { title: "Colaborar", description: "Únete a una campaña, taller o movilización comunitaria.", cta: "Ponte en contacto" }, { title: "Responsabilidad social corporativa", description: "Alinea la RSC de tu organización con el impacto en jóvenes y comunidades.", cta: "Hablar de RSC" },
+    ] },
+    flagship: { eyebrow: "Proyecto insignia", location: "Ubicación", timeline: "Cronograma", beneficiaries: "Beneficiarios", funding: "Financiamiento", read: "Leer la historia completa", support: "Apoyar este proyecto" },
+  },
+  ar: {
+    trust: ["تقودها الشباب منذ ديسمبر 2020", "مقرها في أوغندا", "100% تدار بالمتطوعين", "تركيزها على المجتمع"],
+    impact: { eyebrow: "التأثير", title: "أدلة ضمن سياقها", description: "كل رقم رئيسي مرتبط بالبرنامج والمكان وفترة الإبلاغ وطريقة العد التي تقف وراءه.", note: "هذه أرقام فريق البرنامج ولا تُعرض على أنها نتائج مدققة بشكل مستقل. سيتم ربط التقارير العامة الداعمة بمجرد الموافقة على نشرها.", cta: "استكشف تأثيرنا" },
+    about: { eyebrow: "حول Vantage", title: "قيادة محلية. مزايا عملية. تغيير دائم.", paragraphs: ["تأسست Vantage Foundation Uganda في ديسمبر 2020، وهي منظمة غير ربحية يقودها الشباب تستجيب للحواجز التي تحول دون حصول الناس على الرعاية الصحية الأساسية، والمعرفة المالية العملية، والمياه النظيفة، والدعم الكريم للأسر.", "نعمل مع الشباب والعائلات والمجتمعات الضعيفة في المناطق الريفية والتجمعات الحضرية العشوائية. تؤدي مشاركة المجتمع وقيادة الشباب إلى تحديد كيفية تصميم كل برنامج وتنفيذه."], cta: "اقرأ قصتنا", imageAlt: "شباب أوغندا يشاركون في نشاط تعلم مجتمعي من Vantage Foundation" },
+    stories: { eyebrow: "القصص والرؤى", title: "أصوات وأفكار من مجتمعنا", description: "تأملات وأبحاث وتحديثات برامج من الشباب والمتطوعين والقادة الذين يشكلون عملنا.", cta: "اقرأ القصص والرؤى", read: "اقرأ القصة", support: "ادعم هذا العمل" },
+    instagram: { title: "الأكثر شيوعًا على Instagram", description: "شاهد القصص والبرامج واللحظات المجتمعية التي تصل إلى أكبر عدد من الناس.", follow: "تابع Vantage Foundation Uganda على Instagram", postsLabel: "منشورات Instagram الأكثر شيوعًا" },
+    partners: { eyebrow: "الشركاء", title: "علاقات موثقة", description: "يتم وصف كل علاقة بدقة حتى لا يتم المبالغة في أي خدمة مصرفية أو مساهمة عينية أو تعاون برنامجي." },
+    involved: { eyebrow: "شارك", title: "انضم إلى الحركة", description: "هناك العديد من الطرق للمساعدة في خلق ميزة أخرى لشاب أو أسرة أو مجتمع.", cards: [
+      { title: "تبرع", description: "مول مشروعًا أو حملة أو عملياتنا العامة.", cta: "تبرع الآن" }, { title: "تطوع", description: "شارك وقتك كموجه أو عامل صحي أو معلم أو مساعد لوجستي.", cta: "كن متطوعًا" }, { title: "شريك", description: "تعاون في البرامج أو التمويل أو الخبرة التقنية.", cta: "تعاون معنا" }, { title: "رعاية", description: "رعّى مشروعًا أو حدثًا أو حاجة مجتمعية محددة.", cta: "رعاية مشروع" }, { title: "تعاون", description: "انضم إلى حملة أو ورشة عمل أو حشد مجتمعي.", cta: "تواصل معنا" }, { title: "المسؤولية الاجتماعية للشركات", description: "أدمج مسؤوليتك الاجتماعية للشركات مع تأثيرها على الشباب والمجتمعات.", cta: "ناقش المسؤولية الاجتماعية للشركات" },
+    ] },
+    flagship: { eyebrow: "المشروع الرائد", location: "الموقع", timeline: "الجدول الزمني", beneficiaries: "المستفيدون", funding: "التمويل", read: "اقرأ القصة كاملة", support: "ادعم هذا المشروع" },
   },
 };

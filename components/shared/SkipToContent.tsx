@@ -16,7 +16,7 @@ export function SkipToContent({ label = "Skip to main content" }: { label?: stri
     <a
       href="#main"
       onClick={handleClick}
-      className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
+      className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
     >
       {label}
     </a>

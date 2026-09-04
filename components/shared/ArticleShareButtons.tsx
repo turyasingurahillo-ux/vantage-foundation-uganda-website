@@ -79,7 +79,7 @@ export function ArticleShareButtons({
 
   const buttonClass = cn(
     "rounded-lg border border-border bg-white text-sm font-medium hover:border-primary hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-    isRail ? "block w-full px-3 py-2 text-left" : "px-3 py-1.5"
+    isRail ? "block w-full px-3 py-2 text-start" : "px-3 py-1.5"
   );
 
   return (

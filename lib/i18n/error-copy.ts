@@ -44,4 +44,22 @@ export const errorCopy: Record<Locale, ErrorCopy> = {
     returnHome: "Retour à l’accueil",
     errorId: "Identifiant de l’erreur",
   },
+  es: {
+    eyebrow: "Algo salió mal",
+    title: "Se produjo un error",
+    description:
+      "Lo sentimos: ocurrió un error al cargar esta página. Inténtalo de nuevo o contáctanos si el problema persiste.",
+    tryAgain: "Intentar de nuevo",
+    returnHome: "Volver al inicio",
+    errorId: "ID del error",
+  },
+  ar: {
+    eyebrow: "حدث خطأ ما",
+    title: "حدث خطأ",
+    description:
+      "نعتذر — حدث خطأ أثناء تحميل هذه الصفحة. يرجى المحاولة مرة أخرى أو التواصل معنا إذا استمرت المشكلة.",
+    tryAgain: "حاول مرة أخرى",
+    returnHome: "العودة إلى الرئيسية",
+    errorId: "معرّف الخطأ",
+  },
 };

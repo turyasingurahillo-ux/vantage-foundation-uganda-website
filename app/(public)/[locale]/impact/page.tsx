@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { getPageContent } from "@/lib/i18n/content/pages";
 import { localePath } from "@/lib/i18n/config";
 
 export async function generateMetadata({
@@ -19,10 +20,10 @@ export async function generateMetadata({
   params: LocaleParams;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
+  const content = getPageContent(locale).impact;
   return createPublicMetadata({
-    title: "Impact",
-    description:
-      "See how Vantage Foundation Uganda measures and reports its impact in health, education, humanitarian aid and WASH.",
+    title: content.title,
+    description: content.description,
     path: "/impact",
     locale,
     contentLocalized: false,
@@ -36,9 +37,9 @@ export default async function ImpactPage({
 }) {
   const locale = await resolveLocale(params);
   const dictionary = await getDictionary(locale);
+  const p = getPageContent(locale);
+  const i = p.impact;
 
-  // Combine the three flat arrays into a single tiered list so the
-  // measurement hierarchy (output → outcome → long-term) is explicit.
   const tieredItems: { tier: ImpactTier; text: string }[] = [
     ...outputs.map((text) => ({ tier: "output" as const, text })),
     ...outcomes.map((text) => ({ tier: "outcome" as const, text })),
@@ -51,8 +52,8 @@ export default async function ImpactPage({
         <Container>
           <SectionHeader
             level="h1"
-            title="Impact"
-            description="Evidence of change, measured with honesty and hope."
+            title={i.title}
+            description={i.description}
             light
           />
         </Container>
@@ -66,24 +67,20 @@ export default async function ImpactPage({
 
           <div className="grid gap-6 md:grid-cols-3">
             {getPublishedImpactStats().map((stat) => (
-              <StatCard key={stat.label} {...stat} />
+              <StatCard key={stat.label} {...stat} locale={locale} />
             ))}
           </div>
           <p className="mt-6 max-w-3xl text-sm text-muted-foreground">
-            Figures shown above are programme-team records, not independently
-            audited results. Each card explains the reporting period and
-            counting method and links to the relevant project.
+            {i.disclaimer}
           </p>
 
           <div className="mt-16">
-            <SectionHeader
-              align="left"
-              title="From outputs to long-term change"
-              description="Our work is measured across three levels: what we deliver (outputs), the changes we see (outcomes), and the future we are building (long-term impact)."
+            <ImpactMetricList
+              items={tieredItems}
+              title={i.fromOutputs}
+              description={i.outputsToLongTerm}
+              locale={locale}
             />
-            <div className="mt-8">
-              <ImpactMetricList items={tieredItems} />
-            </div>
           </div>
         </Container>
       </section>
@@ -92,10 +89,9 @@ export default async function ImpactPage({
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="text-3xl font-bold">Geographic reach</h2>
+              <h2 className="text-3xl font-bold">{i.geographicReach}</h2>
               <p className="mt-4 text-muted-foreground">
-                We identify districts and communities that are often overlooked by larger
-                international NGOs and magnify the reach of existing social safety nets.
+                {i.geographicDescription}
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
                 {regions.map((region) => (
@@ -110,16 +106,16 @@ export default async function ImpactPage({
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold">Sustainable Development Goals</h2>
+              <h2 className="text-3xl font-bold">{i.sdgsTitle}</h2>
               <p className="mt-4 text-muted-foreground">
-                Our programmes contribute to the following global goals.
+                {i.sdgDescription}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 {sdgs.map((goal) => (
                   <span
                     key={goal}
                     className="inline-flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-lg font-bold text-white"
-                    title={`SDG ${goal}`}
+                    title={`${i.sdgsTitle} ${goal}`}
                   >
                     {goal}
                   </span>
@@ -132,24 +128,13 @@ export default async function ImpactPage({
 
       <section className="py-16 md:py-24">
         <Container>
-          <SectionHeader
-            title="Monitoring and evaluation"
-            description="We use a dual-metric system to track progress and learn."
-          />
+          <SectionHeader title={i.monitoring} />
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-primary">Quantitative</h3>
-              <p className="mt-2 text-muted-foreground">
-                Number of patients treated, litres of clean water provided, workshop attendance,
-                and reach of mentorship campaigns.
-              </p>
+              <h3 className="text-lg font-semibold text-primary">{i.quantitative}</h3>
             </Card>
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-primary">Qualitative</h3>
-              <p className="mt-2 text-muted-foreground">
-                Case studies on livelihood improvements, community feedback on health awareness,
-                and reflections from volunteers and beneficiaries.
-              </p>
+              <h3 className="text-lg font-semibold text-primary">{i.qualitative}</h3>
             </Card>
           </div>
         </Container>
@@ -157,14 +142,14 @@ export default async function ImpactPage({
 
       <section className="bg-surface py-16 md:py-24">
         <Container>
-          <SectionHeader title="Projects behind the numbers" />
+          <SectionHeader title={i.projectsBehind} />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {getPublishedProjects().slice(0, 3).map((project) => (
               <ProjectCard key={project.slug} project={project} locale={locale} />
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Button href={localePath("/projects", locale)}>View All Projects</Button>
+            <Button href={localePath("/projects", locale)}>{i.viewAllProjects}</Button>
           </div>
         </Container>
       </section>

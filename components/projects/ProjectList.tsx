@@ -10,13 +10,20 @@ import { getPageContent } from "@/lib/i18n/content/pages";
 import type { Locale } from "@/lib/i18n/config";
 
 const categories = ["All", "Health", "Education", "Humanitarian Aid", "Water & Sanitation"];
-const statuses = ["All", "Active", "Completed", "Planned"];
 
 export function ProjectList({ projects, locale }: { projects: Project[]; locale: Locale }) {
   const c = getPageContent(locale).common;
+  const p = getPageContent(locale).projects;
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
+
+  const statusOptions = [
+    { value: "All", label: c.all },
+    { value: "Active", label: p.statusActive },
+    { value: "Completed", label: p.statusCompleted },
+    { value: "Planned", label: p.statusPlanned },
+  ];
 
   const filtered = useMemo(() => {
     return projects.filter((project) => {
@@ -52,9 +59,9 @@ export function ProjectList({ projects, locale }: { projects: Project[]; locale:
             onChange={(e) => setCategory(e.target.value)}
             aria-label={c.filterByCategory}
           >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat === "All" ? c.all : cat}
               </option>
             ))}
           </Select>
@@ -63,9 +70,9 @@ export function ProjectList({ projects, locale }: { projects: Project[]; locale:
             onChange={(e) => setStatus(e.target.value)}
             aria-label={c.filterByStatus}
           >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s}
+            {statusOptions.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
               </option>
             ))}
           </Select>
