@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an improvement to the Vantage Foundation Uganda website
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Problem or user need
+      description: What problem would this solve, and who benefits?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Describe the desired behavior or experience. Implementation details are optional.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Public website
+        - Content/editorial
+        - Accessibility
+        - Admin/internal workflow
+        - Analytics/reporting
+        - Donations
+        - Media
+        - Security/privacy
+        - Developer experience
+        - Other
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Safeguarding, privacy, accessibility, or operational considerations
+      description: Note any risks or constraints that should be considered.
