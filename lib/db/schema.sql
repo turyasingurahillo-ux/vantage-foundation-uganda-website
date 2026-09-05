@@ -555,18 +555,41 @@ SET
   END
 WHERE m.status = 'archived';
 
---    Swap the CHECK constraint to the three-state workflow. A new name is used
---    so the guard is a simple "does the new one exist yet".
+--    Swap the CHECK constraint to the three-state delivery model.
+--
+--    The constraint is named contact_messages_status_values so it cannot
+--    collide with contact_messages_workflow_status_values, which is the
+--    CHECK constraint on the workflow_status column created by
+--    case-management-pipeline.sql. A previous version of this block used
+--    the workflow_status name for the `status` column, which silently
+--    blocked the case-management migration from creating its own
+--    constraint — see fix-workflow-status-constraint-collision.sql.
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname = 'contact_messages_workflow_status_values'
+  -- Clean up the collision from the original Inbox V2 migration: if a
+  -- constraint named contact_messages_workflow_status_values exists on the
+  -- `status` column (wrong column), drop it so the name is free for the
+  -- legitimate workflow_status constraint. We verify the column to avoid
+  -- dropping a correctly-placed constraint on workflow_status.
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+    WHERE c.conname = 'contact_messages_workflow_status_values'
+      AND t.relname = 'contact_messages'
+      AND a.attname = 'status'
   ) THEN
     ALTER TABLE contact_messages
-      DROP CONSTRAINT IF EXISTS contact_messages_status_values;
+      DROP CONSTRAINT contact_messages_workflow_status_values;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'contact_messages_status_values'
+  ) THEN
     ALTER TABLE contact_messages
-      ADD CONSTRAINT contact_messages_workflow_status_values
+      ADD CONSTRAINT contact_messages_status_values
       CHECK (status IN ('new', 'awaiting_response', 'replied'));
   END IF;
 END $$;

@@ -129,8 +129,18 @@ ALTER TABLE contact_messages
 
 DO $$
 BEGIN
+  -- Verify the constraint exists AND is attached to the workflow_status
+  -- column, not just that the name exists. This prevents the collision
+  -- where a constraint with the same name on the `status` column would
+  -- silently block this one from being created.
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_workflow_status_values'
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY (c.conkey)
+    WHERE c.conname = 'contact_messages_workflow_status_values'
+      AND t.relname = 'contact_messages'
+      AND a.attname = 'workflow_status'
   ) THEN
     ALTER TABLE contact_messages
       ADD CONSTRAINT contact_messages_workflow_status_values
