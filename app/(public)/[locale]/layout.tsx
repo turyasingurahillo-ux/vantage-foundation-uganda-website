@@ -15,14 +15,23 @@ import { createPublicMetadata } from "@/lib/metadata";
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
-  display: "swap",
+  // Use "optional" instead of "swap" to eliminate CLS from font swap.
+  // The body uses min-h-full flex flex-col, which pushes the footer to
+  // the viewport bottom on initial render. With "swap", the font swap
+  // causes text reflow that pushes the footer down — a visible CLS of
+  // ~0.32 on pages with content near viewport height. With "optional",
+  // the browser uses the fallback font (Arial with adjusted metrics)
+  // if the custom font isn't loaded within 100ms and never swaps,
+  // eliminating the shift. The font is self-hosted and preloaded, so
+  // most users on fast connections will still get Source Sans 3.
+  display: "optional",
   adjustFontFallback: true,
 });
 
 const arabicSans = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic-sans",
-  display: "swap",
+  display: "optional",
   adjustFontFallback: true,
   // Only preload the Arabic font on Arabic pages to avoid unnecessary
   // font downloads and CLS from font swap on non-Arabic locales.
