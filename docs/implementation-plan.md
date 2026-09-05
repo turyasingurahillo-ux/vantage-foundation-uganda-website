@@ -160,9 +160,14 @@ Implemented as an additive enhancement:
 - Displayed in the admin case detail view alongside source and case type.
 - No parallel datastore, no separate workflow — enriches the existing `contact_messages` table and case pipeline.
 
-### Phase 3C scope (future PR, blocked on consent)
+### Phase 3C scope (deferred pending management/consent inputs)
 
-Gallery expansion, `Event` structured data, and additional curated photo stories are blocked on consent-aware media metadata and management-approved event content. Do not implement until consent review is complete.
+**Phase 3C is deferred, not an engineering blocker.** Gallery expansion, `Event` structured data, and additional curated photo stories are blocked on:
+
+- additional media has verified consent/safeguarding metadata;
+- Vantage management supplies approved event facts where Event structured data is justified.
+
+Do not fabricate media consent, events, dates, locations, impact figures, partner information or reports. Phase 3C should resume only when the above inputs are available.
 
 ---
 
@@ -170,13 +175,84 @@ Gallery expansion, `Event` structured data, and additional curated photo stories
 
 Goal: make the content system robust enough for non-developer updates and consent-aware media handling.
 
-- [ ] Extend `types/index.ts` `Project` with: `reportingPeriod`, `fundingStatus`, `startDate`, `endDate`, `documents`, `seo` (title, description, ogImage), `published` (boolean), `consent` classification.
-- [ ] Extend `types/index.ts` `Story` with: `tags`, `consentClassification`, `relatedProjectSlugs` (already present), `seo`, `published`.
-- [ ] Add a `MediaAsset` type and media manifest module.
-- [ ] Validate all content modules with Zod schemas at build time (a `lib/validate-content.ts` called from a prebuild script).
-- [ ] Add a `published` flag and filter unpublished content from production routes (keep visible in dev).
-- [ ] Document the editorial workflow in `docs/editorial-guidelines.md`.
-- [ ] Evaluate MDX for long-form story bodies (optional — only if the team needs richer formatting than markdown).
+### Phase 4 reconciliation (performed 2026-09-05 against `main` at `1cb17e0`)
+
+#### Project model — `types/index.ts:193-275`
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| `reportingPeriod` | **Already implemented** | `types/index.ts:264` — `{ start?: string; end?: string }` |
+| `fundingStatus` | **Already implemented** | `types/index.ts:265` — free-form string |
+| `startDate` / `endDate` | **Already implemented** | `types/index.ts:266-267` — ISO date strings |
+| `documents` | **Already implemented** | `types/index.ts:268` — `ProjectDocument[]` with `title`, `url`, `type?`, `date?`, `description?` |
+| `seo` (title, description, ogImage) | **Already implemented** | `types/index.ts:270` — `SeoMeta` with `title`, `description`, `ogImage`, `socialImage` |
+| `published` (boolean) | **Already implemented** | `types/index.ts:272` — `published?: boolean`, defaults to `true`; `getPublishedProjects()` filters in production |
+| `consent` classification | **Already implemented** | `types/index.ts:273` — `consentClassification?: ConsentClassification` |
+| `primaryProgramme` / `secondaryProgrammes` | **Already implemented** | `types/index.ts:275` — `ProgrammeId` enum |
+| `themes`, `beneficiaryGroups`, `sdgs`, `flagship` | **Already implemented** | `types/index.ts:275` — Phase 4 extensions present |
+
+#### Story model — `types/index.ts:277-334`
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| `tags` | **Already implemented** | `types/index.ts:296` — `tags?: string[]` |
+| `consentClassification` | **Already implemented** | `types/index.ts:299` — `ConsentClassification` |
+| `relatedProjectSlugs` | **Already implemented** | `types/index.ts:293` — `string[]` |
+| `seo` | **Already implemented** | `types/index.ts:300` — `SeoMeta` |
+| `published` | **Already implemented** | `types/index.ts:303` — `published?: boolean`, defaults to `true`; `getPublishedStories()` filters in production |
+| `heroImageFocalPoint` | **Already implemented** | `types/index.ts:291` — CSS `object-position` |
+| `socialImage` | **Already implemented** | via `seo.socialImage` |
+| `contentType` (Story/Insight) | **Already implemented** | `types/index.ts:284` |
+| `faqs` | **Already implemented** | `types/index.ts:301` — `FaqItem[]` |
+
+#### Media model
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| `MediaAsset` type | **Already implemented** | `types/index.ts:426-451` |
+| Media manifest module | **Already implemented** | `content/media.ts` with 1000+ lines, `getPublishedMedia()`, `getMediaByProject()`, `getMediaByProgramme()` |
+| Consent classification | **Already implemented** | `MediaAsset.consent: ConsentClassification` (required) |
+| Caption, credit, location, date | **Already implemented** | `types/index.ts:431-435` |
+| Programme/project relationship | **Already implemented** | `types/index.ts:436-437` — `programme?`, `projectSlug?` |
+| Publication state | **Already implemented** | `types/index.ts:439` — `published?: boolean` |
+| DB media (`media_objects`) | **Already implemented** | `lib/db/schema.sql:59-95` — full consent, publication, programme, project_slug columns |
+| Admin media management | **Already implemented** | `/admin/media` with upload, edit, consent, publication, delete, audit |
+| Public DB media helpers | **Already implemented** | `lib/media-public.ts` — gallery, team photos, programme photos, documents, logos |
+
+#### Editorial infrastructure
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| Build-time Zod validation | **Already implemented** | `lib/validate-content.ts` (534 lines), runs via `prebuild` in `package.json:18` |
+| Unpublished-content filtering | **Already implemented** | `getPublishedProjects()`, `getPublishedStories()`, `getPublishedAreas()`, `getPublishedMedia()` — all filter `published !== false` in production |
+| DB-backed vs static story behavior | **Already implemented** | `lib/stories-public.ts` merges DB + static; DB stories take slug precedence; static fallback |
+| Editorial workflow documentation | **Already implemented** | `docs/editorial-guidelines.md` (139 lines) |
+| Media workflow documentation | **Already implemented** | `docs/safeguarding-and-consent.md` |
+| MDX evaluation | **Already evaluated — rejected** | `docs/editorial-guidelines.md:101-113` documents the decision to defer MDX; Markdown + react-markdown covers all current needs |
+
+#### Genuinely missing / unsafe (Phase 4A scope)
+
+1. **Consent is not enforced as a publication gate.** Public media helpers (`lib/media-public.ts`) and `content/media.ts:getPublishedMedia()` filter on `published` only, not `consent`. A DB media row with `published: true` + `consent: "pending"` will render publicly. The editorial guidelines say "Never publish media with `consent: "pending"`" but the code does not enforce it.
+2. **Project gallery images hardcode `consent: "verified"`.** `app/(public)/[locale]/projects/[slug]/page.tsx:211` sets `consent: "verified"` for every gallery image regardless of actual consent status.
+3. **Admin APIs allow `published: true` + `consent: "pending"`.** Neither `app/api/admin/media/route.ts` nor `app/api/admin/stories/route.ts` guards against this combination.
+4. **Build-time validation does not check `published` + `consent` coexistence.** `lib/validate-content.ts` validates `consent` and `published` independently.
+5. **Homepage and programme pages miss DB stories.** `StoriesSection.tsx` and `FeaturedImpactStory.tsx` use `getPublishedStories()` (static only) instead of `getPublishedStoriesWithDb()`.
+6. **`generateMetadata` can leak unpublished metadata.** Project, story, and team member routes use raw `get*BySlug` in `generateMetadata` without checking `published`.
+7. **Uganda reach map can expose unpublished projects.** `UgandaReachMap.tsx` uses `getProjectBySlug()` without checking `published`.
+
+### Phase 4A scope (this PR)
+
+Treat consent as a publication gate, not merely descriptive metadata.
+
+1. **Enforce consent as a publication gate in all public media helpers.** Add `consent !== "pending"` to `getPublishedGalleryMedia()`, `getTeamMemberPhotoOverride()`, `getProgrammeAdditionalPhotos()`, `getPublishedDocuments()`, `getPublishedLogos()`, and `content/media.ts:getPublishedMedia()`.
+2. **Guard admin APIs against `published: true` + `consent: "pending"`.** Add Zod refinements or server-side checks in `app/api/admin/media/route.ts` and `app/api/admin/stories/route.ts`.
+3. **Add build-time validation for `published` + `consent` coexistence.** In `lib/validate-content.ts`, reject static `MediaAsset`, `Story`, and `Project` entries where `published: true` and `consent: "pending"`.
+4. **Fix project gallery consent hardcoding.** Remove the hardcoded `consent: "verified"` and either look up the actual consent from the media manifest or default to `"pending"` (which would then be filtered by the consent gate).
+5. **Surface DB stories on homepage and programme pages.** Switch `StoriesSection.tsx` and `FeaturedImpactStory.tsx` to `getPublishedStoriesWithDb()`.
+6. **Fix `generateMetadata` to respect `published`.** Use publication-filtered helpers or add the production `published` check in `generateMetadata` for project, story, and team member routes.
+7. **Fix Uganda reach map to respect `published`.** Filter `district.projectSlugs` against the published project slug set.
+8. **Add regression tests** for all consent-gate and publication-leak fixes.
+9. **Update `docs/editorial-guidelines.md`** to note that consent is now enforced in code, not just editorial process.
 
 ---
 

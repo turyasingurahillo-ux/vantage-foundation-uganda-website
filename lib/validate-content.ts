@@ -193,7 +193,10 @@ const projectSchema = z.object({
   beneficiaryGroups: z.array(nonEmpty).optional(),
   sdgs: z.array(z.number().int().min(1).max(17)).optional(),
   flagship: z.boolean().optional(),
-});
+}).refine(
+  (p) => !(p.published !== false && p.consentClassification === "pending"),
+  "Project has published !== false but consentClassification is 'pending' — cannot publish without verified consent",
+);
 
 const storySchema = z.object({
   id: nonEmpty,
@@ -227,7 +230,10 @@ const storySchema = z.object({
     )
     .optional(),
   published: z.boolean().optional(),
-});
+}).refine(
+  (s) => !(s.published !== false && s.consentClassification === "pending"),
+  "Story has published !== false but consentClassification is 'pending' — cannot publish without verified consent",
+);
 
 const teamMemberSchema = z.object({
   id: nonEmpty,
@@ -314,7 +320,10 @@ const mediaAssetSchema = z.object({
   consent: z.enum(["none", "verified", "pending", "group-consent"]),
   consentNotes: z.string().optional(),
   published: z.boolean().optional(),
-});
+}).refine(
+  (m) => !(m.published !== false && m.consent === "pending"),
+  "Media asset has published !== false but consent is 'pending' — cannot publish media without verified consent",
+);
 
 // ---------------------------------------------------------------------------
 // Cross-reference validation

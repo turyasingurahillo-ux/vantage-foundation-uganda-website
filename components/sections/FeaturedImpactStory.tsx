@@ -1,12 +1,12 @@
-import { getPublishedStories } from "@/content/stories";
+import { getPublishedStoriesWithDb } from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
 import { ImageWithOverlay } from "@/components/shared/ImageWithOverlay";
 import { Button } from "@/components/ui/Button";
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
-export function FeaturedImpactStory({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["stories"] }) {
-  const [story] = getPublishedStories();
+export async function FeaturedImpactStory({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["stories"] }) {
+  const [story] = await getPublishedStoriesWithDb();
   if (!story) return null;
 
   return (

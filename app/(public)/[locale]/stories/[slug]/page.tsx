@@ -56,7 +56,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug, locale } = await params;
   const story = await getStoryWithDb(slug);
-  if (!story) return {};
+  if (!story || (process.env.NODE_ENV === "production" && story.published === false)) {
+    return {};
+  }
   const resolvedLocale = await resolveLocale(Promise.resolve({ locale }));
   return createPublicMetadata({
     title: story.seo?.title || story.title,

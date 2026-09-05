@@ -1,4 +1,4 @@
-import { getPublishedStories } from "@/content/stories";
+import { getPublishedStoriesWithDb } from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { StoryCard } from "@/components/shared/StoryCard";
@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
-export function StoriesSection({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["stories"] }) {
-  const featured = getPublishedStories().slice(0, 3);
+export async function StoriesSection({ locale, copy }: { locale: Locale; copy: HomepageSectionContent["stories"] }) {
+  const featured = (await getPublishedStoriesWithDb()).slice(0, 3);
 
   return (
     <section className="py-16 md:py-24 lg:py-32">

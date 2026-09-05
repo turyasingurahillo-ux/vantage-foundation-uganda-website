@@ -29,7 +29,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug, locale: localeParam } = await params;
   const member = getTeamBySlug(slug);
-  if (!member) return {};
+  if (!member || (process.env.NODE_ENV === "production" && !member.published)) {
+    return {};
+  }
   const locale = await resolveLocale(Promise.resolve({ locale: localeParam }));
   return createPublicMetadata({
     title: member.displayName,
