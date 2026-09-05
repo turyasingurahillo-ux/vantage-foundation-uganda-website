@@ -15,26 +15,26 @@ import { createPublicMetadata } from "@/lib/metadata";
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
-  // Use "optional" instead of "swap" to eliminate CLS from font swap.
-  // The body uses min-h-full flex flex-col, which pushes the footer to
-  // the viewport bottom on initial render. With "swap", the font swap
+  // Use "block" to eliminate CLS from font swap. The body uses
+  // min-h-full flex flex-col, which pushes the footer to the viewport
+  // bottom on initial render. With "swap" or "optional", the font swap
   // causes text reflow that pushes the footer down — a visible CLS of
-  // ~0.32 on pages with content near viewport height. With "optional",
-  // the browser uses the fallback font (Arial with adjusted metrics)
-  // if the custom font isn't loaded within 100ms and never swaps,
-  // eliminating the shift. The font is self-hosted and preloaded, so
-  // most users on fast connections will still get Source Sans 3.
-  display: "optional",
+  // ~0.32 on pages with content near viewport height. With "block",
+  // text is invisible for up to 3s while the font loads, then appears
+  // directly with the custom font — no fallback-to-custom swap, no CLS.
+  // The font is self-hosted and preloaded, so it loads in ~100-200ms
+  // and the invisible period is imperceptible.
+  display: "block",
   adjustFontFallback: true,
 });
 
 const arabicSans = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic-sans",
-  display: "optional",
+  display: "block",
   adjustFontFallback: true,
   // Only preload the Arabic font on Arabic pages to avoid unnecessary
-  // font downloads and CLS from font swap on non-Arabic locales.
+  // font downloads on non-Arabic locales.
   preload: false,
 });
 

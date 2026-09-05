@@ -383,7 +383,7 @@ Goal: mobile-first, low-bandwidth performance.
 | Focal-point-aware cropping | **Already implemented** | `ImageOrPlaceholder` accepts `objectPosition` prop; story heroes use `heroImageFocalPoint`; `StoryCard` uses `DEFAULT_LANDSCAPE_FOCAL_POINT` |
 | Performance budgets documented | **Already implemented** | `docs/performance.md` documents LCP < 2.5s, CLS < 0.1, INP < 200ms, JS < 150 KB gzip, CSS < 30 KB gzip, images < 200 KB |
 | Client-side JS audit | **Already implemented** | 45 client components identified (docs were stale at 7); all are justified (forms, maps, galleries, analytics, navigation) |
-| `next/font` display=swap | **Already implemented** | `Source_Sans_3` with `display: "optional"` (changed from `swap` in Phase 6B to eliminate CLS); `Noto_Sans_Arabic` for Arabic; admin layout uses `Source_Sans_3` |
+| `next/font` display=swap | **Already implemented** | `Source_Sans_3` with `display: "block"` (changed from `swap` in Phase 6B to eliminate CLS); `Noto_Sans_Arabic` for Arabic; admin layout uses `Source_Sans_3` |
 | Throttled 3G testing at multiple viewport widths | **Measurement-only** | Lighthouse mobile preset simulates slow 4G; 320px tested separately |
 | Lighthouse scores recorded | **Measurement-only** | Full Lighthouse run on 9 routes, mobile + desktop, recorded below |
 
@@ -501,7 +501,7 @@ After PR #79 was deployed, Lighthouse 13.4.1 was re-run against the same 9 produ
 - Pages with CLS 0: homepage, donate (content much taller than viewport, footer already below viewport)
 - The shifting element is always `<footer>` (confirmed in Lighthouse layout-shift trace)
 
-**Fix:** Changed `display: "swap"` to `display: "optional"` for both Source Sans 3 and Noto Sans Arabic. With `optional`, the browser uses the fallback font if the custom font isn't loaded within 100ms and never swaps, eliminating the shift.
+**Fix:** Changed `display: "swap"` to `display: "block"` for both Source Sans 3 and Noto Sans Arabic. With `block`, text is invisible for up to 3s while the font loads, then appears directly with the custom font — no fallback-to-custom swap, no CLS. The font is self-hosted and preloaded, so it loads in ~100-200ms and the invisible period is imperceptible. (Initially tried `display: "optional"`, but it still allowed a swap on fast desktop connections where the font loaded within the 100ms block period.)
 
 #### Mobile LCP investigation
 

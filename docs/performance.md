@@ -128,7 +128,7 @@ The deferred map JS is not counted against the initial-route JS budget.
 - The shifting element is always `<footer>` (confirmed in Lighthouse layout-shift trace)
 - The `adjustFontFallback: true` fallback metrics (Arial with size-adjust 93.76%) were not close enough to prevent the shift
 
-**Fix (Phase 6B):** Changed `display: "swap"` to `display: "optional"` for both Source Sans 3 and Noto Sans Arabic. With `optional`, the browser uses the fallback font if the custom font isn't loaded within 100ms and never swaps, eliminating the shift. The font is self-hosted and preloaded, so most users on fast connections will still get the custom font.
+**Fix (Phase 6B):** Changed `display: "swap"` to `display: "block"` for both Source Sans 3 and Noto Sans Arabic. With `block`, text is invisible for up to 3s while the font loads, then appears directly with the custom font — no fallback-to-custom swap, no CLS. The font is self-hosted and preloaded, so it loads in ~100-200ms and the invisible period is imperceptible. (Initially tried `display: "optional"`, but it still allowed a swap on fast desktop connections where the font loaded within the 100ms block period, producing inconsistent CLS results.)
 
 ### Mobile LCP investigation
 
