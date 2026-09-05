@@ -29,6 +29,12 @@ export type SqlClient = ((
     text: string,
     params?: unknown[],
   ) => Promise<Record<string, unknown>[]>;
+  /**
+   * Escape hatch for embedding a raw SQL fragment (e.g. a shared column
+   * list) into a tagged-template query. The caller is responsible for
+   * ensuring the fragment contains no user-controlled input.
+   */
+  unsafe: (text: string) => { __unsafe_sql: string };
 };
 
 let override: SqlClient | null = null;

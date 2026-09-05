@@ -136,7 +136,7 @@ export default async function AdminMessagesPage({
   try {
     const [found, tallies] = await Promise.all([
       searchCaseSummaries({ filter, query, actorId }),
-      getCaseCounts(),
+      getCaseCounts(actorId),
     ]);
     cases = found;
     counts = tallies;
@@ -416,7 +416,7 @@ function getCountForFilter(
     overdue: counts.overdue,
     safeguarding: counts.safeguarding,
     high_priority: counts.high_priority,
-    my_cases: 0, // my_cases count requires actorId; not shown in tab counts
+    my_cases: counts.my_cases,
   };
   return map[filter] ?? 0;
 }
