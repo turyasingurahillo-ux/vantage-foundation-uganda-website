@@ -30,6 +30,7 @@ const MIGRATION_FILES = [
     MIGRATIONS_DIR,
     "fix-workflow-status-constraint-collision.sql",
   ),
+  resolve(MIGRATIONS_DIR, "add-origin-page.sql"),
 ];
 
 const SCHEMA_PATH = resolve(__dirname, "../../lib/db/schema.sql");

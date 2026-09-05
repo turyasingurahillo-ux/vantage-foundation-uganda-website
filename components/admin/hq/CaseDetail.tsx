@@ -120,6 +120,9 @@ export function CaseDetail({
               <span>· {getCaseProgrammeLabel(caseRow.programme)}</span>
             )}
             <span>· Workflow: {getWorkflowStatusLabel(caseRow.workflowStatus)}</span>
+            {caseRow.originPage && (
+              <span>· From: {caseRow.originPage}</span>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{caseRow.email}</span>

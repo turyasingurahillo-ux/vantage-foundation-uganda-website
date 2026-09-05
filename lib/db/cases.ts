@@ -76,6 +76,8 @@ export interface CaseRow {
   personId?: number;
   triagedAt?: Date;
   receivedAt?: Date;
+  /** The public page the contact form was submitted from (e.g. "/get-involved"). */
+  originPage?: string;
 }
 
 export interface CaseNoteRow {
@@ -152,6 +154,7 @@ function mapCase(row: Record<string, unknown>): CaseRow {
     receivedAt: row.received_at
       ? new Date(row.received_at as string)
       : undefined,
+    originPage: (row.origin_page as string) || undefined,
   };
 }
 
@@ -259,7 +262,7 @@ const CASE_COLUMNS = `
   referral_org, referral_date, referral_link, referral_followup_date,
   referral_outcome, referral_detail, first_response_at, closed_at,
   last_replied_at, archived_at, organisation_id, person_id, triaged_at,
-  received_at
+  received_at, origin_page
 `;
 
 /** Returns one case by id, or null. */
