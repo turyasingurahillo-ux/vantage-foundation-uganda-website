@@ -40,13 +40,24 @@ function adapt(db: PGlite): SqlClient {
     strings: TemplateStringsArray,
     ...values: unknown[]
   ): Promise<Record<string, unknown>[]> => {
-    // Neon's tagged template binds every interpolated value as a parameter.
+    // Neon's tagged template binds every interpolated value as a parameter,
+    // except for `unsafe()` fragments which are inlined as raw SQL.
     // Rebuild the same statement with $1..$n placeholders.
-    const text = strings.reduce(
-      (acc, part, i) => acc + part + (i < values.length ? `$${i + 1}` : ""),
-      "",
-    );
-    const result = await db.query(text, values as unknown[]);
+    let text = "";
+    const params: unknown[] = [];
+    for (let i = 0; i < strings.length; i++) {
+      text += strings[i];
+      if (i < values.length) {
+        const val = values[i];
+        if (val && typeof val === "object" && "__unsafe_sql" in val) {
+          text += (val as { __unsafe_sql: string }).__unsafe_sql;
+        } else {
+          params.push(val);
+          text += `$${params.length}`;
+        }
+      }
+    }
+    const result = await db.query(text, params);
     return result.rows as Record<string, unknown>[];
   };
 
@@ -55,6 +66,7 @@ function adapt(db: PGlite): SqlClient {
     const result = await db.query(text, params);
     return result.rows as Record<string, unknown>[];
   };
+  client.unsafe = (text: string) => ({ __unsafe_sql: text });
   return client;
 }
 

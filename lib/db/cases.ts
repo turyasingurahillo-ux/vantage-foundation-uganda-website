@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import type { ContactCategory } from "@/lib/contact-categories";
 import type { ContactMessageStatus } from "@/lib/db/contact";
 import type {
@@ -14,6 +13,7 @@ import type {
   ReferralOutcome,
   CaseFilter,
 } from "@/lib/case-types";
+import { getSql } from "@/lib/db/client";
 
 /**
  * Case-management database queries.
@@ -29,14 +29,6 @@ import type {
  * seedCaseFromContactSubmission() here. Manual intake creates a row directly
  * here via createManualCase().
  */
-
-function getSql() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error("DATABASE_URL is not configured");
-  }
-  return neon(url);
-}
 
 // ---------------------------------------------------------------------------
 // Row types
@@ -442,13 +434,25 @@ export interface CaseCounts {
   overdue: number;
   safeguarding: number;
   high_priority: number;
+  /**
+   * Cases where owner_id matches the actorId passed to getCaseCounts().
+   * Uses the same `owner_id = actorId` predicate as searchCaseSummaries'
+   * `my_cases` filter, so the tab badge count is always consistent with
+   * the result set. When actorId is not provided, this is 0.
+   */
+  my_cases: number;
 }
 
 /**
  * Per-filter counts for the case workspace header and the dashboard attention
  * centre. One pass over the table.
+ *
+ * When `actorId` is provided, the `my_cases` count is computed from the same
+ * `owner_id = actorId` predicate used by `searchCaseSummaries` for the
+ * `my_cases` filter. This keeps the tab badge consistent with the result set
+ * without duplicating the filter logic in TypeScript.
  */
-export async function getCaseCounts(): Promise<CaseCounts> {
+export async function getCaseCounts(actorId?: string): Promise<CaseCounts> {
   const sql = getSql();
   const rows = await sql`
     SELECT
@@ -473,7 +477,8 @@ export async function getCaseCounts(): Promise<CaseCounts> {
           AND workflow_status NOT IN ('accepted','completed','archived')
       )::int AS overdue,
       COUNT(*) FILTER (WHERE case_type = 'safeguarding')::int AS safeguarding,
-      COUNT(*) FILTER (WHERE priority IN ('critical','high'))::int AS high_priority
+      COUNT(*) FILTER (WHERE priority IN ('critical','high'))::int AS high_priority,
+      COUNT(*) FILTER (WHERE owner_id = ${actorId ?? null})::int AS my_cases
     FROM contact_messages
     WHERE deleted_at IS NULL
   `;
@@ -497,6 +502,7 @@ export async function getCaseCounts(): Promise<CaseCounts> {
     overdue: Number(r.overdue),
     safeguarding: Number(r.safeguarding),
     high_priority: Number(r.high_priority),
+    my_cases: Number(r.my_cases),
   };
 }
 

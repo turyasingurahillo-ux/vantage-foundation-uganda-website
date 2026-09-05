@@ -10,6 +10,15 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.{ts,tsx}"],
     exclude: ["tests/e2e/**", "node_modules/**"],
+    // PGlite integration tests spin up a real PostgreSQL in-process and
+    // apply the full schema + migrations per test. Under parallel load
+    // this can exceed the default 5s/10s timeouts.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    // Limit parallel file concurrency. PGlite tests create an in-process
+    // PostgreSQL per test; running too many in parallel causes memory
+    // pressure and deadlocks on resource-constrained machines.
+    fileParallelism: false,
   },
   resolve: {
     alias: {

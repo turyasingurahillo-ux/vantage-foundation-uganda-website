@@ -103,7 +103,7 @@ describe("workflow_status CHECK constraint collision fix", () => {
 
   beforeEach(async () => {
     db = await new PGlite();
-  });
+  }, 30000);
 
   afterEach(async () => {
     await db.close();
