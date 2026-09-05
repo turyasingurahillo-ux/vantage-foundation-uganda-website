@@ -254,22 +254,109 @@ Treat consent as a publication gate, not merely descriptive metadata.
 8. **Add regression tests** for all consent-gate and publication-leak fixes.
 9. **Update `docs/editorial-guidelines.md`** to note that consent is now enforced in code, not just editorial process.
 
+### Phase 4 closure
+
+- **Phase 4 reconciliation — complete.** Every old Phase 4 checklist item was classified as "already implemented" with exact file/line evidence.
+- **Phase 4A consent/publication safety remediation — complete.** PR #77 merged at `698e8d445bf7a4c3b7b998d2c10c3291705107a7`.
+- No further Phase 4 engineering work is required unless new content-model requirements emerge.
+- **Phase 3C remains separately deferred** pending consent-approved media and management-approved event facts. It is not an engineering blocker.
+
 ---
 
 ## Phase 5 — Forms and email flows
 
 Goal: make every form safe, accessible, and abuse-resistant.
 
-- [ ] Add rate limiting to contact, newsletter, donation-intent, and admin login (in-memory or Upstash Redis if deployed to Vercel).
-- [ ] Add CSRF tokens to admin forms (or migrate admin actions to server actions with origin checks).
-- [ ] Improve honeypot: add a second honeypot with a realistic field name and a time-trap field.
-- [ ] Add per-form field-level error display (currently only a single concatenated message).
-- [ ] Add idempotency to donation-intent (prevent duplicate submissions from double-clicks).
-- [ ] Sanitise and escape all user-controlled content in email bodies (currently `formatBody` does `Object.entries` join — safe for plain text but should be explicit).
-- [ ] Validate `SMTP_FROM` format at startup.
-- [ ] Add safe HTML email templates (optional — plain text is currently sent).
-- [ ] Add a documented email configuration section to README and `docs/deployment.md`.
-- [ ] Add a privacy notice to every form ("We will only use your details to respond to your enquiry…").
+### Phase 5 reconciliation (performed 2026-09-05 against `main` at `698e8d4`)
+
+#### Public form abuse protection
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| Rate limiting (contact, newsletter, donation, admin login) | **Already implemented** | `app/actions.ts:121-135` `checkFormRateLimit` (3/min/IP default); admin login `app/api/admin/login/route.ts:67` (5/min + lockout); all admin API routes have per-route rate limits |
+| CSRF tokens on admin forms | **Already implemented** | Every state-changing admin API route validates CSRF via `validateCsrf` or `validateCsrfHeader` — full inventory in audit table below |
+| Second honeypot + time-trap | **Already implemented** | `components/shared/HoneypotFields.tsx:93-113` renders `website` + `company_url` honeypots and `form_loaded_at` time-trap; `app/actions.ts:174-189` `isBotSubmission()` enforces both |
+| Per-field error display | **Already implemented** | `ContactForm.tsx`, `NewsletterForm.tsx`, `DonationForm.tsx` all render `FieldError` per field with `aria-invalid`/`aria-describedby`; server actions return `fieldErrors` from Zod |
+| Donation-intent idempotency | **Already implemented** | `app/actions.ts:152-170` in-memory `Map` with 5-minute TTL; `DonationForm.tsx:45` sends `submissionId` via `HoneypotFields withIdempotency` |
+| Email body sanitisation/escaping | **Already implemented** | `lib/sanitise.ts:21-30` `sanitiseValue` strips CR/LF/control chars; `lib/email.ts:61-100` `emailTemplate` escapes all values via `escapeHtml`; `lib/contact-reply.ts:61-91` `htmlBody` escapes all user-controlled values |
+| `SMTP_FROM` format validation | **Already implemented** | `lib/contact-inbox.ts:31-41` `readAddressEnv` validates against `SINGLE_ADDRESS_REGEX`, caps at 254 chars, logs and ignores invalid values |
+| Safe HTML email templates | **Already implemented** | `lib/email.ts:61-100` `emailTemplate` builds branded HTML with full escaping; `lib/contact-reply.ts:61-91` `htmlBody` for replies |
+| Email config in README + deployment docs | **Already implemented** | `README.md:47-65` env var table; `docs/deployment.md:48-128` Step 3 email configuration; `docs/email-privacy-and-contact.md` full architecture |
+| Privacy notice on every form | **Already implemented** | `ContactForm.tsx:191`, `NewsletterForm.tsx:89-94`, `DonationForm.tsx:201-205` all render `FormPrivacyNotice` with link to `/privacy` |
+
+#### Admin request protection — full route inventory
+
+Every state-changing admin API route has `verifySessionToken` (except login/logout which create/clear sessions) and CSRF validation:
+
+| Route | Auth | CSRF | Rate limit |
+|---|---|---|---|
+| `/api/admin/login` | N/A (creates session) | `validateCsrf` | 5/min + lockout |
+| `/api/admin/logout` | N/A (clears session) | `validateCsrf` | **None** |
+| `/api/admin/verify` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/admins` (POST/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 20/min |
+| `/api/admin/media/presign` | `verifySessionToken` | `validateCsrf`/`validateCsrfHeader` | 20/min |
+| `/api/admin/media` (POST/PATCH/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 60/min |
+| `/api/admin/stories` (POST/PATCH/DELETE) | `guard()` | `validateCsrfHeader` | 60/min |
+| `/api/admin/messages/reply` | `verifySessionToken` | `validateCsrf` | 10/min |
+| `/api/admin/messages/resend` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/messages/resolve` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/messages/status` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/update` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/note` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/intake` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/cases/actions` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/decision` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/cases/due-diligence` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/communication` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/referrals` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/cases/link` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/persons` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/organisations` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/organisations/[id]` | `verifySessionToken` | `validateCsrf` | 30/min |
+| `/api/admin/analytics` (GET) | `verifySessionToken` | `validateCsrfHeader` | 60/min |
+| `/api/admin/analytics/export` (GET) | `verifySessionToken` | `validateCsrfHeader` | 10/min |
+
+No admin route accepts a user-supplied `returnTo`/`redirectTo` URL — all redirects are hardcoded internal paths.
+
+#### Email safety — full path audit
+
+| Item | Status | Evidence |
+|---|---|---|
+| Email data preparation | **Already implemented** | `lib/email.ts:31-36` `formatBody` (plain text), `lib/email.ts:45-55` `buildEmailRows` (HTML rows), both `sanitiseValue` all values |
+| Recipient resolution | **Already implemented** | Admin reply: recipient from stored DB row (`app/api/admin/messages/reply/route.ts:108`); notifications: `resolveInboxFor(category)` (`lib/contact-inbox.ts:65-72`) |
+| From address resolution | **Unsafe** — see below | `lib/email.ts:156` `const from = getFromAddress() ?? options.to;` — falls back to recipient address when no authorised sender configured |
+| Reply-To resolution | **Already implemented** | `lib/contact-reply.ts:141` `replyTo: getFromAddress() ?? getDefaultInbox()` |
+| Subject/body sanitisation | **Already implemented** | `lib/email.ts:161` `sanitiseValue(options.subject).substring(0, 200)`; body is plain text or escaped HTML |
+| HTML escaping | **Already implemented** | `lib/email.ts:61-100` `emailTemplate` escapes all values; `lib/contact-reply.ts:61-91` `htmlBody` escapes all user-controlled values |
+| SMTP transport | **Already implemented** | `lib/email.ts:144-152` Nodemailer transport from `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS` |
+| Provider result handling | **Already implemented** | `lib/email.ts:170-191` returns `{ok, messageId, providerStatus}` or `{ok:false, error}` |
+| Retry/error handling | **Already implemented** | Reply route marks reply as failed and message as `awaiting_response` on send failure (`app/api/admin/messages/reply/route.ts:166-175`) |
+| Audit/logging | **Already implemented** | All admin email actions logged to `audit_log`; `logInfo`/`logWarn`/`logError` without PII |
+
+#### Privacy review
+
+| Form | Fields collected | Storage | Email copy | Privacy notice | Matches `/privacy`? |
+|---|---|---|---|---|---|
+| Contact | name, email, phone?, organisation?, subject, message, origin_page | `contact_messages` table | Yes (to team inbox) | `ContactForm.tsx:191` | Yes — `/privacy` describes contact data |
+| Donation | name, email, phone?, amount, frequency, campaign, transactionReference, message | `donations` table | Yes (to team inbox) | `DonationForm.tsx:201-205` | Yes — `/privacy` describes donation data |
+| Newsletter | email, consent | No DB table (email only) | Yes (to team inbox) | `NewsletterForm.tsx:89-94` | Yes — `/privacy` describes newsletter data |
+
+No form is missing a privacy notice. No form collects data not described in `/privacy`.
+
+#### Genuinely missing / unsafe (Phase 5A scope)
+
+1. **Unsafe `From` fallback in `lib/email.ts:156`.** `const from = getFromAddress() ?? options.to;` means when no authorised sender is configured, the recipient's address becomes the From address. This can cause SPF/DMARC failure, sender spoofing, and incorrect reply behavior. **Fix:** Never derive From from the recipient. If no authorised sender is configured, fail the send cleanly and preserve workflow state for retry.
+
+2. **Donation schema missing max lengths.** `donorSchema` in `app/actions.ts:90-106` has no max length on `name`, `email`, `phone`, `campaign`, `transactionReference`, or `message`. The contact schema has max lengths. This is a validation inconsistency that could allow oversized payloads. **Fix:** Add max lengths consistent with the contact schema and DB column sizes.
+
+3. **Newsletter schema missing email max length.** `newsletterSchema` in `app/actions.ts:82-88` has no max length on `email`. **Fix:** Add `.max(254)` consistent with RFC 5321.
+
+### Phase 5A scope (this PR)
+
+1. **Fix the unsafe `From` fallback.** Remove `?? options.to` from `lib/email.ts:156`. When `getFromAddress()` returns null, return `{ok:false, error:"No authorised sender configured"}` instead of using the recipient as the sender. This is the highest-priority fix.
+2. **Add max lengths to donation and newsletter schemas.** Bring `donorSchema` and `newsletterSchema` in line with `contactSchema` for field-size validation.
+3. **Add regression tests** for the sender-identity fix and schema validation.
+4. **Update `docs/implementation-plan.md`** with the reconciled Phase 5 status.
 
 ---
 
