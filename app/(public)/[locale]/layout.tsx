@@ -16,12 +16,17 @@ const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const arabicSans = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic-sans",
   display: "swap",
+  adjustFontFallback: true,
+  // Only preload the Arabic font on Arabic pages to avoid unnecessary
+  // font downloads and CLS from font swap on non-Arabic locales.
+  preload: false,
 });
 
 export const dynamicParams = false;

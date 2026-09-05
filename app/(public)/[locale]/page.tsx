@@ -5,7 +5,6 @@ import { ImpactSection } from "@/components/sections/ImpactSection";
 import { AreasOfWork } from "@/components/sections/AreasOfWork";
 import { FlagshipProjectSection } from "@/components/sections/FlagshipProjectSection";
 import { FeaturedImpactStory } from "@/components/sections/FeaturedImpactStory";
-import { UgandaReachMap } from "@/components/sections/UgandaReachMap";
 import { InstagramSection } from "@/components/sections/InstagramSection";
 import { PartnersSection } from "@/components/sections/PartnersSection";
 import { NewsletterSection } from "@/components/sections/NewsletterSection";
@@ -14,6 +13,7 @@ import { AboutTeaser } from "@/components/sections/AboutTeaser";
 import { StoriesSection } from "@/components/sections/StoriesSection";
 import { GetInvolvedSection } from "@/components/sections/GetInvolvedSection";
 import { LazySection } from "@/components/shared/LazySection";
+import { LazyUgandaReachMap } from "@/components/sections/LazyUgandaReachMap";
 import { createPublicMetadata } from "@/lib/metadata";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
@@ -54,7 +54,7 @@ export default async function Home({ params }: { params: LocaleParams }) {
         className="bg-white"
         dataTestId="uganda-reach-map-section"
       >
-        <UgandaReachMap locale={locale} />
+        <LazyUgandaReachMap locale={locale} />
       </LazySection>
       <FeaturedImpactStory locale={locale} copy={sections.stories} />
       <StoriesSection locale={locale} copy={sections.stories} />

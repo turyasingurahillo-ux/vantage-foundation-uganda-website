@@ -358,22 +358,93 @@ No form is missing a privacy notice. No form collects data not described in `/pr
 3. **Add regression tests** for the sender-identity fix and schema validation.
 4. **Update `docs/implementation-plan.md`** with the reconciled Phase 5 status.
 
+### Phase 5 closure
+
+- **Phase 5 reconciliation — complete.** Every old Phase 5 checklist item was classified as "already implemented" with exact file/line evidence.
+- **Phase 5A sender-identity safety and schema validation — complete.** PR #78 merged at `e6705f06bd69edbfec6a2ecd0ee1309099d8ac38`.
+- No further Phase 5 engineering work is required unless new form/email requirements emerge.
+
 ---
 
 ## Phase 6 — Media optimisation and performance
 
 Goal: mobile-first, low-bandwidth performance.
 
-- [ ] Define image size presets and `sizes` attributes per component (hero, card, thumbnail).
-- [ ] Add `placeholder="blur"` with generated blur data URLs for above-the-fold images.
-- [ ] Lazy-load all below-the-fold images (default in `next/image` — verify).
-- [ ] Set explicit `width`/`height` on all images to prevent CLS.
-- [ ] Add focal-point-aware cropping for hero images (using `objectPosition`).
-- [ ] Define and document performance budgets (LCP < 2.5s on 3G, JS bundle < 150 KB gzip per route, no layout shift).
-- [ ] Audit and reduce client-side JS (only `Header`, `ProjectList`, forms, `CopyBankDetails` are client — verify no accidental client components).
-- [ ] Add `next/font` display=swap (already set) and preconnect to Google Fonts.
-- [ ] Test under throttled 3G network conditions at 320px, 375px, 768px, 1024px, 1440px.
-- [ ] Run Lighthouse and record scores in `docs/deployment.md`.
+### Phase 6 reconciliation (performed 2026-09-05 against `main` at `e6705f0`)
+
+#### Old checklist items — all already implemented
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| Image size presets and `sizes` attributes | **Already implemented** | `lib/image-presets.ts:12-58` defines 8 presets (hero, splitHero, detailHero, card, half, team, banner, articleBody); used by `ImageOrPlaceholder` and direct `next/image` usages |
+| `placeholder="blur"` with blur data URLs | **Already implemented** | `lib/blur-placeholder.ts:13` provides generic SVG blur; `ImageOrPlaceholder` always sets `placeholder="blur"` + `blurDataURL` |
+| Lazy-load below-the-fold images | **Already implemented** | `next/image` defaults to `loading="lazy"`; only above-the-fold images use `preload` or `priority` |
+| Explicit `width`/`height` on all images | **Already implemented** | All `fill` images use aspect-ratio containers (`aspect-[16/10]`, `aspect-[4/3]`, etc.); fixed-size images use `width`/`height` props |
+| Focal-point-aware cropping | **Already implemented** | `ImageOrPlaceholder` accepts `objectPosition` prop; story heroes use `heroImageFocalPoint`; `StoryCard` uses `DEFAULT_LANDSCAPE_FOCAL_POINT` |
+| Performance budgets documented | **Already implemented** | `docs/performance.md` documents LCP < 2.5s, CLS < 0.1, INP < 200ms, JS < 150 KB gzip, CSS < 30 KB gzip, images < 200 KB |
+| Client-side JS audit | **Already implemented** | 45 client components identified (docs were stale at 7); all are justified (forms, maps, galleries, analytics, navigation) |
+| `next/font` display=swap | **Already implemented** | `Source_Sans_3` with `display: "swap"` in public layout; `Noto_Sans_Arabic` for Arabic; admin layout uses `Source_Sans_3` |
+| Throttled 3G testing at multiple viewport widths | **Measurement-only** | Lighthouse mobile preset simulates slow 4G; 320px tested separately |
+| Lighthouse scores recorded | **Measurement-only** | Full Lighthouse run on 9 routes, mobile + desktop, recorded below |
+
+#### Measured production baseline (2026-09-05, Lighthouse 13.4.1)
+
+**Mobile (perf preset, simulated slow 4G):**
+
+| Route | Perf | LCP (ms) | CLS | TBT (ms) | FCP (ms) | SI (ms) | Total KB |
+|---|---|---|---|---|---|---|---|
+| `/` | 33 | 6828 | 0 | 2678 | 4020 | 6987 | 668 |
+| `/projects` | 33 | 7113 | 0 | 2081 | 4695 | 7133 | 760 |
+| `/projects/kasaale-deep-borehole` | 69 | 3796 | 0 | 478 | 3244 | 3855 | 600 |
+| `/stories` | 58 | 4147 | 0 | 805 | 3598 | 4094 | 699 |
+| `/stories/beyond-the-ward` | 39 | 5561 | 0 | 2772 | 3501 | 5747 | 637 |
+| `/gallery` | 46 | 6106 | 0 | 734 | 4709 | 6125 | 916 |
+| `/get-involved` | 74 | 3624 | 0 | 379 | 3124 | 3525 | 517 |
+| `/contact` | 75 | 3584 | 0 | 368 | 3109 | 3500 | 505 |
+| `/donate` | 59 | 4314 | 0 | 756 | 3248 | 4056 | 508 |
+
+**Desktop (desktop preset):**
+
+| Route | Perf | A11y | BP | SEO | LCP (ms) | CLS | TBT (ms) | FCP (ms) | Total KB |
+|---|---|---|---|---|---|---|---|---|---|
+| `/` | 95 | 100 | 100 | 100 | 1124 | 0 | 99 | 670 | 906 |
+| `/projects` | 95 | 99 | 100 | 100 | 1095 | 0 | 52 | 805 | 819 |
+| `/projects/kasaale-deep-borehole` | 79 | 94 | 100 | 100 | 1090 | 0.32 | 9 | 615 | 753 |
+| `/stories` | 82 | 100 | 100 | 100 | 885 | 0.32 | 7 | 525 | 829 |
+| `/stories/beyond-the-ward` | 67 | 100 | 96 | 100 | 1453 | 0.33 | 205 | 1046 | 639 |
+| `/gallery` | 80 | 100 | 100 | 100 | 1116 | 0.32 | 0 | 736 | 1159 |
+| `/get-involved` | 83 | 100 | 100 | 100 | 847 | 0.32 | 7 | 519 | 549 |
+| `/contact` | 82 | 100 | 100 | 100 | 875 | 0.25 | 3 | 518 | 542 |
+| `/donate` | 97 | 100 | 100 | 100 | 993 | 0 | 18 | 891 | 541 |
+
+#### Budget compliance
+
+| Budget | Target | Actual (mobile) | Actual (desktop) | Status |
+|---|---|---|---|---|
+| LCP | < 2.5s | 3.6–7.1s | 0.85–1.45s | **Mobile exceeds budget** |
+| CLS | < 0.1 | 0 (all routes) | 0–0.33 | **Desktop exceeds budget on some routes** |
+| INP/TBT | < 200ms | 368–2772ms | 0–205ms | **Mobile exceeds budget** |
+| JS per route (gzip) | < 150 KB | 245–257 KB | 245–257 KB | **Exceeds budget** |
+| CSS per route (gzip) | < 30 KB | 17 KB | 17 KB | **Within budget** |
+| Images per page | < 200 KB | 147 KB (home) | 147 KB (home) | **Within budget** (gallery 411 KB exceeds) |
+
+#### Identified bottlenecks (by impact)
+
+1. **JS bundle 246 KB gzip** — above 150 KB budget. The Uganda reach map chunk (~150 KB uncompressed, includes d3-geo and district data) is loaded on the homepage even though it's below the fold. **Fix: dynamic import.**
+2. **CLS 0.324 on desktop** — footer shift caused by font swap. The Arabic font (`Noto_Sans_Arabic`) is loaded on all pages including non-Arabic. **Fix: only preload Arabic font on Arabic pages.**
+3. **LCP 3.5–7.1s on mobile** — primarily caused by JS execution time (7.5s main thread work on homepage). The dynamic import for the map should reduce initial JS execution.
+4. **Gallery over-fetching** — 34 images, 411 KB. This is a content volume issue; pagination would help but is a larger change.
+5. **`docs/performance.md` outdated** — claims 7 client components (actual 45), mentions Inter font (actual Source Sans 3), claims `priority` is used (actual `preload` is correct for Next.js 16).
+
+#### Vercel Speed Insights
+
+`@vercel/speed-insights` is not installed. No real-user Core Web Vitals telemetry is available. Field data cannot be reported. Vercel Dashboard may show Speed Insights if enabled at the project level, but this is not instrumented in the application code.
+
+### Phase 6A scope (this PR)
+
+1. **Dynamic import for UgandaReachMap** — the map component (~150 KB chunk with d3-geo and district data) is below the fold on the homepage. Use `next/dynamic` with `ssr: false` to split it into a separate chunk that loads only when needed.
+2. **Arabic font preload optimization** — set `preload: false` on `Noto_Sans_Arabic` so it's not preloaded on non-Arabic pages. This reduces unnecessary font downloads and CLS from font swap.
+3. **Update `docs/performance.md`** with actual measured results, correct client component count, correct font name, and correct `preload` vs `priority` documentation for Next.js 16.
 
 ---
 
