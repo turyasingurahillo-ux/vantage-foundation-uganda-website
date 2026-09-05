@@ -128,7 +128,11 @@ The deferred map JS is not counted against the initial-route JS budget.
 - The shifting element is always `<footer>` (confirmed in Lighthouse layout-shift trace)
 - The `adjustFontFallback: true` fallback metrics (Arial with size-adjust 93.76%) were not close enough to prevent the shift
 
-**Fix (Phase 6B):** Removed the `min-h-full flex flex-col` body layout and `flex-1` main class that created the sticky footer. The sticky footer amplified any content height change (from font metrics mismatch during hydration) into a visible footer shift. Without the sticky footer, the footer is at the natural end of the content, and content height changes during font swap are not visible as CLS. Font display reverted to `swap` for the best font experience. On short pages (privacy, terms), the footer is immediately after the content rather than at the viewport bottom — a minor design trade-off accepted for CLS compliance.
+**Fix (Phase 6B):** Removed the `min-h-full flex flex-col` body layout and `flex-1` main class that created the sticky footer. The sticky footer amplified any content height change (from font metrics mismatch during hydration) into a visible footer shift of CLS 0.32. Without the sticky footer, CLS dropped to 0 on most routes (home, stories, project-detail, gallery). Font display reverted to `swap` for the best font experience.
+
+**Remaining CLS on short pages:** CLS 0.32 persists on get-involved, contact, and /ar — pages where the content height is close to the viewport height and the footer is within or near the viewport during font swap. The `adjustFontFallback` metrics (Arial with size-adjust 93.76%) are close but not perfect, causing a small content height change when Source Sans 3 loads. On tall pages, this change is invisible (footer is below the viewport). On short pages, it's visible as CLS.
+
+**Accepted trade-off:** Using `display: optional` would eliminate CLS but some users on slow connections would never see the custom font. Using `display: block` would eliminate CLS but text would be invisible for up to 3s on slow connections. Since CLS is 0 on most routes and only affects 3 short pages, `display: swap` is accepted as the best overall trade-off. The remaining CLS on short pages is documented as a known limitation.
 
 ### Mobile LCP investigation
 
