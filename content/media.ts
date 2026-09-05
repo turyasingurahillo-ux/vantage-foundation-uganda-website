@@ -1023,6 +1023,11 @@ export function getMediaAsset(id: string): MediaAsset | undefined {
   return mediaAssets.find((m) => m.id === id);
 }
 
+/** Get a media asset by its src path. Returns undefined if not in the manifest. */
+export function getMediaAssetBySrc(src: string): MediaAsset | undefined {
+  return mediaAssets.find((m) => m.src === src);
+}
+
 /** Get all media assets for a project slug. */
 export function getMediaByProject(projectSlug: string): MediaAsset[] {
   return mediaAssets.filter((m) => m.projectSlug === projectSlug);
@@ -1033,8 +1038,10 @@ export function getMediaByProgramme(programme: string): MediaAsset[] {
   return mediaAssets.filter((m) => m.programme === programme);
 }
 
-/** Get all published media assets (filters out unpublished in production). */
+/** Get all published media assets (filters out unpublished and consent-pending in production). */
 export function getPublishedMedia(): MediaAsset[] {
   const isDev = process.env.NODE_ENV === "development";
-  return mediaAssets.filter((m) => isDev || m.published !== false);
+  return mediaAssets.filter(
+    (m) => isDev || (m.published !== false && m.consent !== "pending"),
+  );
 }

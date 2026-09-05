@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
 import { getPublishedProjects } from "@/content/projects";
-import { getPublishedStories } from "@/content/stories";
+import { getPublishedStoriesWithDb } from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
@@ -77,7 +77,7 @@ export default async function ProgrammePage({
   const relatedProjects = getPublishedProjects().filter((p) =>
     categories.includes(p.category)
   );
-  const relatedStories = getPublishedStories().filter((s) =>
+  const relatedStories = (await getPublishedStoriesWithDb()).filter((s) =>
     (s.relatedProjectSlugs ?? []).some((projectSlug) =>
       relatedProjects.some((p) => p.slug === projectSlug)
     )

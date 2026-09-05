@@ -33,6 +33,18 @@ function folderOf(row: MediaObjectRow): MediaFolder | null {
   return parseObjectKey(row.objectKey)?.folder ?? null;
 }
 
+/**
+ * Consent gate: a media row is only eligible for public rendering when its
+ * consent state is NOT "pending". The editorial guidelines
+ * (docs/editorial-guidelines.md §Rules) state: "Never publish media with
+ * consent: 'pending' in production." This enforces that rule in code, not
+ * just in editorial process, so a row with published=true + consent="pending"
+ * cannot leak onto the public site.
+ */
+function hasConsentForPublication(row: MediaObjectRow): boolean {
+  return row.consent !== "pending";
+}
+
 async function toMediaAsset(row: MediaObjectRow): Promise<MediaAsset> {
   const src = await createPresignedGetUrl({
     objectKey: row.objectKey,
@@ -55,9 +67,9 @@ async function toMediaAsset(row: MediaObjectRow): Promise<MediaAsset> {
 /** Published gallery uploads (vantage/gallery/...), newest first. */
 export async function getPublishedGalleryMedia(): Promise<MediaAsset[]> {
   try {
-    const rows = (await getMediaObjects({ published: true })).filter(
-      (r) => folderOf(r) === "gallery",
-    );
+    const rows = (await getMediaObjects({ published: true }))
+      .filter((r) => folderOf(r) === "gallery")
+      .filter(hasConsentForPublication);
     return await Promise.all(rows.map(toMediaAsset));
   } catch {
     return [];
@@ -75,7 +87,9 @@ export async function getTeamMemberPhotoOverride(
   try {
     const rows = (
       await getMediaObjects({ published: true, projectSlug: slug })
-    ).filter((r) => folderOf(r) === "team");
+    )
+      .filter((r) => folderOf(r) === "team")
+      .filter(hasConsentForPublication);
     if (rows.length === 0) return null;
     return await toMediaAsset(rows[0]);
   } catch {
@@ -90,7 +104,9 @@ export async function getProgrammeAdditionalPhotos(
   try {
     const rows = (
       await getMediaObjects({ published: true, programme: programmeId })
-    ).filter((r) => folderOf(r) === "programmes");
+    )
+      .filter((r) => folderOf(r) === "programmes")
+      .filter(hasConsentForPublication);
     return await Promise.all(rows.map(toMediaAsset));
   } catch {
     return [];
@@ -100,9 +116,9 @@ export async function getProgrammeAdditionalPhotos(
 /** Published documents (vantage/documents/...) shaped like content/reports.ts. */
 export async function getPublishedDocuments(): Promise<Report[]> {
   try {
-    const rows = (await getMediaObjects({ published: true })).filter(
-      (r) => folderOf(r) === "documents",
-    );
+    const rows = (await getMediaObjects({ published: true }))
+      .filter((r) => folderOf(r) === "documents")
+      .filter(hasConsentForPublication);
     return await Promise.all(
       rows.map(async (r) => ({
         title: r.caption || r.originalFilename,
@@ -123,9 +139,9 @@ export async function getPublishedDocuments(): Promise<Report[]> {
 /** Published partner/sponsor logos (vantage/logos/...) shaped like content/partners.ts. */
 export async function getPublishedLogos(): Promise<Partner[]> {
   try {
-    const rows = (await getMediaObjects({ published: true })).filter(
-      (r) => folderOf(r) === "logos",
-    );
+    const rows = (await getMediaObjects({ published: true }))
+      .filter((r) => folderOf(r) === "logos")
+      .filter(hasConsentForPublication);
     return await Promise.all(
       rows.map(async (r) => ({
         name: r.caption || r.originalFilename,

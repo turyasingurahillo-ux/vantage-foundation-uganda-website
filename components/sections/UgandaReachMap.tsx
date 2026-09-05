@@ -4,7 +4,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { reachDistricts, type ReachDistrict } from "@/content/reach";
-import { getProjectBySlug } from "@/content/projects";
+import { getProjectBySlug, getPublishedProjects } from "@/content/projects";
 import { programmeIdForCategory } from "@/lib/design-tokens";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
@@ -28,8 +28,12 @@ const STATUS_STYLE: Record<
   reached: { pin: "text-muted-foreground", badge: "outline" },
 };
 
+/** Set of published project slugs — used to filter out unpublished projects from the map. */
+const publishedProjectSlugs = new Set(getPublishedProjects().map((p) => p.slug));
+
 function districtStatus(district: ReachDistrict): DistrictStatus {
   const projects = (district.projectSlugs ?? [])
+    .filter((slug) => publishedProjectSlugs.has(slug))
     .map((slug) => getProjectBySlug(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
   if (projects.length === 0) return "reached";
@@ -45,6 +49,7 @@ function districtStatus(district: ReachDistrict): DistrictStatus {
  */
 function districtProgrammes(district: ReachDistrict): string[] {
   const projects = (district.projectSlugs ?? [])
+    .filter((slug) => publishedProjectSlugs.has(slug))
     .map((slug) => getProjectBySlug(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
   const programmes = new Set<string>();
@@ -79,6 +84,7 @@ export function UgandaReachMap({ locale = "en" }: { locale?: Locale }) {
     () =>
       reachDistricts.map((d) => {
         const projects = (d.projectSlugs ?? [])
+          .filter((slug) => publishedProjectSlugs.has(slug))
           .map((slug) => getProjectBySlug(slug))
           .filter((p): p is NonNullable<typeof p> => Boolean(p))
           .map((p) => ({ slug: p.slug, title: p.title }));

@@ -251,8 +251,28 @@ export async function PATCH(request: Request) {
   }
 
   const { id, ...update } = parsed.data;
+
+  // Consent gate: reject published=true when consent is "pending".
+  // The check must consider the merged state (current DB values + incoming
+  // updates) because an admin might set published=true without changing
+  // consent, or set consent="pending" without unsetting published.
+  const before = await getMediaObjectById(id);
+  if (before) {
+    const effectiveConsent = update.consent ?? before.consent;
+    const effectivePublished = update.published ?? before.published;
+    if (effectivePublished && effectiveConsent === "pending") {
+      return NextResponse.json(
+        {
+          error: "consent-required",
+          message:
+            "Cannot publish media with consent 'pending'. Set consent to 'verified', 'group-consent', or 'none' before publishing.",
+        },
+        { status: 422 },
+      );
+    }
+  }
+
   try {
-    const before = await getMediaObjectById(id);
     const row = await updateMediaObject(id, update);
     if (!row) {
       return NextResponse.json({ error: "not-found" }, { status: 404 });

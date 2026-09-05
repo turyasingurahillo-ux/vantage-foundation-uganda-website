@@ -130,7 +130,16 @@ Every `MediaAsset` and every `Project`/`Story` with a `heroImage` or
 
 1. **Never publish media with `consent: "pending"` in production.** The
    `published` flag on the media asset should be `false` until consent is
-   verified.
+   verified. **This rule is now enforced in code, not just editorial process:**
+   - Build-time Zod validation (`lib/validate-content.ts`) rejects static
+     `MediaAsset`, `Story`, and `Project` entries where `published !== false`
+     and `consent`/`consentClassification` is `"pending"`.
+   - Admin APIs (`/api/admin/media`, `/api/admin/stories`) reject
+     `published: true` when `consent` is `"pending"` with a 422 error.
+   - Public media helpers (`lib/media-public.ts`) filter out consent-pending
+     rows even if `published: true` is set in the database.
+   - The static media manifest's `getPublishedMedia()` filters out
+     consent-pending assets in production.
 2. **Alt text must describe visible content without inventing names** for
    children or vulnerable people. Use "a young student" not "Jane, 14".
 3. **Strip EXIF metadata** (especially GPS) from all published images

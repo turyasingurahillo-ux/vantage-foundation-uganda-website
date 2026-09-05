@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { LazySection } from "@/components/shared/LazySection";
+import { getMediaAssetBySrc } from "@/content/media";
 import { ImpactMetric } from "@/components/shared/ImpactMetric";
 import { MapPin, Calendar, Users, Target, ListChecks, TrendingUp } from "lucide-react";
 import { Markdown } from "@/components/shared/Markdown";
@@ -40,7 +41,9 @@ export async function generateMetadata({
   const locale = await resolveLocale(Promise.resolve({ locale: resolvedParams.locale }));
   const { slug } = resolvedParams;
   const project = getProjectBySlug(slug);
-  if (!project) return {};
+  if (!project || (process.env.NODE_ENV === "production" && project.published === false)) {
+    return {};
+  }
   return createPublicMetadata({
     title: project.seo?.title || project.title,
     description: project.seo?.description || project.summary,
@@ -204,12 +207,28 @@ export default async function ProjectPage({
                     className="mt-6 rounded-xl bg-surface"
                   >
                     <GalleryGrid
-                      images={project.gallery.map((src, index) => ({
-                        id: `${project.slug}-${index}`,
-                        src,
-                        alt: `${project.title} — ${p.project.gallery} ${index + 1}`,
-                        consent: "verified" as const,
-                      }))}
+                      images={project.gallery
+                        .map((src, index) => {
+                          const asset = getMediaAssetBySrc(src);
+                          // Look up consent from the media manifest.
+                          // If the image is not in the manifest, default to
+                          // "none" (no identifiable individuals) rather than
+                          // the unsafe "verified" hardcode. Images with
+                          // consent "pending" are filtered out below.
+                          return {
+                            id: `${project.slug}-${index}`,
+                            src,
+                            alt: asset?.alt ?? `${project.title} — ${p.project.gallery} ${index + 1}`,
+                            consent: asset?.consent ?? ("none" as const),
+                          };
+                        })
+                        .filter(
+                          (img) =>
+                            !(
+                              process.env.NODE_ENV === "production" &&
+                              img.consent === "pending"
+                            ),
+                        )}
                     />
                   </LazySection>
                 </div>

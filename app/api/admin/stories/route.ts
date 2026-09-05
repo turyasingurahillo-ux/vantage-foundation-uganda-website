@@ -44,6 +44,22 @@ const updateSchema = z.object(storyFields).partial().extend({
   id: z.coerce.number().int().positive(),
 });
 
+/**
+ * Consent gate: a story cannot be published when its consent classification
+ * is "pending". This enforces the editorial rule in code, not just in
+ * editorial process.
+ */
+function consentGateError(): ReturnType<typeof NextResponse.json> {
+  return NextResponse.json(
+    {
+      error: "consent-required",
+      message:
+        "Cannot publish a story with consent 'pending'. Set consent to 'verified', 'group-consent', or 'none' before publishing.",
+    },
+    { status: 422 },
+  );
+}
+
 async function guard(request: Request) {
   const cookieStore = await cookies();
   const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
@@ -91,6 +107,10 @@ export async function POST(request: Request) {
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
   const input = parsed.data;
+  // Consent gate: reject published=true when consent is "pending".
+  if (input.published && input.consentClassification === "pending") {
+    return consentGateError();
+  }
   if (await getStoryBySlug(input.slug)) return NextResponse.json({ error: "duplicate" }, { status: 409 });
   if (input.heroImageKey && !(await headR2Object(input.heroImageKey))) {
     return NextResponse.json({ error: "object-not-found" }, { status: 404 });
@@ -124,6 +144,12 @@ export async function PATCH(request: Request) {
   const { id, ...update } = parsed.data;
   const before = await getStoryById(id);
   if (!before) return NextResponse.json({ error: "not-found" }, { status: 404 });
+  // Consent gate: check the merged state of current DB values + incoming updates.
+  const effectiveConsent = update.consentClassification ?? before.consentClassification;
+  const effectivePublished = update.published ?? before.published;
+  if (effectivePublished && effectiveConsent === "pending") {
+    return consentGateError();
+  }
   if (update.heroImageKey && update.heroImageKey !== before.heroImageKey && !(await headR2Object(update.heroImageKey))) {
     return NextResponse.json({ error: "object-not-found" }, { status: 404 });
   }
