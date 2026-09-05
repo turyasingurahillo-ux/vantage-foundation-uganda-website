@@ -61,11 +61,23 @@ async function main() {
     ),
     "utf8",
   );
+  const fixCollision = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "fix-workflow-status-constraint-collision.sql",
+    ),
+    "utf8",
+  );
 
   await executeScript(sql, schema, "schema");
   await executeScript(sql, analyticsLifecycle, "phase2c-analytics-lifecycle");
   await executeScript(sql, casePipeline, "case-management-pipeline");
   await executeScript(sql, orgPipeline, "organisation-relationship-pipeline");
+  await executeScript(sql, fixCollision, "fix-workflow-status-constraint-collision");
 
   console.log("Database setup complete.");
 }

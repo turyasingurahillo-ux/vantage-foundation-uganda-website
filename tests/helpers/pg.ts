@@ -14,10 +14,23 @@ import { setSqlClientForTests, type SqlClient } from "@/lib/db/client";
  * what the fake was written to do. PGlite is genuine PostgreSQL compiled to
  * WebAssembly, so these run the actual statements.
  *
- * The schema is applied from lib/db/schema.sql through the same splitter
- * scripts/setup-db.mjs uses, which means the tests also exercise the migration
- * path itself rather than a transcription of it.
+ * The schema is applied from lib/db/schema.sql and all migration files
+ * through the same splitter scripts/setup-db.mjs uses, which means the tests
+ * also exercise the migration path itself rather than a transcription of it.
  */
+
+const MIGRATIONS_DIR = resolve(__dirname, "../../lib/db/migrations");
+
+/** All migration files in the same order setup-db.mjs applies them. */
+const MIGRATION_FILES = [
+  resolve(MIGRATIONS_DIR, "phase2c-analytics-lifecycle.sql"),
+  resolve(MIGRATIONS_DIR, "case-management-pipeline.sql"),
+  resolve(MIGRATIONS_DIR, "organisation-relationship-pipeline.sql"),
+  resolve(
+    MIGRATIONS_DIR,
+    "fix-workflow-status-constraint-collision.sql",
+  ),
+];
 
 const SCHEMA_PATH = resolve(__dirname, "../../lib/db/schema.sql");
 
@@ -48,15 +61,56 @@ function adapt(db: PGlite): SqlClient {
 export interface TestDatabase {
   sql: SqlClient;
   db: PGlite;
-  /** Applies lib/db/schema.sql once more; used to prove idempotency. */
+  /** Applies lib/db/schema.sql + all migrations once more; proves idempotency. */
   applySchema(): Promise<void>;
   close(): Promise<void>;
 }
 
+/**
+ * Creates a test database with schema.sql and all migration files applied,
+ * in the same order as setup-db.mjs.
+ */
 export async function createTestDatabase(): Promise<TestDatabase> {
   const db = await new PGlite();
+
+  const allStatements: string[] = [];
   const schema = await readFile(SCHEMA_PATH, "utf8");
-  const statements: string[] = splitSql(schema);
+  allStatements.push(...splitSql(schema));
+  for (const file of MIGRATION_FILES) {
+    const sql = await readFile(file, "utf8");
+    allStatements.push(...splitSql(sql));
+  }
+
+  const applySchema = async () => {
+    for (const statement of allStatements) {
+      await db.exec(statement);
+    }
+  };
+
+  await applySchema();
+
+  const sql = adapt(db);
+  setSqlClientForTests(sql);
+
+  return {
+    sql,
+    db,
+    applySchema,
+    async close() {
+      setSqlClientForTests(null);
+      await db.close();
+    },
+  };
+}
+
+/**
+ * Creates a test database with ONLY schema.sql applied (no migrations).
+ * Used to test migration behaviour against a freshly-created schema.
+ */
+export async function createBareTestDatabase(): Promise<TestDatabase> {
+  const db = await new PGlite();
+  const schema = await readFile(SCHEMA_PATH, "utf8");
+  const statements = splitSql(schema);
 
   const applySchema = async () => {
     for (const statement of statements) {
@@ -78,6 +132,21 @@ export async function createTestDatabase(): Promise<TestDatabase> {
       await db.close();
     },
   };
+}
+
+/**
+ * Applies a single migration file to an existing test database.
+ * Used to test migrations in isolation.
+ */
+export async function applyMigrationFile(
+  db: PGlite,
+  filename: string,
+): Promise<void> {
+  const path = resolve(MIGRATIONS_DIR, filename);
+  const sql = await readFile(path, "utf8");
+  for (const statement of splitSql(sql)) {
+    await db.exec(statement);
+  }
 }
 
 /** Inserts a submission, optionally backdated, and returns its id. */
