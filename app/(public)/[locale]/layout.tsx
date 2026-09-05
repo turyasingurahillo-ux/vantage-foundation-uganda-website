@@ -15,23 +15,18 @@ import { createPublicMetadata } from "@/lib/metadata";
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
-  // Use "block" to eliminate CLS from font swap. The body uses
-  // min-h-full flex flex-col, which pushes the footer to the viewport
-  // bottom on initial render. With "swap" or "optional", the font swap
-  // causes text reflow that pushes the footer down — a visible CLS of
-  // ~0.32 on pages with content near viewport height. With "block",
-  // text is invisible for up to 3s while the font loads, then appears
-  // directly with the custom font — no fallback-to-custom swap, no CLS.
-  // The font is self-hosted and preloaded, so it loads in ~100-200ms
-  // and the invisible period is imperceptible.
-  display: "block",
+  // Use "swap" for best font experience. The previous CLS issue was
+  // caused by the body's min-h-full flex flex-col layout amplifying
+  // font metrics mismatch into a visible footer shift. With the sticky
+  // footer removed, font swap no longer causes CLS.
+  display: "swap",
   adjustFontFallback: true,
 });
 
 const arabicSans = Noto_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic-sans",
-  display: "block",
+  display: "swap",
   adjustFontFallback: true,
   // Only preload the Arabic font on Arabic pages to avoid unnecessary
   // font downloads on non-Arabic locales.
@@ -119,12 +114,12 @@ export default async function LocaleRootLayout({
       dir={isRtl ? "rtl" : "ltr"}
       className={`${sourceSans.variable} ${arabicSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="bg-background text-foreground">
         <SkipToContent label={dictionary.common.skipToContent} />
         <JsonLd data={ngoJsonLd} />
         <JsonLd data={websiteJsonLd} />
         <Header locale={locale} dictionary={dictionary} />
-        <main id="main" tabIndex={-1} className="flex-1">
+        <main id="main" tabIndex={-1}>
           {children}
         </main>
         <Footer locale={locale} dictionary={dictionary} />
