@@ -70,6 +70,13 @@ const contactSchema = z.object({
   company_url: z.string().optional(), // honeypot 2 (realistic name)
   form_loaded_at: z.string().optional(), // time-trap
   "cf-turnstile-response": z.string().optional(), // bot challenge token
+  // Page-of-origin: set by a hidden field in ContactForm via usePathname().
+  // Validated and max-length-checked to prevent abuse; nullable for manual intake.
+  origin_page: z
+    .string()
+    .trim()
+    .max(200, "Origin page value is too long")
+    .optional(),
 });
 
 const newsletterSchema = z.object({
@@ -274,6 +281,7 @@ export async function submitContact(
         organisation: parsed.data.organisation,
         category,
         message: parsed.data.message,
+        originPage: parsed.data.origin_page,
       });
     } catch (err) {
       // Non-fatal: fall through to email-only delivery.

@@ -72,12 +72,24 @@ async function main() {
     ),
     "utf8",
   );
+  const addOriginPage = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "add-origin-page.sql",
+    ),
+    "utf8",
+  );
 
   await executeScript(sql, schema, "schema");
   await executeScript(sql, analyticsLifecycle, "phase2c-analytics-lifecycle");
   await executeScript(sql, casePipeline, "case-management-pipeline");
   await executeScript(sql, orgPipeline, "organisation-relationship-pipeline");
   await executeScript(sql, fixCollision, "fix-workflow-status-constraint-collision");
+  await executeScript(sql, addOriginPage, "add-origin-page");
 
   console.log("Database setup complete.");
 }

@@ -118,6 +118,48 @@ The original Phase 3 checklist was written before Phases 1–2 and the Vantage H
 
 Evaluate whether `/volunteer` and `/partner-with-us` should become dedicated routes or remain consolidated. **Preliminary assessment:** remain consolidated. The current `/get-involved` with anchor-based pathways + contact form category routing is the correct UX. A dedicated route would add a page without adding capability. The formal evaluation will be documented in the Phase 3B PR.
 
+### Phase 3B scope (this PR) — Engagement architecture evaluation
+
+**Decision: `/volunteer` and `/partner-with-us` remain consolidated into `/get-involved` and `/contact`.**
+
+**Evaluation performed 2026-09-05 against `main` at `25ca753`.**
+
+The current engagement architecture was evaluated end-to-end:
+
+1. `/get-involved` renders six pathway cards (donate, volunteer, partner, sponsor, collaborate, csr).
+2. Each card CTA routes to `/donate` or `/contact?subject=<legacy-alias>`.
+3. On `/contact`, the `?subject=` query parameter pre-selects the contact form category via `resolveCategoryFromQuery`.
+4. The contact form submits to `submitContact` (server action), which validates, stores in `contact_messages`, and seeds a case via `seedCaseFromContactSubmission`.
+5. The case `source` is set to `website_form`; the `case_type` is derived from the category via `suggestCaseTypeFromCategory`.
+6. The admin inbox (`/admin/messages`) displays the source and case type in both the list and detail views.
+
+**Arguments for remaining consolidated:**
+
+- The current architecture already works end-to-end: pathway → category → case type → admin workflow.
+- The contact form category system already distinguishes volunteering from partnerships from grants from media, etc.
+- The admin case workflow shows the source ("Website form") and case type ("Volunteer", "Partnership", etc.) in both the list and detail views.
+- Dedicated `/volunteer` and `/partner-with-us` routes would add pages without adding capability — the form, the case workflow, and the admin experience are identical regardless of which page the user came from.
+- No management-approved content exists for dedicated volunteer/partner pages. Creating thin pages would harm SEO and user experience.
+- Adding dedicated routes would require new content, new navigation entries, new sitemap entries, and new tests — all for zero operational benefit.
+- The original roadmap listed those URLs, but the user explicitly asked to "base the decision on actual UX and operational value, not merely because the original roadmap listed those URLs."
+
+**Arguments for dedicated routes (considered and rejected):**
+
+- SEO: dedicated pages could rank for "volunteer Uganda NGO" — but thin pages without real content would rank poorly and could harm the site's overall quality signals.
+- Focused user journey: a volunteer might need different information — but the pathway cards on `/get-involved` already provide context-specific descriptions, and the contact form category is pre-selected.
+- Form pre-filling: a dedicated route could show a tailored form — but this already works via `?subject=volunteer` on `/contact`.
+
+**Safe improvement implemented: page-of-origin tracking**
+
+One genuine operational gap was identified: the admin can see the enquiry type (volunteer, partnership) but not which page the form was submitted from (`/get-involved` vs `/contact` vs `/donate`). This has operational value for understanding where enquiries originate.
+
+Implemented as an additive enhancement:
+- New nullable `origin_page` column on `contact_messages` (idempotent migration).
+- Hidden `origin_page` field in `ContactForm` capturing the current page path via `usePathname()`.
+- `origin_page` added to the `submitContact` Zod schema and `createContactMessage`.
+- Displayed in the admin case detail view alongside source and case type.
+- No parallel datastore, no separate workflow — enriches the existing `contact_messages` table and case pipeline.
+
 ### Phase 3C scope (future PR, blocked on consent)
 
 Gallery expansion, `Event` structured data, and additional curated photo stories are blocked on consent-aware media metadata and management-approved event content. Do not implement until consent review is complete.

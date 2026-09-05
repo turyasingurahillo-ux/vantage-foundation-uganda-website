@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { usePathname } from "next/navigation";
 import { submitContact, FormState } from "@/app/actions";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -32,6 +33,7 @@ export function ContactForm({ defaultSubject = "", dictionary, locale = "en", pr
   defaultSubject?: string; dictionary?: ContactFormCopy; locale?: Locale; privacyLabel?: string;
 }) {
   const [state, formAction, pending] = useActionState(submitContact, initialState);
+  const pathname = usePathname();
 
   // Success state: replace the form with a confirmation rather than leaving a
   // filled-in form on screen. Names no mailbox — internal routing stays internal.
@@ -58,6 +60,9 @@ export function ContactForm({ defaultSubject = "", dictionary, locale = "en", pr
   return (
     <form action={formAction} className="space-y-5" noValidate>
       <HoneypotFields />
+      {/* Records which page the form was submitted from, for operational analytics.
+          Not a security control — the value is informational and validated server-side. */}
+      <input type="hidden" name="origin_page" value={pathname} />
 
       <div>
         <Label htmlFor="name">

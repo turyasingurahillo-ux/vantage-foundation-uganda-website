@@ -18,6 +18,8 @@ export interface ContactMessageInput {
   organisation?: string;
   category: ContactCategory;
   message: string;
+  /** The public page the form was submitted from (e.g. "/get-involved", "/contact"). */
+  originPage?: string;
 }
 
 /** True when a database is configured at all. */
@@ -32,10 +34,11 @@ export async function createContactMessage(
   const sql = getSql();
   const rows = await sql`
     INSERT INTO contact_messages (
-      name, email, phone, organisation, category, message
+      name, email, phone, organisation, category, message, origin_page
     ) VALUES (
       ${input.name}, ${input.email}, ${input.phone || null},
-      ${input.organisation || null}, ${input.category}, ${input.message}
+      ${input.organisation || null}, ${input.category}, ${input.message},
+      ${input.originPage || null}
     )
     RETURNING id
   `;
