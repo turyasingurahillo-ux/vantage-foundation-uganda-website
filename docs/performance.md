@@ -128,7 +128,7 @@ The deferred map JS is not counted against the initial-route JS budget.
 - The shifting element is always `<footer>` (confirmed in Lighthouse layout-shift trace)
 - The `adjustFontFallback: true` fallback metrics (Arial with size-adjust 93.76%) were not close enough to prevent the shift
 
-**Fix (Phase 6B):** Changed `display: "swap"` to `display: "block"` for both Source Sans 3 and Noto Sans Arabic. With `block`, text is invisible for up to 3s while the font loads, then appears directly with the custom font — no fallback-to-custom swap, no CLS. The font is self-hosted and preloaded, so it loads in ~100-200ms and the invisible period is imperceptible. (Initially tried `display: "optional"`, but it still allowed a swap on fast desktop connections where the font loaded within the 100ms block period, producing inconsistent CLS results.)
+**Fix (Phase 6B):** Removed the `min-h-full flex flex-col` body layout and `flex-1` main class that created the sticky footer. The sticky footer amplified any content height change (from font metrics mismatch during hydration) into a visible footer shift. Without the sticky footer, the footer is at the natural end of the content, and content height changes during font swap are not visible as CLS. Font display reverted to `swap` for the best font experience. On short pages (privacy, terms), the footer is immediately after the content rather than at the viewport bottom — a minor design trade-off accepted for CLS compliance.
 
 ### Mobile LCP investigation
 
