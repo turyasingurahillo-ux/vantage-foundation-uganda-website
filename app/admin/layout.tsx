@@ -5,7 +5,7 @@ import "../globals.css";
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-source-sans",
-  display: "optional",
+  display: "block",
 });
 
 export const metadata: Metadata = {
