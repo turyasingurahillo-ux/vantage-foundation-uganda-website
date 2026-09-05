@@ -6,12 +6,15 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { StoryList } from "@/components/stories/StoryList";
 import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { Badge } from "@/components/ui/Badge";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { formatContentDate } from "@/lib/content-date";
 import { DEFAULT_LANDSCAPE_FOCAL_POINT } from "@/lib/story-article";
 import { getPageContent } from "@/lib/i18n/content/pages";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
 import { localePath } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export async function generateMetadata({
   params,
@@ -38,6 +41,7 @@ export default async function StoriesPage({
 }) {
   const locale = await resolveLocale(params);
   const p = getPageContent(locale);
+  const d = await getDictionary(locale);
   const c = p.common;
   const s = p.stories;
   const ui = p.ui.contentTypes;
@@ -48,6 +52,15 @@ export default async function StoriesPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: d.common.home, url: localePath("/", locale) },
+            { label: s.title, url: localePath("/stories", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader

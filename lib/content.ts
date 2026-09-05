@@ -9,7 +9,7 @@ import {
   getStoryBySlug,
   getStorySlugs,
 } from "@/content/stories";
-import { areasOfWork } from "@/content/areas";
+import { areasOfWork, getPublishedAreas } from "@/content/areas";
 import { getPublishedTeam } from "@/content/team";
 import { getPublishedPartners } from "@/content/partners";
 import {
@@ -26,6 +26,7 @@ import { faq } from "@/content/faq";
 export const content = {
   site,
   areasOfWork,
+  getPublishedAreas,
   projects: getPublishedProjects(),
   getProjectBySlug,
   getProjectSlugs,

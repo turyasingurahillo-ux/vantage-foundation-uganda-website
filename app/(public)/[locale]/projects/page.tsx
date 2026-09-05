@@ -3,10 +3,13 @@ import { getPublishedProjects } from "@/content/projects";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ProjectList } from "@/components/projects/ProjectList";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getPageContent } from "@/lib/i18n/content/pages";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
+import { localePath } from "@/lib/i18n/config";
 
 export async function generateMetadata({
   params,
@@ -36,6 +39,15 @@ export default async function ProjectsPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: dictionary.common.home, url: localePath("/", locale) },
+            { label: content.title, url: localePath("/projects", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader title={content.title} level="h1" light />

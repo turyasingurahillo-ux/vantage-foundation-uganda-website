@@ -6,6 +6,8 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/Button";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { resolveLocale } from "@/lib/i18n/params";
 import { localePath } from "@/lib/i18n/config";
@@ -51,6 +53,16 @@ export default async function TeamPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: d.common.home, url: localePath("/", locale) },
+            { label: p.common.aboutUs, url: localePath("/about-us", locale) },
+            { label: p.team.title, url: localePath("/about-us/team", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader

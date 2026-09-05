@@ -85,7 +85,50 @@ export const areasOfWork: AreaOfWork[] = [
     imageAlt:
       "A group of men and boys gather around a newly installed hand-pump borehole with a concrete apron and drainage channel in a rural setting.",
   },
+  {
+    id: "youth-leadership",
+    title: "Youth Leadership & Community Empowerment",
+    programmeName: "Youth Leadership and Community Empowerment",
+    summary:
+      "Developing young leaders through mentorship, civic engagement, and community-driven initiatives that build agency and self-reliance.",
+    description:
+      "Youth Leadership and Community Empowerment is the Foundation's cross-cutting programme for nurturing the next generation of Ugandan leaders. It brings together mentorship, youth conferences, community service initiatives, and civic engagement activities that help young people discover their agency, build confidence, and take active roles in shaping their communities. The programme is designed to complement the other four pillars — Health, Education, Humanitarian Aid, and WASH — by ensuring that every intervention also invests in the leadership potential of the young people it reaches.",
+    items: [
+      "Youth mentorship programmes",
+      "Leadership conferences and workshops",
+      "Community service initiatives",
+      "Civic engagement and advocacy",
+      "Peer-to-peer support networks",
+    ],
+    icon: "users",
+    // No consent-cleared photo available yet. The programme page will use
+    // the default hero treatment. Do not publish a photo without safeguarding
+    // review per docs/safeguarding-and-consent.md.
+    published: false,
+  },
 ];
+
+/**
+ * Returns only programme areas that are published (or whose `published` flag
+ * is omitted, which defaults to true). In production, unpublished areas are
+ * excluded from the our-work listing, sitemap, and generateStaticParams.
+ * In development, all areas are visible for previewing.
+ */
+export function getPublishedAreas(): AreaOfWork[] {
+  if (process.env.NODE_ENV === "production") {
+    return areasOfWork.filter((a) => a.published !== false);
+  }
+  return areasOfWork;
+}
+
+/**
+ * Returns all programme areas, including unpublished ones. Used by
+ * generateStaticParams so that the route exists (returning notFound() in
+ * production) but is not linked from the our-work listing or sitemap.
+ */
+export function getAllAreas(): AreaOfWork[] {
+  return areasOfWork;
+}
 
 // Maps an area id to the ProjectCategory label(s) used in content/projects.ts.
 // Area display titles (e.g. "Water, Sanitation & Hygiene") intentionally differ

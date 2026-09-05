@@ -90,6 +90,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // The app has multiple root layouts (public/[locale]/layout.tsx and
+    // admin/layout.tsx), so a root app/not-found.tsx cannot be composed from
+    // a single layout. global-not-found.tsx handles unmatched URLs without
+    // requiring a layout, which is the correct architecture here.
+    globalNotFound: true,
+  },
   images: {
     formats: ["image/webp", "image/avif"],
     // Allow our own brand SVG logos to be served via next/image. These are

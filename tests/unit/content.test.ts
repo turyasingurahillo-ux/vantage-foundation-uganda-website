@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
+import { areasOfWork, getPublishedAreas, projectCategoriesByAreaId } from "@/content/areas";
 import {
   getPublishedProjects,
   getProjectSlugs,
@@ -16,12 +16,34 @@ import { getPublishedReports } from "@/content/reports";
 import { getPublishedImpactStats } from "@/content/impact";
 
 describe("areasOfWork", () => {
-  it("has 4 core programme areas", () => {
-    expect(areasOfWork).toHaveLength(4);
+  it("has 5 programme areas (4 published + 1 draft)", () => {
+    expect(areasOfWork).toHaveLength(5);
   });
 
-  it("does not include youth-leadership as a standalone area", () => {
-    expect(areasOfWork.find((a) => a.id === "youth-leadership")).toBeUndefined();
+  it("includes youth-leadership as a draft area (published: false)", () => {
+    const area = areasOfWork.find((a) => a.id === "youth-leadership");
+    expect(area).toBeDefined();
+    expect(area?.published).toBe(false);
+  });
+
+  it("getPublishedAreas excludes unpublished areas in production", () => {
+    const originalEnv = process.env.NODE_ENV;
+    const env = process.env as Record<string, string | undefined>;
+    env.NODE_ENV = "production";
+    const published = getPublishedAreas();
+    expect(published).toHaveLength(4);
+    expect(published.find((a) => a.id === "youth-leadership")).toBeUndefined();
+    env.NODE_ENV = originalEnv;
+  });
+
+  it("getPublishedAreas includes all areas in development", () => {
+    const originalEnv = process.env.NODE_ENV;
+    const env = process.env as Record<string, string | undefined>;
+    env.NODE_ENV = "development";
+    const published = getPublishedAreas();
+    expect(published).toHaveLength(5);
+    expect(published.find((a) => a.id === "youth-leadership")).toBeDefined();
+    env.NODE_ENV = originalEnv;
   });
 
   it("each area has id, title, programmeName, summary, description, items, and icon", () => {
