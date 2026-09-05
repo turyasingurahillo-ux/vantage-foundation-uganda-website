@@ -3,7 +3,7 @@ import "server-only";
 import nodemailer from "nodemailer";
 import { sanitiseValue, escapeHtml } from "@/lib/sanitise";
 import { getFromAddress } from "@/lib/contact-inbox";
-import { logError } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 
 /**
  * Shared outbound-email plumbing.
@@ -151,9 +151,19 @@ export async function sendEmailDetailed(
       },
     });
 
-    // Fall back to the destination itself so the message still sends when no
-    // SMTP_FROM/SMTP_USER is configured. Both are server-side values.
-    const from = getFromAddress() ?? options.to;
+    // Never derive the From address from the recipient. If no authorised
+    // outbound sender (SMTP_FROM or SMTP_USER) is configured, fail the send
+    // cleanly so the caller can preserve the submission/workflow state for
+    // retry. Using the recipient as From causes SPF/DMARC failure, sender
+    // spoofing, and incorrect reply behaviour.
+    const from = getFromAddress();
+    if (!from) {
+      logWarn("email_send_no_authorised_sender", {});
+      return {
+        ok: false,
+        error: "No authorised sender configured. Set SMTP_FROM or SMTP_USER.",
+      };
+    }
 
     const info = await transporter.sendMail({
       from,

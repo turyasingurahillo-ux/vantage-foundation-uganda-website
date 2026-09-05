@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { headers } from "next/headers";
 // `site` is used only for PUBLIC details (phone). Vantage's protected mailbox
 // is no longer part of the site config — it is server-only, in
@@ -21,89 +20,15 @@ import {
   sendEmail,
 } from "@/lib/email";
 import { sendContactNotification } from "@/lib/contact-notify";
-import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
 import { suggestCaseTypeFromCategory } from "@/lib/case-types";
 import { seedCaseFromContactSubmission } from "@/lib/db/cases";
 import { getDefaultInbox, resolveInboxFor } from "@/lib/contact-inbox";
 import { verifyTurnstile } from "@/lib/turnstile";
-
-// Field limits. These are generous enough for a detailed grant or partnership
-// inquiry but bounded so a bot cannot post megabytes through the endpoint.
-const MAX_NAME = 100;
-const MAX_ORGANISATION = 150;
-const MAX_PHONE = 40;
-const MAX_EMAIL = 254;
-const MAX_MESSAGE = 5000;
-
-const contactSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Please enter your full name")
-    .max(MAX_NAME, `Name must be ${MAX_NAME} characters or fewer`),
-  email: z
-    .string()
-    .trim()
-    .max(MAX_EMAIL, "Email address is too long")
-    .email("Please enter a valid email address"),
-  phone: z
-    .string()
-    .trim()
-    .max(MAX_PHONE, "Phone number is too long")
-    .optional(),
-  organisation: z
-    .string()
-    .trim()
-    .max(MAX_ORGANISATION, `Organisation must be ${MAX_ORGANISATION} characters or fewer`)
-    .optional(),
-  // Fixed enum: the category selects the destination mailbox server-side, so
-  // it must never be free text from the request.
-  subject: z.enum(CONTACT_CATEGORY_VALUES, {
-    message: "Please choose what your message is about",
-  }),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Please give us at least a sentence so we can help")
-    .max(MAX_MESSAGE, `Message must be ${MAX_MESSAGE} characters or fewer`),
-  website: z.string().optional(), // honeypot 1
-  company_url: z.string().optional(), // honeypot 2 (realistic name)
-  form_loaded_at: z.string().optional(), // time-trap
-  "cf-turnstile-response": z.string().optional(), // bot challenge token
-  // Page-of-origin: set by a hidden field in ContactForm via usePathname().
-  // Validated and max-length-checked to prevent abuse; nullable for manual intake.
-  origin_page: z
-    .string()
-    .trim()
-    .max(200, "Origin page value is too long")
-    .optional(),
-});
-
-const newsletterSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  consent: z.enum(["on"], { message: "Please consent to receive updates" }),
-  website: z.string().optional(), // honeypot 1
-  company_url: z.string().optional(), // honeypot 2
-  form_loaded_at: z.string().optional(), // time-trap
-});
-
-const donorSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-  amount: z.coerce
-    .number()
-    .positive("Please select or enter a valid amount")
-    .max(1_000_000_000, "Amount is too large"),
-  frequency: z.enum(["one-time", "monthly"]),
-  campaign: z.string().min(1, "Please select a campaign"),
-  transactionReference: z.string().optional(),
-  message: z.string().optional(),
-  website: z.string().optional(), // honeypot 1
-  company_url: z.string().optional(), // honeypot 2
-  form_loaded_at: z.string().optional(), // time-trap
-  submissionId: z.string().optional(), // idempotency token
-});
+import {
+  contactSchema,
+  newsletterSchema,
+  donorSchema,
+} from "@/lib/form-schemas";
 
 export type FormState = {
   success: boolean;
