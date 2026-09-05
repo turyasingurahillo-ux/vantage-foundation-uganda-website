@@ -7,6 +7,8 @@ import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { Card } from "@/components/ui/Card";
 import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/Button";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
@@ -47,6 +49,15 @@ export default async function AboutPage({ params }: { params: LocaleParams }) {
   );
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: dictionary.common.home, url: localePath("/", locale) },
+            { label: copy.title, url: localePath("/about-us", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader

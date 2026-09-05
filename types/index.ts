@@ -405,6 +405,14 @@ export interface AreaOfWork {
     href: string;
     description: string;
   };
+  /**
+   * Whether the programme area is published. Defaults to true when omitted.
+   * Unpublished areas are filtered out of production routes (our-work listing,
+   * sitemap, generateStaticParams) but remain visible in development for
+   * previewing. Use this when a programme pillar's content is drafted but not
+   * yet approved by management.
+   */
+  published?: boolean;
 }
 
 /**

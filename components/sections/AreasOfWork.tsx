@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { areasOfWork } from "@/content/areas";
+import { getPublishedAreas } from "@/content/areas";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
@@ -18,7 +18,7 @@ export function AreasOfWork({ locale, dictionary }: { locale: Locale; dictionary
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2">
-          {areasOfWork.map((area) => (
+          {getPublishedAreas().map((area) => (
             <Link
               key={area.id}
               href={localePath(`/programmes/${area.id}`, locale)}

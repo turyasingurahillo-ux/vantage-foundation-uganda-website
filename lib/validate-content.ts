@@ -284,11 +284,21 @@ const faqItemSchema = z.object({
 const areaOfWorkSchema = z.object({
   id: nonEmpty,
   title: nonEmpty,
+  programmeName: z.string().optional(),
   summary: nonEmpty,
   description: nonEmpty,
   items: z.array(nonEmpty).min(1),
   icon: nonEmpty,
   image: z.string().optional(),
+  imageAlt: z.string().optional(),
+  externalPlatformLink: z
+    .object({
+      label: nonEmpty,
+      href: nonEmpty,
+      description: nonEmpty,
+    })
+    .optional(),
+  published: z.boolean().optional(),
 });
 
 const mediaAssetSchema = z.object({

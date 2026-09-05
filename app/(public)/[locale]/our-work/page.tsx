@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
+import { getPublishedAreas, projectCategoriesByAreaId } from "@/content/areas";
 import { getPublishedProjects } from "@/content/projects";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { AreaIcon } from "@/components/shared/AreaIcon";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { Card } from "@/components/ui/Card";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getPageContent } from "@/lib/i18n/content/pages";
@@ -40,6 +42,15 @@ export default async function OurWorkPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: dictionary.common.home, url: localePath("/", locale) },
+            { label: p.ourWork.title, url: localePath("/our-work", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader
@@ -58,7 +69,7 @@ export default async function OurWorkPage({
           </p>
 
           <div className="grid gap-12">
-            {areasOfWork.map((area) => {
+            {getPublishedAreas().map((area) => {
               const categories = projectCategoriesByAreaId[area.id] ?? [];
               const relatedProjects = getPublishedProjects().filter((p) =>
                 categories.includes(p.category),

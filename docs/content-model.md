@@ -65,7 +65,10 @@ Key fields:
 
 ### `content/areas.ts` — Programme areas
 **Type:** `AreaOfWork`
-**Used in:** `/our-work`, `/programmes/[slug]`
+**Helpers:** `getPublishedAreas()` (excludes `published: false` in production), `getAllAreas()` (all areas)
+**Used in:** `/our-work`, `/programmes/[slug]`, homepage `AreasOfWork` section, `app/sitemap.ts`
+
+Programme areas support the `published` flag (see below). The 5th pillar, Youth Leadership & Community Empowerment, is currently `published: false` pending management-approved content.
 
 ### `content/donate.ts` — Donation configuration
 Suggested amounts, donation campaigns.
@@ -73,8 +76,18 @@ Suggested amounts, donation campaigns.
 
 ### `content/media.ts` — Media manifest
 **Type:** `MediaAsset`
-**Helpers:** `getPublishedMedia()`
+**Helpers:** `getPublishedMedia()`, `getMediaAsset()`, `getMediaByProject()`, `getMediaByProgramme()`
 **Purpose:** Single source of truth for all published images with consent tracking.
+
+### `content/reach.ts` — Geographic reach
+**Type:** `ReachDistrict` (defined in-file)
+**Exports:** `reachDistricts: ReachDistrict[]`
+**Purpose:** Documents the districts/regions where Vantage operates. Used in the `/impact` page "Where We Work" section.
+
+### `content/instagram-overrides.ts` — Instagram editorial overrides
+**Type:** `InstagramEditorialOverrides`
+**Helpers:** `getInstagramOverrides()`
+**Purpose:** Editor-curated overrides for the Instagram feed shown on the homepage. Allows the team to pin, caption, or hide specific posts without modifying the Instagram API integration.
 
 ## Published Flag
 
@@ -83,6 +96,19 @@ All content types support an optional `published` boolean:
 - When `false`: content is filtered out of production routes but visible in development
 
 This allows editors to draft content in the codebase without publishing it.
+
+For programme areas (`content/areas.ts`), `getPublishedAreas()` filters out unpublished areas from the `/our-work` listing, homepage section, and sitemap. The `/programmes/[slug]` route still generates a static param for unpublished areas so the route exists, but returns `notFound()` in production. In development, unpublished areas are fully previewable.
+
+## Database-Backed Stories
+
+In addition to the static `content/stories.ts` manifest, stories can be created and edited through the admin dashboard (`/admin/stories`) and stored in the `stories` PostgreSQL table. The public `/stories` route merges both sources:
+
+- **Static stories** (`content/stories.ts`): version-controlled, reviewed via PR, include markdown bodies stored as strings or referenced from `content/stories/*.md`.
+- **Database stories** (`stories` table): created via the admin editor, support markdown bodies and optional hero images uploaded through the media presign flow. New entries default to drafts; publishing is explicit.
+
+**Merge logic** (`lib/stories-public.ts`): `getPublishedStoriesWithDb()` combines `getPublishedStories()` (static) with DB-backed published stories, deduplicating by slug (static takes precedence). `getDbStorySlugs()` is used by `generateStaticParams` and `app/sitemap.ts` to ensure DB stories are included in static generation and sitemap coverage.
+
+**Build-time requirement**: the build environment must have `DATABASE_URL` configured so DB story slugs are available at build time. If the database is unreachable, only static stories are generated.
 
 ## Consent Classification
 

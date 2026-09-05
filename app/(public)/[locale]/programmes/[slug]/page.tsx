@@ -25,6 +25,9 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 export const revalidate = 3600;
 
 export function generateStaticParams() {
+  // Generate routes for all areas (including unpublished) so that the route
+  // exists. Unpublished areas return notFound() in production via the page
+  // body check below. In development, unpublished areas are previewable.
   return areasOfWork.map((area) => ({ slug: area.id }));
 }
 
@@ -36,8 +39,11 @@ export async function generateMetadata({
   const resolved = await params;
   const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
   const area = areasOfWork.find((a) => a.id === resolved.slug);
-  if (!area) {
-    return { title: getPageContent(locale).ui.programmeNotFound.title };
+  if (!area || (area.published === false && process.env.NODE_ENV === "production")) {
+    return {
+      title: getPageContent(locale).ui.programmeNotFound.title,
+      robots: { index: false, follow: true },
+    };
   }
   const name = area.programmeName ?? area.title;
   return createPublicMetadata({
@@ -58,6 +64,11 @@ export default async function ProgrammePage({
   const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
   const area = areasOfWork.find((a) => a.id === resolved.slug);
   if (!area) notFound();
+  // In production, unpublished areas are not accessible. In development,
+  // they are previewable for content editing.
+  if (area.published === false && process.env.NODE_ENV === "production") {
+    notFound();
+  }
 
   const p = getPageContent(locale);
   const d = await getDictionary(locale);

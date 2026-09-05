@@ -55,18 +55,72 @@ Goal: replace every public placeholder with verified content and authentic, cons
 
 Goal: implement the routes the issue requires, with real content and sensible empty states.
 
-- [ ] Add `/about/history`, `/about/team`, `/about/governance` (split from current `/about-us` or add as sections).
-- [ ] Add `/programmes` overview and `/programmes/health`, `/programmes/education`, `/programmes/humanitarian-action`, `/programmes/wash`, `/programmes/youth-leadership`.
-- [ ] Add `/partners` page (or confirm the decision to fold into `/get-involved`).
-- [ ] Add `/volunteer` and `/partner-with-us` (or confirm the decision to fold into `/get-involved` + `/contact`).
-- [ ] Add `/gallery` with curated photo stories (not an unstructured dump) backed by the media manifest.
-- [ ] Add `/privacy`, `/terms`, `/safeguarding`, `/accessibility` policy pages (flag sections requiring legal approval).
-- [ ] Add `app/error.tsx` global error boundary and `app/loading.tsx` for dynamic routes.
-- [ ] Add breadcrumbs and breadcrumb structured data.
-- [ ] Add article (`Article`) and event (`Event`) structured data where applicable.
-- [ ] Add RSS feed for stories (`/stories/rss.xml` or `/feed.xml`).
-- [ ] Update `app/sitemap.ts` to include all new routes.
-- [ ] Add `docs/content-model.md` documenting the typed content schema.
+**Scope reconciliation (performed 2026-09-05 against `main` at `2152a7f`):**
+
+The original Phase 3 checklist was written before Phases 1–2 and the Vantage HQ redesign work. Many items are already implemented or were intentionally consolidated. The reconciled status is below.
+
+### Already implemented (no action needed)
+
+- [x] `/about-us` with mission/vision/values, team preview, and governance section — implemented as a consolidated page at `/about-us` with `/about-us/team` and `/about-us/team/[slug]` sub-routes. Governance is a section on `/about-us`, not a separate route. This is the correct IA: splitting `/about/history`, `/about/team`, `/about/governance` into separate routes would fragment the narrative and add navigation overhead without user value.
+- [x] `/our-work` programme overview — lists all programme pillars with descriptions, activities, and related projects.
+- [x] `/programmes/[slug]` programme detail pages — `health`, `education`, `humanitarian`, `water` all have dedicated pages with breadcrumbs, `BreadcrumbList` JSON-LD, related projects/stories, and CTAs.
+- [x] `/gallery` — exists with curated media from the media manifest (`content/media.ts`), breadcrumbs, and `GalleryGrid`.
+- [x] `/privacy`, `/terms`, `/safeguarding`, `/accessibility` — all four policy pages exist with full content and last-updated dates.
+- [x] `app/(public)/[locale]/error.tsx` — client error boundary exists at the locale level.
+- [x] `app/(public)/[locale]/loading.tsx` — generic skeleton loading UI exists.
+- [x] `app/(public)/[locale]/not-found.tsx` — branded 404 exists.
+- [x] `app/(public)/[locale]/projects/[slug]/loading.tsx` and `stories/[slug]/loading.tsx` — detail-page loading skeletons exist.
+- [x] Breadcrumbs — `components/shared/Breadcrumbs.tsx` is used on team, programme, project, story, and gallery pages.
+- [x] `BreadcrumbList` JSON-LD — emitted on programme, project, story, and team-member detail pages.
+- [x] `Article` structured data — emitted on story detail pages via `buildArticleJsonLd`.
+- [x] RSS feed — `/stories/rss.xml` exists with RSS 2.0, `<link rel="alternate">` in `<head>`, and middleware bypass for `.xml`.
+- [x] `app/sitemap.ts` — includes all canonical public routes with hreflang alternates for localized routes and English-only detail routes for programmes, projects, stories, and team members.
+- [x] `docs/content-model.md` — exists and documents all content modules, the published flag, consent classification, build-time validation, and SEO metadata.
+- [x] `FAQPage` JSON-LD — emitted on `/faq`.
+- [x] `NGO` + `Organization` + `WebSite` JSON-LD — emitted on all public pages via the locale layout.
+
+### Implemented differently / intentionally consolidated (no action needed)
+
+- [x] `/partners` — intentionally folded into the homepage partners section and `/donors-and-sponsors`. A standalone `/partners` route would duplicate content without adding user value. The partners list is `content/partners.ts` with `getPublishedPartners()`.
+- [x] `/volunteer` and `/partner-with-us` — intentionally consolidated into `/get-involved` as anchor-based pathways (`#volunteer`, `#partner`, `#sponsor`, `#csr`). The contact form's category system (`volunteering`, `partnerships`) already routes these enquiries correctly into the Inbox V2 / case-management workflow. Splitting into dedicated routes would add navigation overhead without operational value. See Phase 3B evaluation below for the formal decision.
+- [x] `/about/history` — the history/founding story is part of the `/about-us` narrative, not a separate route. Splitting would fragment the user journey.
+
+### Genuinely missing and safe to implement (Phase 3A)
+
+- [ ] **5th programme pillar: Youth Leadership & Community Empowerment** — `content/areas.ts` has only 4 pillars (`health`, `education`, `humanitarian`, `water`). The original plan and `types/index.ts` (which already includes `"Youth Leadership"` and `"Youth Empowerment"` in the `ProjectCategory` union) call for a 5th pillar. This is a content-model gap, not a route gap — the `/programmes/[slug]` route already handles any slug. Adding the pillar to `content/areas.ts` will automatically generate the route, sitemap entry, and navigation link. **Blocker:** requires management-approved programme description, activities, and image. If unavailable, add a `published: false` placeholder so the route exists but is not visible in production.
+- [ ] **Root-level `app/not-found.tsx`** — the locale-level 404 exists but there is no root-level fallback for requests that don't match any locale. A root `app/not-found.tsx` ensures a branded 404 for edge cases (e.g., a request to a non-existent top-level path before the locale rewrite runs).
+- [ ] **`BreadcrumbList` JSON-LD on listing/index pages** — visual breadcrumbs exist on `/about-us/team`, `/projects`, `/stories`, `/our-work`, `/gallery` but do not emit `BreadcrumbList` JSON-LD. Adding it improves search engine understanding of site hierarchy.
+- [ ] **`docs/content-model.md` update** — the existing doc does not mention `content/reach.ts`, `content/instagram-overrides.ts`, or the DB-backed stories merge. Update to reflect the full content model.
+
+### Blocked by management-supplied facts
+
+- [ ] **5th programme pillar content** — description, activities, image, and programme name require management approval. The route and type infrastructure can be prepared, but the content must come from Vantage management.
+- [ ] **`Event` structured data** — would require events with real dates, locations, and descriptions. No event content model exists, and no management-approved events are available. Do not fabricate events.
+
+### Blocked by consent/safeguarding
+
+- [ ] **Gallery expansion / curated photo stories** — the gallery exists but expanding it requires consent-aware media metadata. The media manifest (`content/media.ts`) already supports `consentClassification`, but additional photos require safeguarding review per `docs/safeguarding-and-consent.md`. Do not publish photos without verified consent.
+
+### Obsolete because later work superseded it
+
+- [x] ~~"Add `app/error.tsx` global error boundary"~~ — the locale-level `error.tsx` handles this. A root-level `app/error.tsx` would only catch errors in the root layout itself, which is minimal. The locale-level boundary is the correct architecture for a localized App Router site.
+- [x] ~~"Add `app/loading.tsx` for dynamic routes"~~ — loading skeletons exist at the locale level and for the two slowest detail routes (projects, stories). This is sufficient.
+
+### Phase 3A scope (this PR)
+
+1. Add 5th programme pillar to `content/areas.ts` as `published: false` (Youth Leadership & Community Empowerment) with a clear placeholder description — route infrastructure works automatically.
+2. Add root-level `app/not-found.tsx` for non-locale edge cases.
+3. Add `BreadcrumbList` JSON-LD to listing pages that have visual breadcrumbs.
+4. Update `docs/content-model.md` to document `content/reach.ts`, `content/instagram-overrides.ts`, and DB-backed stories.
+5. Update `docs/implementation-plan.md` (this section) with the reconciled status.
+
+### Phase 3B scope (next PR)
+
+Evaluate whether `/volunteer` and `/partner-with-us` should become dedicated routes or remain consolidated. **Preliminary assessment:** remain consolidated. The current `/get-involved` with anchor-based pathways + contact form category routing is the correct UX. A dedicated route would add a page without adding capability. The formal evaluation will be documented in the Phase 3B PR.
+
+### Phase 3C scope (future PR, blocked on consent)
+
+Gallery expansion, `Event` structured data, and additional curated photo stories are blocked on consent-aware media metadata and management-approved event content. Do not implement until consent review is complete.
 
 ---
 

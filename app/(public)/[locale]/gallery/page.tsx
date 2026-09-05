@@ -5,6 +5,8 @@ import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
+import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
 import { resolveLocale } from "@/lib/i18n/params";
 import { localePath } from "@/lib/i18n/config";
@@ -42,6 +44,15 @@ export default async function GalleryPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: d.common.home, url: localePath("/", locale) },
+            { label: p.gallery.title, url: localePath("/gallery", locale) },
+          ],
+          site.url,
+        )}
+      />
       <section className="bg-primary py-16 text-white md:py-24">
         <Container>
           <SectionHeader
