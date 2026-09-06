@@ -257,27 +257,27 @@ export default async function ProjectPage({
                   {p.project.atAGlance}
                 </h2>
                 <dl className="mt-4 space-y-4 text-sm">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <div>
-                      <dt className="font-semibold text-foreground">{p.project.location}</dt>
-                      <dd className="text-muted-foreground">{project.location}</dd>
-                    </div>
+                  <div>
+                    <dt className="flex items-start gap-3 font-semibold text-foreground">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      {p.project.location}
+                    </dt>
+                    <dd className="text-muted-foreground">{project.location}</dd>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    <div>
-                      <dt className="font-semibold text-foreground">{p.project.timeline}</dt>
-                      <dd className="text-muted-foreground">{project.date}</dd>
-                    </div>
+                  <div>
+                    <dt className="flex items-start gap-3 font-semibold text-foreground">
+                      <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      {p.project.timeline}
+                    </dt>
+                    <dd className="text-muted-foreground">{project.date}</dd>
                   </div>
                   {project.beneficiaries && (
-                    <div className="flex items-start gap-3">
-                      <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      <div>
-                        <dt className="font-semibold text-foreground">{p.project.beneficiaries}</dt>
-                        <dd className="text-muted-foreground">{project.beneficiaries}</dd>
-                      </div>
+                    <div>
+                      <dt className="flex items-start gap-3 font-semibold text-foreground">
+                        <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        {p.project.beneficiaries}
+                      </dt>
+                      <dd className="text-muted-foreground">{project.beneficiaries}</dd>
                     </div>
                   )}
                   {project.fundingStatus && (
