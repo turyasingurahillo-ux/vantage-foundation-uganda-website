@@ -34,7 +34,7 @@ export function SectionHeader({
           <p
             className={cn(
               "mb-3 text-sm font-semibold uppercase tracking-wider",
-              light ? "text-white/80" : "text-primary"
+              light ? "text-white/90" : "text-primary"
             )}
           >
             {eyebrow}

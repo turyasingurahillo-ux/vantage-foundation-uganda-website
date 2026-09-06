@@ -66,8 +66,8 @@ export function ProjectMarkers({
               )}
               fill="currentColor"
               fillOpacity={0.15}
+              aria-hidden="true"
             />
-            <span className="sr-only">{marker.name}</span>
           </button>
         );
       })}

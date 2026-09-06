@@ -106,6 +106,7 @@ export default async function AdminAuditPage({
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/admin/audit"
+            aria-current={!resourceType && !action ? "page" : undefined}
             className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
               !resourceType && !action
                 ? "border-primary bg-primary text-white"
@@ -118,6 +119,7 @@ export default async function AdminAuditPage({
             <Link
               key={rt}
               href={`/admin/audit?resourceType=${rt}`}
+              aria-current={resourceType === rt ? "page" : undefined}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
                 resourceType === rt
                   ? "border-primary bg-primary text-white"
@@ -140,22 +142,22 @@ export default async function AdminAuditPage({
             <table className="min-w-full divide-y divide-border">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     When
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Actor
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Action
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Resource
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Before → After
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     IP
                   </th>
                 </tr>

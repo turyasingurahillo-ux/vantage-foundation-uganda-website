@@ -86,7 +86,7 @@ export default async function ContactPage({
               <Card className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Mail className="h-5 w-5" />
+                    <Mail className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold">{contact.email}</h3>
@@ -109,7 +109,7 @@ export default async function ContactPage({
               <Card className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Phone className="h-5 w-5" />
+                    <Phone className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold">{contact.phone}</h3>
@@ -126,7 +126,7 @@ export default async function ContactPage({
               <Card className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <MapPin className="h-5 w-5" />
+                    <MapPin className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold">{contact.location}</h3>

@@ -94,14 +94,14 @@ export default async function DonationReviewPage({
         </Alert>
       )}
 
+      <PageHeader
+        title={donation ? `Donation #${donation.id}` : "Donation review"}
+        description={donation ? "Review the donation details and verify or reject against the bank statement." : "Donation data could not be loaded."}
+        actions={donation ? <StatusBadge status={donation.status} /> : undefined}
+      />
+
       {donation && (
         <>
-          <PageHeader
-            title={`Donation #${donation.id}`}
-            description="Review the donation details and verify or reject against the bank statement."
-            actions={<StatusBadge status={donation.status} />}
-          />
-
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {/* Donation details — spans 2 columns on desktop */}
             <section

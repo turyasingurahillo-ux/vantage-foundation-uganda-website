@@ -75,9 +75,9 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
 
           {/* Programmes */}
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">
               {n.programmes}
-            </h2>
+            </p>
             <ul className="mt-4 space-y-2">
               {programmeLinks.map((item) => (
                 <li key={item.href}>
@@ -94,9 +94,9 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
 
           {/* Impact and accountability */}
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">
               {f.impactAccountability}
-            </h2>
+            </p>
             <ul className="mt-4 space-y-2">
               {impactLinks.map((item) => (
                 <li key={item.href}>
@@ -113,9 +113,9 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
 
           {/* Get involved */}
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">
               {n.getInvolved}
-            </h2>
+            </p>
             <ul className="mt-4 space-y-2">
               {getInvolvedLinks.map((item) => (
                 <li key={item.href}>
@@ -135,9 +135,9 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
         <div className="grid gap-12 border-t border-white/10 py-12 md:grid-cols-2 lg:grid-cols-3">
           {/* Contact information */}
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">
               {n.contact}
-            </h2>
+            </p>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
               <li>
                 {site.contact.publicEmail ? (
@@ -199,6 +199,7 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-deep-teal hover:text-white"
                 >
                   <social.icon className="h-5 w-5" aria-hidden="true" />
+                  <span className="sr-only">(opens in new tab)</span>
                 </a>
               ))}
             </div>
@@ -206,9 +207,9 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
 
           {/* Newsletter */}
           <div className="lg:col-span-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">
               {f.newsletter}
-            </h2>
+            </p>
             <p className="mt-4 text-sm text-white/70">
               {f.newsletterDescription}
             </p>

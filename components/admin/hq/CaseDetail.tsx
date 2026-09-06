@@ -114,21 +114,21 @@ export function CaseDetail({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>Source: {getCaseSourceLabel(caseRow.source)}</span>
             {caseRow.caseType && (
-              <span>· {getCaseTypeLabel(caseRow.caseType)}</span>
+              <span><span aria-hidden="true">·</span> {getCaseTypeLabel(caseRow.caseType)}</span>
             )}
             {caseRow.programme && (
-              <span>· {getCaseProgrammeLabel(caseRow.programme)}</span>
+              <span><span aria-hidden="true">·</span> {getCaseProgrammeLabel(caseRow.programme)}</span>
             )}
-            <span>· Workflow: {getWorkflowStatusLabel(caseRow.workflowStatus)}</span>
+            <span><span aria-hidden="true">·</span> Workflow: {getWorkflowStatusLabel(caseRow.workflowStatus)}</span>
             {caseRow.originPage && (
-              <span>· From: {caseRow.originPage}</span>
+              <span><span aria-hidden="true">·</span> From: {caseRow.originPage}</span>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{caseRow.email}</span>
-            {caseRow.phone && <span>· {caseRow.phone}</span>}
+            {caseRow.phone && <span><span aria-hidden="true">·</span> {caseRow.phone}</span>}
             {caseRow.organisation && (
-              <span>· {caseRow.organisation}</span>
+              <span><span aria-hidden="true">·</span> {caseRow.organisation}</span>
             )}
           </div>
           {caseRow.firstResponseAt && (

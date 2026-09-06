@@ -295,7 +295,7 @@ export function StoriesWorkspace({
             onClick={handleNewStory}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
           >
-            + New Story
+            <span aria-hidden="true">+</span> New Story
           </button>
         </div>
       </div>
@@ -315,28 +315,54 @@ export function StoriesWorkspace({
             <thead className="bg-slate-50">
               <tr>
                 <th
-                  className="cursor-pointer whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  onClick={() => handleSort("title")}
+                  scope="col"
+                  aria-sort={sortKey === "title" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                  className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  Title {sortKey === "title" && (sortDir === "asc" ? "↑" : "↓")}
+                  <button
+                    type="button"
+                    onClick={() => handleSort("title")}
+                    className="inline-flex items-center gap-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    Title
+                    {sortKey === "title" && (
+                      <span aria-hidden="true">{sortDir === "asc" ? "↑" : "↓"}</span>
+                    )}
+                    <span className="sr-only">
+                      {sortKey === "title" ? `, sorted ${sortDir === "asc" ? "ascending" : "descending"}` : ", click to sort"}
+                    </span>
+                  </button>
                 </th>
-                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th scope="col" className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Status
                 </th>
-                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th scope="col" className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Source
                 </th>
-                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th scope="col" className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Category
                 </th>
-                <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <th scope="col" className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Author
                 </th>
                 <th
-                  className="cursor-pointer whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  onClick={() => handleSort("date")}
+                  scope="col"
+                  aria-sort={sortKey === "date" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                  className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  Date {sortKey === "date" && (sortDir === "asc" ? "↑" : "↓")}
+                  <button
+                    type="button"
+                    onClick={() => handleSort("date")}
+                    className="inline-flex items-center gap-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    Date
+                    {sortKey === "date" && (
+                      <span aria-hidden="true">{sortDir === "asc" ? "↑" : "↓"}</span>
+                    )}
+                    <span className="sr-only">
+                      {sortKey === "date" ? `, sorted ${sortDir === "asc" ? "ascending" : "descending"}` : ", click to sort"}
+                    </span>
+                  </button>
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Actions
@@ -445,7 +471,7 @@ export function StoriesWorkspace({
           aria-label="Confirm deletion"
         >
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold">Delete story?</h3>
+            <h2 className="text-lg font-semibold">Delete story?</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Are you sure you want to delete “{deleteTarget.title}”? This will soft-delete
               the story and remove its hero image from storage. The action is reversible

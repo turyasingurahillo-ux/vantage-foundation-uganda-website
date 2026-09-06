@@ -29,6 +29,7 @@ export function MapLegend({ labels }: MapLegendProps) {
             className={cn("h-4 w-4", COLOR_CLASS[status])}
             fill="currentColor"
             fillOpacity={0.15}
+            aria-hidden="true"
           />
           {labels[status]}
         </span>

@@ -95,6 +95,7 @@ export function AdminSidebar({
         >
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
           View public website
+          <span className="sr-only">(opens in new tab)</span>
         </a>
 
         <p className="px-3 text-xs text-muted-foreground">

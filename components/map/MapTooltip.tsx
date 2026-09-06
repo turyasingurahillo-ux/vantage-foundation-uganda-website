@@ -69,9 +69,9 @@ export function MapTooltip({
       style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="text-sm font-semibold text-foreground">
+        <p className="text-sm font-semibold text-foreground">
           {selected.district.district}
-        </h4>
+        </p>
         <Badge variant={BADGE_VARIANT[selected.status]}>
           {statusLabels[selected.status]}
         </Badge>

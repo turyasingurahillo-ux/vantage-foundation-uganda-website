@@ -119,7 +119,7 @@ export default async function AdminArticleDetailPage({
                 rel="noopener noreferrer"
                 className="border-b-2 border-transparent px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
               >
-                Preview ↗
+                Preview <span aria-hidden="true">↗</span>
               </a>
             </div>
 

@@ -17,8 +17,13 @@ export function CopyBankDetails({ copy }: { copy: BankDetailsCopy }) {
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={handleCopy}>
-      {copied ? copy.copied : copy.copy}
-    </Button>
+    <>
+      <Button variant="outline" size="sm" onClick={handleCopy}>
+        {copied ? copy.copied : copy.copy}
+      </Button>
+      <span role="status" aria-live="polite" className="sr-only">
+        {copied ? "Bank details copied" : ""}
+      </span>
+    </>
   );
 }

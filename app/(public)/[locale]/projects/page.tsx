@@ -59,6 +59,7 @@ export default async function ProjectsPage({
           <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
             {dictionary.common.originalLanguageNotice}
           </p>
+          <h2 className="sr-only">{content.title}</h2>
           <ProjectList projects={getPublishedProjects()} locale={locale} />
         </Container>
       </section>

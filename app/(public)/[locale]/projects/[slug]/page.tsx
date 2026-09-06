@@ -97,7 +97,7 @@ export default async function ProjectPage({
         <Container>
           <div className="max-w-3xl">
             <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
+              <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-white">
                 {project.category}
               </span>
               <Badge variant="outline" className="border-white/30 text-white">

@@ -157,6 +157,20 @@ export function Markdown({
               </p>
             );
           },
+          h1({ children }) {
+            return (
+              <h2
+                id={headingId(children)}
+                className={
+                  isArticle
+                    ? "mb-5 mt-12 scroll-mt-40 text-[1.625rem] font-bold leading-[1.2] tracking-[-0.015em] text-foreground first:mt-0 sm:text-[1.75rem] md:mt-16 lg:scroll-mt-28 md:text-[2rem]"
+                    : "mt-8 text-2xl font-bold text-foreground first:mt-0"
+                }
+              >
+                {children}
+              </h2>
+            );
+          },
           h2({ children }) {
             return (
               <h2

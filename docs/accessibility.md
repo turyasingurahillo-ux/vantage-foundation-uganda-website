@@ -1,131 +1,124 @@
-# Accessibility — Vantage Foundation Uganda
+# Accessibility
 
-**Target:** WCAG 2.2 AA across all public routes.
+Vantage Foundation Uganda is committed to making its website usable by everyone, including people with disabilities. This document describes the accessibility posture, testing methodology, and known limitations.
 
-This document records the current accessibility state, testing methodology, and known considerations for the Vantage Foundation Uganda website.
+## Standards
 
----
+The target conformance level is **WCAG 2.2 AA**. The site is tested against the `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, and `wcag22aa` axe-core rule tags.
 
-## Current state
+## Automated testing
 
-All 27 public routes pass automated axe-core checks against WCAG 2.2 AA tags (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`). See `tests/e2e/accessibility.spec.ts` for the full test suite.
+Axe-core runs in CI via Playwright on 23 public routes, covering every page type (homepage, programme, project, story, gallery, donate, contact, get-involved, policy pages, team pages, donors-and-sponsors, reports-and-accountability).
 
-### Document structure
-- Every page has exactly one visible `<h1>` (verified by E2E tests on all 27 routes).
-- Heading hierarchy follows h1 → h2 → h3 with no skipped levels.
-- `SectionHeader` component supports `level="h1"` (page title) and `level="h2"` (section title, default).
-- `<main id="main">` landmark is present on every page.
+**CI job:** `.github/workflows/ci.yml` → `e2e-a11y`
 
-### Skip link
-- `SkipToContent` component is the first focusable element in the layout.
-- Visible on focus, links to `#main`, and moves focus to the main landmark.
-- Verified by E2E keyboard navigation test.
+**Test file:** `tests/e2e/accessibility.spec.ts`
 
-### Focus management
-- Global `:focus-visible` style in `globals.css`: `outline: 2px solid var(--primary); outline-offset: 2px`.
-- `Button` component: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
-- `Input`, `Select`, `Textarea`: `focus:ring-2 focus:ring-primary`.
-- Custom buttons in `DonationForm` (amount/frequency toggles): `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
-- `UgandaReachMap` filter buttons: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`.
+The automated suite verifies:
 
-### Mobile menu (dialog)
-- `role="dialog"`, `aria-modal="true"`, `aria-label="Mobile navigation"`.
-- Focus trap: Tab and Shift+Tab cycle within the dialog.
-- Escape key closes the dialog.
-- Focus restores to the trigger button on close.
-- Body scroll locked while open.
-- Verified by E2E keyboard navigation test.
+- Each page has exactly one visible `<h1>` and a `<main>` landmark.
+- The skip link is the first sequential keyboard destination.
+- The skip link targets `#main` and the main landmark has `tabindex="-1"`.
+- The skip link receives focus and becomes visible when focused.
+- The mobile navigation dialog opens with keyboard, receives focus, and closes with Escape (focus is restored to the trigger button).
+- No positive `tabindex` values exist on any public page.
+- Axe-core reports zero violations on all tested routes.
 
-### Forms
-All three public forms (`ContactForm`, `DonationForm`, `NewsletterForm`) include:
-- `<Label>` with `htmlFor` association for every field.
-- `aria-invalid` on fields with validation errors.
-- `aria-describedby` linking fields to their error messages.
-- `FieldError` component for per-field error display.
-- `role="status"` + `aria-live="polite"` for form submission status announcements.
-- `HoneypotFields` for anti-spam (hidden from screen readers and sighted users).
-- `FormPrivacyNotice` on every form.
-- `noValidate` on `<form>` (server-side validation with accessible error messages).
+### Limitations of automated testing
 
-### Interactive components
-- **FAQ accordion**: Native `<details>`/`<summary>` — keyboard accessible by default, no JS required.
-- **Project/Story filters**: `Select` elements with `aria-label` for filter controls.
-- **UgandaReachMap**: Map pins are `<button>` elements with `aria-expanded` and `aria-controls`. SVG is `aria-hidden`; accessible district list carries the same information.
-- **GalleryGrid**: Lightbox uses `<dialog>` with `showModal()`. Close button has `aria-label`. Arrow keys navigate. Click backdrop to close.
-- **DonationForm amount/frequency toggles**: `aria-pressed` for toggle state.
+Axe-core cannot detect:
 
-### Colour and contrast
-- Primary colour (`#006b70`) passes WCAG AA 4.5:1 on white for normal text.
-- `--primary` token uses teal dark (`#006b70`), not teal primary (`#008f95`) — the latter only reaches 3.9:1.
-- White text on primary background passes AA for normal and large text.
-- `text-muted-foreground` on `bg-background` passes AA.
-- `ImpactMetric` tier badges use colour + text labels (WCAG 1.4.1 — colour is not the sole indicator).
+- Heading order issues beyond a single h1 (it does not flag skipped levels).
+- Color contrast on image-backed text (gradients over photographs).
+- Focus trap quality in custom dialogs (it checks DOM structure, not runtime focus behavior).
+- Screen reader announcement timing and correctness.
+- Keyboard navigation through custom widgets at runtime.
 
-### Motion
-- `prefers-reduced-motion: reduce` media query in `globals.css` disables all animations and transitions.
+These are covered by manual testing (below).
 
-### Icons
-- All decorative icons have `aria-hidden="true"`.
-- All icon-only buttons have `aria-label` (e.g. "Open menu", "Close menu", "Close photo viewer", "Previous photo", "Next photo").
+## Manual testing
 
----
+### Heading order
 
-## Testing methodology
+Every page was audited statically for heading order. The following rules are enforced:
 
-### Automated tests (CI)
+- One `<h1>` per page.
+- No skipped heading levels (h1 → h3 without an intervening h2 is a violation).
+- Footer column labels are `<p>` elements, not headings.
+- Map tooltip district names are `<p>` elements, not headings.
+- Markdown content renders `#` as `<h2>` (not `<h1>`) to prevent multiple h1s on article pages.
 
-**axe-core E2E tests** (`tests/e2e/accessibility.spec.ts`):
-- 17 pages checked against WCAG 2.2 AA tags.
-- Run with Playwright in Chromium.
-- Zero violations expected.
+### Color contrast
 
-**Document structure tests**:
-- 27 routes checked for exactly one visible `<h1>` and a `<main>` landmark.
+Design token contrast ratios are documented in `docs/brand/colour-system.md` and `lib/design-tokens.ts`. Key ratios:
 
-**Keyboard navigation tests**:
-- Skip link: Tab → focus → Enter → focus moves to `#main`.
-- Mobile menu: focus trigger → Enter → dialog visible → Escape → dialog hidden → focus restored.
+| Foreground | Background | Ratio | Status |
+|---|---|---|---|
+| Teal Dark (`#006b70`) on white | — | 6.3:1 | Pass (AA normal) |
+| White on Teal Dark | — | 6.3:1 | Pass (AA normal) |
+| White on Navy (`#050708`) | — | ~19.7:1 | Pass |
+| Teal Primary (`#008f95`) on white | — | 3.9:1 | Fail (large text/surfaces only) |
+| Muted foreground (`#475569`) on white | — | ~7.5:1 | Pass |
 
-### Manual testing
+**Rules:**
 
-Test the following at **320px, 375px, 768px, 1024px, 1440px**:
+- `--deep-teal` (`#008f95`) is reserved for large text (24px+) or non-text surfaces only.
+- `--primary` (`#006b70`) is used for all text-sized contrast needs.
+- On `bg-primary` backgrounds, text uses `text-white` or `text-white/90` (minimum 5.4:1).
+- Translucent white badges on `bg-primary` use `bg-white/10` (not `bg-white/20`) to maintain contrast.
 
-1. **Keyboard-only navigation**: Tab through the homepage, open/close mobile menu, navigate to a project page, open gallery lightbox, close it.
-2. **Screen reader testing** (NVDA on Windows or VoiceOver on macOS):
-   - Navigate homepage by headings.
-   - Submit contact form with errors — verify error announcements.
-   - Use UgandaReachMap district list — verify all districts are announced.
-3. **200% zoom**: Verify no horizontal scrolling on key routes.
-4. **High contrast mode**: Verify all text remains readable.
+### Keyboard navigation
 
-### Test commands
+Manual keyboard testing covers:
 
-```bash
-# Run accessibility E2E tests
-npx playwright test tests/e2e/accessibility.spec.ts
+1. **Tab order:** Skip link → main content → navigation → footer. No positive `tabindex` values.
+2. **Mobile menu (public):** Trigger button → dialog opens → focus moves to dialog → Tab cycles within dialog → Escape closes → focus restores to trigger.
+3. **Mobile menu (admin):** Same pattern as public, with focus trap and page isolation (`inert`/`aria-hidden` on background content).
+4. **FAQ accordion:** Native `<details>`/`<summary>` — keyboard accessible by default.
+5. **Project/story filters:** Native `<select>` and `<input>` — keyboard accessible by default.
+6. **Gallery lightbox:** Native `<dialog>` with arrow-key navigation between images.
+7. **Sortable table headers:** `<button>` elements inside `<th>` with `aria-sort` indicators.
+8. **Admin row-action menus:** `onClick` (not `onMouseDown`), `role="menu"`, focus closes on focusout.
 
-# Run all E2E tests
-npx playwright test
+### Focus indicators
 
-# Run unit tests (includes component accessibility checks)
-npx vitest run
-```
+A global `:focus-visible` rule in `app/globals.css` provides a 2px solid `--primary` outline with 2px offset on all native focusable elements. Key interactive components (`Button`, `Input`, `Select`, `Textarea`, `WhatsAppButton`) also have explicit `focus-visible:ring-2` styling.
 
----
+### Screen reader testing
 
-## Known considerations
+The site uses native HTML semantics throughout:
 
-### Images
-- All images use `next/image` with descriptive `alt` text.
-- Placeholder images (when no photo is available) render as `aria-hidden="true"` neutral surfaces — they make no publication claim.
-- Team member photos use verified alt text based on visible content (no invented names for children/vulnerable people).
+- `<nav>`, `<main>`, `<footer>`, `<section>`, `<article>` landmarks.
+- `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>` native controls.
+- `<details>`/`<summary>` for accordions.
+- `<dialog>` for the gallery lightbox.
+- `role="dialog"` + `aria-modal="true"` for mobile menus.
+- `role="status"` / `role="alert"` for form feedback.
+- `aria-live="polite"` for async content updates.
+- `aria-current="page"` for active navigation links.
+- `aria-sort` on sortable table columns.
+- `aria-pressed` on toggle buttons.
+- `aria-expanded` / `aria-controls` on disclosure buttons.
+- `aria-invalid` / `aria-describedby` on form fields with validation errors.
+- `aria-hidden="true"` on decorative icons and separators.
+- `sr-only` text for icon-only buttons and screen-reader-only labels.
 
-### External content
-- Instagram posts are server-rendered with accessible captions.
-- Social media links use `rel="noopener noreferrer"` and descriptive `aria-label`s.
+### Video and audio
 
-### Future work
-- Add captions or transcripts for any video content (none currently).
-- Test with a screen reader on critical journeys (NVDA/VoiceOver).
-- Consider adding a high-contrast theme if user research indicates a need.
-- Evaluate `prefers-contrast: more` support for users who need higher contrast.
+The site does not currently embed any `<video>` or `<audio>` content. If video is added in the future, captions and transcripts will be required per WCAG 2.2 AA.
+
+## Known limitations
+
+1. **Short-page CLS:** Pages with minimal content (`/get-involved`, `/contact`, `/ar`) may exhibit CLS around 0.25–0.33 due to font loading and footer positioning. This is documented as an accepted limitation in `docs/performance.md`.
+
+2. **Turnstile widget:** The Cloudflare Turnstile widget's internal focus management and accessibility is controlled by the third-party provider and cannot be audited as project-owned UI.
+
+3. **Admin axe-core coverage:** Automated axe-core tests currently cover public routes only. Admin routes require authentication and are tested via manual keyboard/screen-reader testing. Adding authenticated axe-core scans for admin pages is a future improvement.
+
+4. **Image-backed hero text:** The homepage hero and story hero overlays use gradient scrims over photographs. Contrast depends on the underlying image brightness. The gradients are designed to maintain at least 4.5:1 contrast in the text regions, but this should be verified per-image if photographs change.
+
+5. **Related-stories carousel:** The horizontally scrollable related-stories section has no previous/next buttons. Items are keyboard-focusable links, but keyboard users cannot scroll to off-screen items without tabbing through them. This is a low-priority enhancement.
+
+## Reporting accessibility issues
+
+If you encounter an accessibility barrier on this site, please contact Vantage through the `/contact` page. Reports are tracked through the case-management pipeline and addressed in phased accessibility work.

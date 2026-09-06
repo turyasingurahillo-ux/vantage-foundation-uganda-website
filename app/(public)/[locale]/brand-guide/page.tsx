@@ -358,7 +358,7 @@ export default async function BrandGuidePage({
             everywhere text- and button-sized contrast matters.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Swatch name="Teal Primary" hex={brandColors.deepTeal} token="Large text/surfaces only" on="#ffffff" ratio={deepTealOnWhite} />
+            <Swatch name="Teal Primary" hex={brandColors.deepTeal} token="Large text/surfaces only" on="#050708" ratio={deepTealOnWhite} />
             <Swatch name="Teal Dark" hex={brandColors.oceanBlue} token="--primary" on="#ffffff" ratio={tealOnWhite} />
             <Swatch name="Teal Light" hex={brandColors.brightAqua} token="--primary-light" on="#050708" ratio={aquaOnWhite} />
             <Swatch name="Black" hex={brandColors.darkNavy} token="--foreground / --navy" on="#ffffff" ratio={navyOnWhite} />

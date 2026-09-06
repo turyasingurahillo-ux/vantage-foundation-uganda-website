@@ -65,6 +65,7 @@ export default async function ImpactPage({
             {dictionary.common.originalLanguageNotice}
           </p>
 
+          <h2 className="sr-only">{i.title}</h2>
           <div className="grid gap-6 md:grid-cols-3">
             {getPublishedImpactStats().map((stat) => (
               <StatCard key={stat.label} {...stat} locale={locale} />
