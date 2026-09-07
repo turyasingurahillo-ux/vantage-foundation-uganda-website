@@ -276,15 +276,20 @@ export async function PATCH(request: Request) {
   try {
     const row = await updateMediaObject(id, update);
     if (!row) {
-      // If the row existed before the update but the UPDATE returned 0 rows,
-      // the atomic consent invariant in the WHERE clause rejected the write
-      // (a concurrent request changed the state between our read and write).
-      // Map this to the existing 422 consent-required response.
+      // The UPDATE returned 0 rows. Two possible causes:
+      // 1. The atomic consent invariant WHERE clause rejected the write
+      //    (a concurrent request changed the state between our read and write).
+      // 2. The row was soft-deleted between our initial read and the UPDATE.
+      // Re-read to distinguish: if the row still exists, it was a consent
+      // violation (422). If it's gone, it was a concurrent deletion (404).
       if (before) {
-        return NextResponse.json(
-          { error: "consent-required" },
-          { status: 422 }
-        );
+        const stillExists = await getMediaObjectById(id);
+        if (stillExists) {
+          return NextResponse.json(
+            { error: "consent-required" },
+            { status: 422 }
+          );
+        }
       }
       return NextResponse.json({ error: "not-found" }, { status: 404 });
     }

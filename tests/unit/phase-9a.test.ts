@@ -271,6 +271,79 @@ describe("media consent gate — atomic PATCH invariant (race condition fix)", (
     expect(response.status).toBe(404);
     expect(body.error).toBe("not-found");
   });
+
+  it("returns 404 when the row was concurrently soft-deleted (not a consent violation)", async () => {
+    // Simulate: the route reads the row (exists), but between the read and
+    // the UPDATE, a concurrent request soft-deletes it. The UPDATE returns
+    // 0 rows. The re-read finds the row is gone → 404, not 422.
+    const updateMock = vi.fn().mockResolvedValue(null);
+    const getByIdMock = vi.fn()
+      .mockResolvedValueOnce({ // first call (route-level read)
+        id: 1,
+        published: false,
+        consent: "verified",
+        altText: "",
+        caption: null,
+        consentNotes: null,
+        programme: null,
+        projectSlug: null,
+      })
+      .mockResolvedValueOnce(null); // second call (re-read after UPDATE fails)
+
+    vi.doMock("@/lib/auth", () => ({
+      guard: vi.fn().mockResolvedValue({
+        ok: true,
+        ip: "127.0.0.1",
+        actorId: "1",
+        cookieStore: mockCookieStore(),
+      }),
+    }));
+    vi.doMock("next/headers", () => ({
+      cookies: vi.fn().mockResolvedValue(mockCookieStore()),
+    }));
+    vi.doMock("@/lib/csrf", () => ({
+      validateCsrf: vi.fn().mockReturnValue(true),
+      validateCsrfHeader: vi.fn().mockReturnValue(true),
+      CSRF_HEADER_NAME: "x-csrf-token",
+      getCsrfTokenFromRequest: vi.fn().mockReturnValue("csrf-token"),
+    }));
+    vi.doMock("@/lib/db/media", () => ({
+      getMediaObjects: vi.fn().mockResolvedValue([]),
+      getMediaObjectByKey: vi.fn().mockResolvedValue(null),
+      getMediaObjectById: getByIdMock,
+      createMediaObject: vi.fn(),
+      updateMediaObject: updateMock,
+      deleteMediaObject: vi.fn(),
+    }));
+    vi.doMock("@/lib/storage/r2-client", () => ({
+      ALLOWED_UPLOAD_TYPES: {},
+      MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+      headR2Object: vi.fn(),
+      deleteR2Object: vi.fn(),
+      getPublicSrc: vi.fn(),
+    }));
+    vi.doMock("@/lib/db/audit", () => ({
+      appendAuditLog: vi.fn().mockResolvedValue(undefined),
+    }));
+
+    const request = new Request("http://localhost/api/admin/media", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 1,
+        published: true,
+      }),
+    });
+
+    const { PATCH } = await import("@/app/api/admin/media/route");
+    const response = await PATCH(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("not-found");
+    expect(updateMock).toHaveBeenCalled();
+    expect(getByIdMock).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("analytics HMAC fail-closed", () => {
