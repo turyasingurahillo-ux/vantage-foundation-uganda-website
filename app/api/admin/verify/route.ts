@@ -7,7 +7,8 @@ import {
 } from "@/lib/db";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
   const adminCookie = cookieStore.get(sessionCookieName)?.value;
 
   // Verify the signed session token (HMAC-based, not the raw secret).
-  const session = verifySessionToken(adminCookie);
+  const session = await verifyActiveAdminSession(adminCookie);
   if (!session) {
     logWarn("verify_unauthorized", {});
     return NextResponse.redirect(new URL("/admin/login", request.url), 302);

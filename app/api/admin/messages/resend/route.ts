@@ -13,7 +13,8 @@ import {
 } from "@/lib/admin/inbox-context";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 
@@ -48,7 +49,7 @@ function back(
 export async function POST(request: Request) {
   const cookieStore = await cookies();
 
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
+  const session = await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value);
   if (!session) {
     logWarn("message_resend_unauthorized", {});
     return NextResponse.redirect(new URL("/admin/login", request.url), 302);

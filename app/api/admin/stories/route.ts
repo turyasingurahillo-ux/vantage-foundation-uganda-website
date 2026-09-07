@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { guard } from "@/lib/auth";
 import { validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
-import { logError, logInfo, logWarn } from "@/lib/logger";
+import { logError, logInfo } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 import {
   createStory,
@@ -60,20 +60,6 @@ function consentGateError(): ReturnType<typeof NextResponse.json> {
   );
 }
 
-async function guard(request: Request) {
-  const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
-  if (!session) {
-    logWarn("stories_api_unauthorized", {});
-    return { ok: false as const, response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
-  }
-  const ip = getClientIp(request.headers);
-  if (!rateLimit({ key: `stories-api:${ip}`, limit: 60, windowMs: 60_000 })) {
-    return { ok: false as const, response: NextResponse.json({ error: "rate-limited" }, { status: 429 }) };
-  }
-  return { ok: true as const, ip, actorId: session.actorId, cookieStore };
-}
-
 async function parseBody(request: Request, cookieStore: Awaited<ReturnType<typeof cookies>>) {
   if (!validateCsrfHeader(cookieStore, request.headers.get(CSRF_HEADER_NAME))) {
     return { csrfOk: false, body: null };
@@ -86,7 +72,7 @@ async function parseBody(request: Request, cookieStore: Awaited<ReturnType<typeo
 }
 
 export async function GET(request: Request) {
-  const guarded = await guard(request);
+  const guarded = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "stories-api" });
   if (!guarded.ok) return guarded.response;
   const url = new URL(request.url);
   const publishedParam = url.searchParams.get("published");
@@ -100,7 +86,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const guarded = await guard(request);
+  const guarded = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "stories-api" });
   if (!guarded.ok) return guarded.response;
   const { csrfOk, body } = await parseBody(request, guarded.cookieStore);
   if (!csrfOk) return NextResponse.json({ error: "csrf" }, { status: 403 });
@@ -135,7 +121,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const guarded = await guard(request);
+  const guarded = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "stories-api" });
   if (!guarded.ok) return guarded.response;
   const { csrfOk, body } = await parseBody(request, guarded.cookieStore);
   if (!csrfOk) return NextResponse.json({ error: "csrf" }, { status: 403 });
@@ -174,7 +160,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const guarded = await guard(request);
+  const guarded = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "stories-api" });
   if (!guarded.ok) return guarded.response;
   const { csrfOk, body } = await parseBody(request, guarded.cookieStore);
   if (!csrfOk) return NextResponse.json({ error: "csrf" }, { status: 403 });

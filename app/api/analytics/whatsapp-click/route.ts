@@ -32,8 +32,12 @@ const schema = z.object({
   position: z.string().max(50).optional(),
 });
 
-function hashReaderId(rawReaderId: string | null, ip: string): string {
-  const secret = process.env.ADMIN_SECRET ?? "vantage-analytics-fallback";
+function hashReaderId(rawReaderId: string | null, ip: string): string | null {
+  // A configured server-side secret is required. If ADMIN_SECRET is not set,
+  // return null to signal that reader-identifying analytics should not be
+  // persisted. A public constant must not be used as an HMAC key.
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) return null;
   const input = rawReaderId || `ip:${ip}`;
   return createHmac("sha256", secret).update(input).digest("hex");
 }
@@ -61,6 +65,10 @@ export async function POST(request: Request) {
   const cookieHeader = request.headers.get("cookie") ?? "";
   const readerCookie = parseCookie(cookieHeader, READER_COOKIE_NAME);
   const readerHash = hashReaderId(readerCookie, ip);
+  if (readerHash === null) {
+    // No secret configured — fail silently without persisting.
+    return new NextResponse(null, { status: 204 });
+  }
 
   try {
     // Store in the audit log as a lightweight event record. This is a

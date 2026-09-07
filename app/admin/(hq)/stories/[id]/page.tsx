@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getStoryById } from "@/lib/db/stories";
 import { getAnalyticsArticleBySlug } from "@/lib/db/analytics-articles";
@@ -27,7 +28,7 @@ export default async function AdminArticleDetailPage({
   const { id: idParam } = await params;
   const { tab } = await searchParams;
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
   const csrfToken = await getCsrfTokenFromRequest();

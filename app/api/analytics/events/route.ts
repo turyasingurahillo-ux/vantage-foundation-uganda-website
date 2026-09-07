@@ -59,11 +59,16 @@ const eventSchema = z.object({
     .optional(),
 });
 
-function hashReaderId(rawReaderId: string | null, ip: string): string {
+function hashReaderId(rawReaderId: string | null, ip: string): string | null {
   // Use the anonymous cookie if present; otherwise derive a throwaway hash
   // from the IP so we still get rough dedup without storing the IP itself.
   // The IP is never persisted — only its HMAC hash, which is not reversible.
-  const secret = process.env.ADMIN_SECRET ?? "vantage-analytics-fallback";
+  //
+  // A configured server-side secret is required. If ADMIN_SECRET is not set,
+  // we must not generate hashes with a public/known key — return null to
+  // signal that reader-identifying analytics should not be persisted.
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) return null;
   const input = rawReaderId || `ip:${ip}`;
   return createHmac("sha256", secret).update(input).digest("hex");
 }
@@ -128,9 +133,14 @@ export async function POST(request: Request) {
   // Hash the anonymous reader cookie for dedup. The cookie value is read from
   // the Cookie header (the client tracker sets it). If absent, derive a
   // throwaway hash from the IP so we still dedup within a session.
+  // If no server-side secret is configured, do not persist reader analytics.
   const cookieHeader = request.headers.get("cookie") ?? "";
   const readerCookie = parseCookie(cookieHeader, READER_COOKIE_NAME);
   const readerHash = hashReaderId(readerCookie, ip);
+  if (readerHash === null) {
+    // No secret configured — fail silently without persisting.
+    return new NextResponse(null, { status: 204 });
+  }
 
   try {
     await ingestEvent({

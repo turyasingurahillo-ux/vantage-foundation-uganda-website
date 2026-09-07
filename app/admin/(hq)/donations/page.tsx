@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { ChevronRight } from "lucide-react";
 import { getDonations, DonationRow } from "@/lib/db";
 import { getDonationCounts } from "@/lib/db/dashboard";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { Container } from "@/components/shared/Container";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
 import { StatusTabs, type StatusTab } from "@/components/admin/hq/StatusTabs";
@@ -65,7 +66,7 @@ export default async function AdminDonationsPage({
   const { updated, error, noop } = params;
 
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

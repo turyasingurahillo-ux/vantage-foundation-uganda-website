@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 import {
@@ -36,7 +37,7 @@ function formatDuration(seconds: number): string {
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const ip = getClientIp(request.headers);

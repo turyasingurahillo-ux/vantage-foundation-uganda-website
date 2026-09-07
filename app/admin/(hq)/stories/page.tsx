@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getStories } from "@/lib/db/stories";
 import { getPublishedStories } from "@/content/stories";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminStoriesPage() {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) redirect("/admin/login");
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) redirect("/admin/login");
   const csrfToken = await getCsrfTokenFromRequest();
   let items: Awaited<ReturnType<typeof getStories>> = [];
   let dbError = "";

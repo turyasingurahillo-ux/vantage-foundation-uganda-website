@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminAdminsPage() {
   const cookieStore = await cookies();
 
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
+  const session = await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value);
   if (!session) {
     redirect("/admin/login");
   }

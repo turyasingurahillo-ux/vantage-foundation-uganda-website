@@ -25,7 +25,8 @@ import { updateCase, getCaseById } from "@/lib/db/cases";
 import { stampTriagedIfFirst } from "@/lib/db/case-history";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { logInfo, logWarn, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 
@@ -82,7 +83,7 @@ function back(request: Request, id: number | string, params: string) {
 export async function POST(request: Request) {
   const cookieStore = await cookies();
 
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
+  const session = await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value);
   if (!session) {
     logWarn("case_update_unauthorized", {});
     return NextResponse.redirect(new URL("/admin/login", request.url), 302);

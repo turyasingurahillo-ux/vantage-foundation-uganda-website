@@ -121,3 +121,21 @@ export async function getAdminById(id: number): Promise<AdminRow | null> {
   if (rows.length === 0) return null;
   return mapRow(rows[0]);
 }
+
+/**
+ * Lightweight check: does the admin with the given id exist and is it active
+ * (not disabled)? Used by the active-session verifier to reject tokens for
+ * disabled or deleted admins without loading password hashes.
+ *
+ * Returns `{ active: true }` or `{ active: false }`. Throws on DB errors so
+ * the caller can fail closed.
+ */
+export async function isAdminActive(
+  id: number
+): Promise<{ active: boolean }> {
+  const sql = getSql();
+  const rows = await sql`
+    SELECT 1 FROM admins WHERE id = ${id} AND disabled_at IS NULL
+  `;
+  return { active: rows.length > 0 };
+}

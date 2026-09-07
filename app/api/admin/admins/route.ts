@@ -1,41 +1,20 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { guard } from "@/lib/auth";
 import { validateCsrf, validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo, logError } from "@/lib/logger";
 import { createAdmin, getAdmins, disableAdmin } from "@/lib/db/admins";
 import { hashPassword } from "@/lib/password";
 import { appendAuditLog } from "@/lib/db/audit";
 
 // ---------------------------------------------------------------------------
-// Shared auth + CSRF + rate-limit guard.
-// ---------------------------------------------------------------------------
-
-async function guard(
-  request: Request
-): Promise<{ ok: true; ip: string; actorId: string } | { ok: false; response: NextResponse }> {
-  const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
-  if (!session) {
-    logWarn("admins_api_unauthorized", {});
-    return { ok: false, response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
-  }
-  const ip = getClientIp(request.headers);
-  if (!rateLimit({ key: `admins-api:${ip}`, limit: 20, windowMs: 60_000 })) {
-    logWarn("admins_api_rate_limited", { ip });
-    return { ok: false, response: NextResponse.json({ error: "rate-limited" }, { status: 429 }) };
-  }
-  return { ok: true, ip, actorId: session.actorId };
-}
-
-// ---------------------------------------------------------------------------
 // GET /api/admin/admins — list all admins (including disabled).
 // ---------------------------------------------------------------------------
 
 export async function GET(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 20, windowMs: 60_000, keyPrefix: "admins-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip } = guardResult;
 
@@ -76,7 +55,7 @@ const createSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 20, windowMs: 60_000, keyPrefix: "admins-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip, actorId } = guardResult;
 
@@ -154,7 +133,7 @@ const deleteSchema = z.object({
 });
 
 export async function DELETE(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 20, windowMs: 60_000, keyPrefix: "admins-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip, actorId } = guardResult;
 

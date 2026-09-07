@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { verifySessionToken, sessionCookieName, BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { BOOTSTRAP_ACTOR_ID } from "@/lib/session";
+import { guard } from "@/lib/auth";
 import { validateCsrf, validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo, logError } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 import {
@@ -24,30 +24,11 @@ import {
 } from "@/lib/storage/r2-client";
 
 // ---------------------------------------------------------------------------
-// Shared auth + CSRF + rate-limit guard.
-// ---------------------------------------------------------------------------
-
-async function guard(request: Request): Promise<{ ok: true; ip: string; actorId: string } | { ok: false; response: NextResponse }> {
-  const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
-  if (!session) {
-    logWarn("media_api_unauthorized", {});
-    return { ok: false, response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
-  }
-  const ip = getClientIp(request.headers);
-  if (!rateLimit({ key: `media-api:${ip}`, limit: 60, windowMs: 60_000 })) {
-    logWarn("media_api_rate_limited", { ip });
-    return { ok: false, response: NextResponse.json({ error: "rate-limited" }, { status: 429 }) };
-  }
-  return { ok: true, ip, actorId: session.actorId };
-}
-
-// ---------------------------------------------------------------------------
 // GET /api/admin/media — list media objects (optionally filtered).
 // ---------------------------------------------------------------------------
 
 export async function GET(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "media-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip } = guardResult;
 
@@ -78,6 +59,28 @@ export async function GET(request: Request) {
 // the media_objects row.
 // ---------------------------------------------------------------------------
 
+/**
+ * Shared consent invariant: media cannot be published while consent is
+ * "pending". Used by both POST (create) and PATCH (update) to ensure the
+ * invariant cannot drift between the two paths.
+ */
+function assertConsentGate(
+  published: boolean,
+  consent: string,
+): NextResponse | null {
+  if (published && consent === "pending") {
+    return NextResponse.json(
+      {
+        error: "consent-required",
+        message:
+          "Cannot publish media with consent 'pending'. Set consent to 'verified', 'group-consent', or 'none' before publishing.",
+      },
+      { status: 422 },
+    );
+  }
+  return null;
+}
+
 const createSchema = z.object({
   objectKey: z.string().min(1).max(500),
   originalFilename: z.string().min(1).max(255),
@@ -93,7 +96,7 @@ const createSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "media-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip, actorId } = guardResult;
 
@@ -164,6 +167,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "too-large" }, { status: 413 });
   }
 
+  // Consent gate: reject published=true when consent is "pending".
+  // Same invariant as PATCH — use the shared helper so they cannot drift.
+  const consentError = assertConsentGate(input.published, input.consent);
+  if (consentError) return consentError;
+
   try {
     const row = await createMediaObject({
       objectKey: input.objectKey,
@@ -216,7 +224,7 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "media-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip, actorId } = guardResult;
 
@@ -256,20 +264,13 @@ export async function PATCH(request: Request) {
   // The check must consider the merged state (current DB values + incoming
   // updates) because an admin might set published=true without changing
   // consent, or set consent="pending" without unsetting published.
+  // Uses the shared assertConsentGate helper so POST and PATCH cannot drift.
   const before = await getMediaObjectById(id);
   if (before) {
     const effectiveConsent = update.consent ?? before.consent;
     const effectivePublished = update.published ?? before.published;
-    if (effectivePublished && effectiveConsent === "pending") {
-      return NextResponse.json(
-        {
-          error: "consent-required",
-          message:
-            "Cannot publish media with consent 'pending'. Set consent to 'verified', 'group-consent', or 'none' before publishing.",
-        },
-        { status: 422 },
-      );
-    }
+    const consentError = assertConsentGate(effectivePublished, effectiveConsent);
+    if (consentError) return consentError;
   }
 
   try {
@@ -308,7 +309,7 @@ const deleteSchema = z.object({
 });
 
 export async function DELETE(request: Request) {
-  const guardResult = await guard(request);
+  const guardResult = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "media-api" });
   if (!guardResult.ok) return guardResult.response;
   const { ip, actorId } = guardResult;
 

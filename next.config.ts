@@ -20,10 +20,23 @@ import type { NextConfig } from "next";
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
+// GA4 analytics — only widen CSP when a valid measurement ID is configured.
+// The gtag.js script loads from googletagmanager.com; analytics data is sent
+// to google-analytics.com. Both origins are narrow and specific (no wildcards).
+const ga4Enabled = Boolean(
+  process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID &&
+    /^G-[A-Z0-9]{6,}$/.test(process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID)
+);
+const GA4_SCRIPT_ORIGIN = "https://www.googletagmanager.com";
+const GA4_COLLECT_ORIGIN = "https://www.google-analytics.com";
+
 const csp = [
   "default-src 'self'",
   // Next.js injects inline runtime scripts; without nonces we must allow them.
-  `script-src 'self' 'unsafe-inline'${turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""}`,
+  // Turnstile and GA4 add their own named script origins when configured.
+  `script-src 'self' 'unsafe-inline'${
+    turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""
+  }${ga4Enabled ? ` ${GA4_SCRIPT_ORIGIN}` : ""}`,
   // Next.js injects inline styles (e.g. for next/font CSS variables).
   "style-src 'self' 'unsafe-inline'",
   // next/image serves optimized images from self; data: for placeholder SVGs;
@@ -48,8 +61,11 @@ const csp = [
   // Upgrade http: to https: on same-origin requests.
   "upgrade-insecure-requests",
   // Restrict fetch/XHR/WebSocket to same origin (plus Turnstile's own
-  // telemetry endpoint when the challenge is enabled).
-  `connect-src 'self'${turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""}`,
+  // telemetry endpoint when the challenge is enabled, and GA4's collection
+  // endpoint when analytics is configured).
+  `connect-src 'self'${
+    turnstileEnabled ? ` ${TURNSTILE_ORIGIN}` : ""
+  }${ga4Enabled ? ` ${GA4_COLLECT_ORIGIN}` : ""}`,
 ].join("; ");
 
 const securityHeaders = [

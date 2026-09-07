@@ -76,9 +76,12 @@ export default async function AdminLoginPage({
                 `Too many failed attempts. Account locked for ${seconds || "900"} seconds.`}
               {error === "csrf" &&
                 "Security check failed. Please reload the page and try again."}
+              {error === "unavailable" &&
+                "Login is temporarily unavailable. Please try again later."}
               {error !== "rate-limited" &&
                 error !== "csrf" &&
                 error !== "locked" &&
+                error !== "unavailable" &&
                 "Incorrect username or password. Please try again."}
             </p>
           )}
