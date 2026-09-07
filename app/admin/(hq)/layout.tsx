@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getAdminById } from "@/lib/db/admins";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -20,7 +21,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
+  const session = await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value);
   if (!session) {
     redirect("/admin/login");
   }

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { timingSafeEqual } from "crypto";
 import {
   rateLimit,
   getClientIp,
@@ -15,6 +14,7 @@ import {
   sessionMaxAge,
   BOOTSTRAP_ACTOR_ID,
 } from "@/lib/session";
+import { safeSecretEqual } from "@/lib/safe-compare";
 import { logWarn, logInfo, logError } from "@/lib/logger";
 import { getActiveAdminByUsername, countActiveAdmins } from "@/lib/db/admins";
 import { verifyPassword } from "@/lib/password";
@@ -33,18 +33,6 @@ const ADMIN_LOGIN_RATE_LIMIT = (() => {
 const LOCKOUT_MAX_FAILURES = 5;
 const LOCKOUT_WINDOW_MS = 15 * 60_000;
 const LOCKOUT_DURATION_MS = 15 * 60_000;
-
-/**
- * Timing-safe string comparison. Compares equal-length buffers without
- * leaking length information (the length check itself is not secret here —
- * the attacker can observe whether the password was accepted).
- */
-function safeEqual(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
-}
 
 export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
@@ -159,14 +147,30 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/admin/login?error=1", request.url), 302);
   }
 
-  let activeCount = 0;
+  // Bootstrap authentication is only allowed when the system has positively
+  // established that zero active named admins exist. If the admin-count query
+  // fails, we must fail closed — never treat a DB error as "zero admins".
+  let activeCount: number;
   try {
     activeCount = await countActiveAdmins();
   } catch (err) {
-    // DB not configured — allow ADMIN_SECRET login as the only option.
     logError("admin_login_count_failed", {
       error: (err instanceof Error ? err.message : String(err)).substring(0, 200),
     });
+    // Fail closed: do not allow bootstrap login when we cannot verify
+    // the admin-count state. Return a generic error without revealing
+    // whether named admins exist.
+    recordFailure({
+      key: lockoutKey,
+      maxFailures: LOCKOUT_MAX_FAILURES,
+      lockoutMs: LOCKOUT_DURATION_MS,
+      windowMs: LOCKOUT_WINDOW_MS,
+    });
+    logWarn("admin_login_bootstrap_count_unavailable", { ip });
+    return NextResponse.redirect(
+      new URL("/admin/login?error=unavailable", request.url),
+      302,
+    );
   }
 
   if (activeCount > 0) {
@@ -183,7 +187,7 @@ export async function POST(request: Request) {
   }
 
   // Timing-safe comparison against ADMIN_SECRET.
-  if (!safeEqual(password, adminSecret)) {
+  if (!safeSecretEqual(password, adminSecret)) {
     recordFailure({
       key: lockoutKey,
       maxFailures: LOCKOUT_MAX_FAILURES,

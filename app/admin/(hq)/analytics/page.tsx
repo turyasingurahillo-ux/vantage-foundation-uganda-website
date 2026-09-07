@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getStories } from "@/lib/db/stories";
 import { Container } from "@/components/shared/Container";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) redirect("/admin/login");
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) redirect("/admin/login");
 
   // Load DB stories so the analytics dashboard can resolve editorial stories
   // for row actions. If the DB is unavailable, the analytics dashboard

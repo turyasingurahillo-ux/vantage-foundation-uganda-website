@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 /**
  * Regression tests for the Stories analytics identity fix.
@@ -176,6 +176,8 @@ function buildRequest(body: Record<string, unknown>): Request {
 }
 
 beforeEach(() => {
+  // ADMIN_SECRET is required for analytics HMAC hashing (Phase 9A fail-closed).
+  vi.stubEnv("ADMIN_SECRET", "test-analytics-secret");
   // Clear call history without resetting implementations (vi.clearAllMocks
   // in vitest 4 can reset implementations set via vi.fn(impl)).
   vi.mocked(ingestEvent).mockClear();
@@ -231,6 +233,10 @@ beforeEach(() => {
   mockDbStories = [];
   mockRegistry = new Map();
   nextRegistryId = 1;
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 // --- Tests --------------------------------------------------------------

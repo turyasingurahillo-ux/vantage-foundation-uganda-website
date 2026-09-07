@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import {
   getSlaSummary,
   getSlaByCaseType,
@@ -40,7 +41,7 @@ export default async function ServicePerformancePage({
   searchParams: Promise<{ period?: string }>;
 }) {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

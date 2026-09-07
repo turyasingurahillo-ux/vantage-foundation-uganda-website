@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Building2, Plus } from "lucide-react";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { searchOrganisations } from "@/lib/db/organisations";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
@@ -22,7 +23,7 @@ export default async function OrganisationsPage({
   searchParams: Promise<{ q?: string; created?: string; error?: string }>;
 }) {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

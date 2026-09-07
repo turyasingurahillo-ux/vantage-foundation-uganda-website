@@ -83,6 +83,17 @@ async function main() {
     ),
     "utf8",
   );
+  const mediaConsentInvariant = await readFile(
+    join(
+      __dirname,
+      "..",
+      "lib",
+      "db",
+      "migrations",
+      "media-consent-invariant-check.sql",
+    ),
+    "utf8",
+  );
 
   await executeScript(sql, schema, "schema");
   await executeScript(sql, analyticsLifecycle, "phase2c-analytics-lifecycle");
@@ -90,6 +101,7 @@ async function main() {
   await executeScript(sql, orgPipeline, "organisation-relationship-pipeline");
   await executeScript(sql, fixCollision, "fix-workflow-status-constraint-collision");
   await executeScript(sql, addOriginPage, "add-origin-page");
+  await executeScript(sql, mediaConsentInvariant, "media-consent-invariant-check");
 
   console.log("Database setup complete.");
 }

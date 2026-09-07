@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { guard } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import {
   getReadingFunnel,
@@ -50,27 +48,8 @@ import {
  *   - compare: 1 to include previous-period comparison
  */
 
-async function guard(request: Request) {
-  const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(sessionCookieName)?.value);
-  if (!session) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-    };
-  }
-  const ip = getClientIp(request.headers);
-  if (!rateLimit({ key: `analytics-admin:${ip}`, limit: 60, windowMs: 60_000 })) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "rate-limited" }, { status: 429 }),
-    };
-  }
-  return { ok: true as const };
-}
-
 export async function GET(request: Request) {
-  const guarded = await guard(request);
+  const guarded = await guard(request, { limit: 60, windowMs: 60_000, keyPrefix: "analytics-admin" });
   if (!guarded.ok) return guarded.response;
 
   const url = new URL(request.url);

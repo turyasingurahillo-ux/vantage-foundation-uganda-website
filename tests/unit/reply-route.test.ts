@@ -28,6 +28,17 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/session", () => ({
   sessionCookieName: "vantage_admin",
   verifySessionToken: vi.fn(() => ({ actorId: "1" })),
+  BOOTSTRAP_ACTOR_ID: "bootstrap",
+}));
+
+vi.mock("@/lib/auth", () => ({
+  verifyActiveAdminSession: vi.fn(async () => ({ actorId: "1" })),
+  guard: vi.fn(async () => ({
+    ok: true as const,
+    ip: "127.0.0.1",
+    actorId: "1",
+    cookieStore: { get: vi.fn() },
+  })),
 }));
 
 vi.mock("@/lib/rate-limit", () => ({

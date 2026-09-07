@@ -286,35 +286,35 @@ Goal: make every form safe, accessible, and abuse-resistant.
 
 #### Admin request protection — full route inventory
 
-Every state-changing admin API route has `verifySessionToken` (except login/logout which create/clear sessions) and CSRF validation:
+Every state-changing admin API route uses Layer B active-session verification (`verifyActiveAdminSession` or the shared `guard()` helper) — except login/logout which create/clear sessions. Layer B performs cryptographic verification (Layer A) plus a current database check so disabled admins and retired bootstrap sessions are rejected immediately. All routes also have CSRF validation:
 
 | Route | Auth | CSRF | Rate limit |
 |---|---|---|---|
 | `/api/admin/login` | N/A (creates session) | `validateCsrf` | 5/min + lockout |
 | `/api/admin/logout` | N/A (clears session) | `validateCsrf` | **None** |
-| `/api/admin/verify` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/verify` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
 | `/api/admin/admins` (POST/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 20/min |
-| `/api/admin/media/presign` | `verifySessionToken` | `validateCsrf`/`validateCsrfHeader` | 20/min |
+| `/api/admin/media/presign` | `verifyActiveAdminSession` | `validateCsrf`/`validateCsrfHeader` | 20/min |
 | `/api/admin/media` (POST/PATCH/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 60/min |
 | `/api/admin/stories` (POST/PATCH/DELETE) | `guard()` | `validateCsrfHeader` | 60/min |
-| `/api/admin/messages/reply` | `verifySessionToken` | `validateCsrf` | 10/min |
-| `/api/admin/messages/resend` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/messages/resolve` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/messages/status` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/update` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/note` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/intake` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/cases/actions` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/decision` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/cases/due-diligence` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/communication` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/referrals` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/link` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/persons` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/organisations` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/organisations/[id]` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/analytics` (GET) | `verifySessionToken` | `validateCsrfHeader` | 60/min |
-| `/api/admin/analytics/export` (GET) | `verifySessionToken` | `validateCsrfHeader` | 10/min |
+| `/api/admin/messages/reply` | `verifyActiveAdminSession` | `validateCsrf` | 10/min |
+| `/api/admin/messages/resend` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/messages/resolve` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/messages/status` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/update` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/note` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/intake` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/cases/actions` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/decision` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/cases/due-diligence` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/communication` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/referrals` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/link` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/persons` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/organisations` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/organisations/[id]` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/analytics` (GET) | `guard()` | `validateCsrfHeader` | 60/min |
+| `/api/admin/analytics/export` (GET) | `verifyActiveAdminSession` | `validateCsrfHeader` | 10/min |
 
 No admin route accepts a user-supplied `returnTo`/`redirectTo` URL — all redirects are hardcoded internal paths.
 
@@ -639,18 +639,120 @@ The old Phase 8 checklist was written before the SEO architecture was built. Mos
 
 Goal: production-ready security posture.
 
-- [ ] Upgrade `next` to latest 16.x patch (fixes postcss and sharp advisories).
-- [ ] Upgrade `nodemailer` to 9.x (fixes 3 high-severity advisories; verify no breaking changes).
-- [ ] Run `npm audit` clean (or document accepted residual risk).
-- [ ] Add security headers in `next.config.ts`: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
-- [ ] Replace admin shared-secret cookie with a signed session token (HMAC of a random session ID using `ADMIN_SECRET` as the key).
-- [ ] Add admin login rate limiting and lockout.
-- [ ] Add an audit log to donation status changes (who, when, before, after).
-- [ ] Add a data retention and deletion policy for the `donations` table (with a `deleted_at` column and a scheduled cleanup).
-- [ ] Ensure the privacy policy accurately reflects actual data collection (forms, donations, no analytics yet).
-- [ ] Add safeguarding-aware media and data handling guidance to `docs/safeguarding-and-consent.md`.
-- [ ] Remove the two large PDFs from `reference/` (requires history rewrite — coordinate with management).
-- [ ] Add `docs/deployment.md` with security notes.
+### Phase 9 reconciliation (performed 2026-09-07 against `main` at `7101ee9`)
+
+The old Phase 9 checklist was written before the security architecture was built. Most items are already implemented. The reconciled status is below.
+
+#### Already implemented (verified, no action needed)
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| Signed session token (HMAC of random session ID using `ADMIN_SECRET`) | **Already implemented** | `lib/session.ts:25-57` — HMAC-SHA256 token format `sessionId.actorId.expiresAt.hmac`; 32 random bytes; 1-day expiry |
+| Admin login rate limiting and lockout | **Already implemented** | `app/api/admin/login/route.ts:27-78` — 5 attempts/min per IP + 5 failures/15min lockout; `lib/rate-limit.ts` |
+| Audit log for donation status changes | **Already implemented** | `app/api/admin/verify/route.ts:119` calls `appendAuditLog` with actor, before/after, IP |
+| Data retention for donations | **Already implemented** | `lib/db/index.ts:118-129` `purgeOldDeletedDonations`; `deleted_at` column on donations |
+| Security headers in `next.config.ts` | **Already implemented** | CSP (enforced), HSTS (2yr+preload), X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-Frame-Options: DENY, frame-ancestors: none |
+| `docs/deployment.md` with security notes | **Already implemented** | `docs/deployment.md:33-44,152-180` |
+| Safeguarding-aware media handling | **Already implemented** | `docs/safeguarding-and-consent.md`; consent gate on media publish (`app/api/admin/media/route.ts:255-271`) |
+
+#### Additional verified security controls (not in old checklist)
+
+| Control | Status | Evidence |
+|---|---|---|
+| Cookie attributes | **Correct** | `httpOnly: true`, `secure` in production, `sameSite: "strict"`, `path: "/"`, `maxAge: 86400` |
+| CSRF double-submit cookie | **Correct** | `lib/csrf.ts:35-109`; `middleware.ts:119-128`; constant-time comparison |
+| All admin API routes require session | **Correct** | All `/api/admin/*` routes call `verifyActiveAdminSession` or `guard()` (Layer B active-session verification) |
+| All admin mutations require CSRF | **Correct** | All POST/PATCH/DELETE admin routes call `validateCsrf` or `validateCsrfHeader` |
+| All admin mutations are rate-limited | **Correct** | Per-route rate limits (10-60/min) |
+| All admin mutations are audit-logged | **Correct** | `appendAuditLog` on every state-changing route |
+| All admin mutations have Zod schema validation | **Correct** | Every mutation route parses input with Zod |
+| SQL injection protection | **Correct** | All queries use Neon tagged-template parameters; only `sql.unsafe()` call uses a hardcoded column allowlist (`lib/db/cases.ts:257-272`); no user input in ORDER BY |
+| XSS protection | **Correct** | Markdown rendered through `rehype-sanitize`; only `dangerouslySetInnerHTML` is JSON-LD with `<` escaping; email HTML uses `escapeHtml` |
+| Email header injection protection | **Correct** | `lib/email.ts:171-179` sanitises subject/replyTo; recipients resolved server-side |
+| Password hashing | **Correct** | `lib/password.ts` — scrypt with random 32-byte salt, `crypto.timingSafeEqual` |
+| Inbound email bearer authentication | **Correct** | `app/api/inbound/email/route.ts:34-53` — `safeSecretEqual` with `crypto.timingSafeEqual` |
+| Inbound email replay protection | **Correct** | `inbound_email_log.message_id_hash` has `UNIQUE` constraint (`lib/db/migrations/organisation-relationship-pipeline.sql:372`) |
+| Inbound email no arbitrary case-ID injection | **Correct** | `caseId` derived from matched outbound reply, never from request body |
+| R2 object key safety | **Correct** | `lib/storage/vantage-objects.ts:58-98` — server-generated random ID, sanitized filename, path traversal prevention |
+| Upload MIME validation | **Correct** | Allowlist at presign and create: JPEG, PNG, WebP, AVIF, GIF, PDF only |
+| Upload size limit | **Correct** | 10 MB max (`lib/storage/r2-client.ts:76`) |
+| SVG upload rejected | **Correct** | SVG not in `ALLOWED_UPLOAD_TYPES` |
+| Presigned URL lifetime | **Correct** | PUT: 5 min, GET: 1 hour, public render: 24 hours |
+| Consent/publication gating (PATCH) | **Correct** | `app/api/admin/media/route.ts:255-271` blocks `published: true` when `consent === "pending"` |
+| Public media rendering gate | **Correct** | `lib/media-public.ts:44-46` filters to `published: true AND consent !== "pending"` |
+| No PII in logs | **Correct** | `lib/logger.ts` structured logger excludes PII; email logs exclude subject/body |
+| Protected mailbox not in public bundles | **Correct** | `lib/contact-inbox.ts` is `import "server-only"`; `lib/public-contact.ts` rejects consumer domains |
+| No `NEXT_PUBLIC_` secrets | **Correct** | All `NEXT_PUBLIC_*` vars are public identifiers (site URL, contact email, Turnstile site key, GA4 ID) |
+| `.env.example` has no live credentials | **Correct** | All values are blank or `replace-with-*` placeholders |
+| Dependabot configured | **Correct** | `.github/dependabot.yml` — weekly npm + GitHub Actions checks |
+| `npm audit` in CI | **Correct** | `.github/workflows/ci.yml:45-47` — `npm audit --omit=dev --audit-level=high` |
+| No mutations via GET | **Correct** | All GET handlers are read-only; `/api/instagram/refresh` rejects GET with 405 |
+
+#### Genuine findings (Phase 9A scope)
+
+| # | Severity | Finding | File/line | Impact | Remediation |
+|---|---|---|---|---|---|
+| 1 | **High** | Bootstrap sessions persist after first named admin is created. `verifySessionToken` does not re-check `countActiveAdmins() > 0`, so a pre-issued `actorId = "bootstrap"` token remains valid indefinitely. | `lib/session.ts:73-106` (no DB check); `app/api/admin/login/route.ts:172-183` (gate only at login) | A bootstrap token minted during initial setup remains a valid full-access session after named admins exist, bypassing the intended bootstrap-only design. | Enforce bootstrap eligibility at verification time: reject `BOOTSTRAP_ACTOR_ID` tokens when `countActiveAdmins() > 0`. |
+| 2 | **High** | Disabled admin sessions are not rejected. `verifySessionToken` is stateless and does not re-check `disabled_at`. A disabled admin's token remains valid until expiry. | `lib/session.ts:73-106`; `lib/db/admins.ts:102-110` | A disabled admin can continue operating for up to 24 hours after being disabled. | Add a DB check in `verifySessionToken` (or a `token_version` column) so disabled admins' sessions are rejected. |
+| 3 | **Medium** | Media POST does not enforce `published + consent` invariant at creation. PATCH has the gate (`route.ts:255-271`), but POST allows `published: true` with `consent: "pending"`. | `app/api/admin/media/route.ts:129,168-198` | A DB row can exist with `published: true` and `consent: "pending"`. Public rendering filters it, but the invariant is violated in the DB. | Add the same consent gate to POST that exists on PATCH. |
+| 4 | **Medium** | Hardcoded analytics HMAC fallback secret. When `ADMIN_SECRET` is unset, analytics endpoints use `"vantage-analytics-fallback"` as the HMAC key. | `app/api/analytics/events/route.ts:66`; `app/api/analytics/whatsapp-click/route.ts:36` | If `ADMIN_SECRET` is not set in production, the reader dedup hash uses a public, committed static value, weakening the privacy guarantee. | Fail closed (reject analytics events) when `ADMIN_SECRET` is unset, rather than using a fallback. |
+| 5 | **Medium** | CSP does not include GA4 origins. If `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is set, GA4 scripts are blocked by CSP. | `next.config.ts:23-53` (no `googletagmanager.com`); `components/shared/AnalyticsScripts.tsx:27` | GA4 silently fails to load when enabled. Not a security vulnerability, but a configuration gap. | Add `https://www.googletagmanager.com` to `script-src` and `https://www.google-analytics.com` to `connect-src` when `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is set. |
+| 6 | **Medium** | GitHub Actions workflow has no `permissions:` block and uses floating major-version tags. | `.github/workflows/ci.yml` (no `permissions:`); `actions/checkout@v4`, `actions/setup-node@v4` | `GITHUB_TOKEN` gets default broad permissions; a compromised action tag could inject malicious CI behavior. | Add `permissions: { contents: read }` at workflow level; pin actions to SHA digests. |
+| 7 | **Low** | `ADMIN_SECRET` comparison in login route uses a local `safeEqual` that short-circuits on length mismatch, leaking secret length. The project's `lib/safe-compare.ts` `safeSecretEqual` is not used. | `app/api/admin/login/route.ts:42-47` | Timing side channel leaks the length of `ADMIN_SECRET` to an attacker who can measure response times. | Replace local `safeEqual` with `lib/safe-compare.ts` `safeSecretEqual`. |
+| 8 | **Low** | `POST /api/admin/media` accepts `objectKey` without verifying it was issued in the current admin's presign session. | `app/api/admin/media/route.ts:147-165` | A client with a valid session could create a media record pointing at an R2 object they did not upload (e.g., another admin's object). | Track issued object keys per session and validate on create, or derive the key server-side. |
+
+#### Documentation drift
+
+| # | Finding | Evidence |
+|---|---|---|
+| D1 | The old Phase 9 checklist items for signed session tokens, rate limiting, audit logging, security headers, and deployment docs are all already implemented but were listed as unchecked. | This reconciliation. |
+| D2 | `docs/security.md` should document the single-admin-role authorization model explicitly. | `app/admin/(hq)/layout.tsx:22-25` — session-only check, no RBAC. |
+| D3 | `docs/security.md` should document that disabled admin sessions remain valid until token expiry (after Phase 9A fix, this will change). | `lib/session.ts:73-106`. |
+
+#### Management/policy blockers (not implementable without organizational approval)
+
+| # | Finding | Why it's blocked |
+|---|---|---|
+| M1 | Data retention and purge scheduling for contact messages, organisations, audit logs, and article reader sessions. | Requires management/legal policy decisions on retention periods. |
+| M2 | RBAC / object-level authorization boundaries. | The system intentionally has a single admin role with broad access. Introducing RBAC requires organizational decisions about roles and permissions. |
+| M3 | Removing large PDFs from `reference/` requires git history rewrite. | Requires coordination with management and all contributors. |
+| M4 | EXIF stripping on uploaded photos. | Requires deciding whether to re-encode uploads (quality loss) or use a metadata-stripping tool; management decision on whether field photos need GPS metadata preserved for internal use. |
+| M5 | Repository visibility and `foundationvantage@gmail.com` in docs/tests. | If the repo is public, the protected mailbox is readable in source. Moving it entirely to env vars requires updating all docs and tests. Management decision on repo visibility. |
+
+#### Deferred (separate from Phase 9A)
+
+| # | Finding | Why deferred |
+|---|---|---|
+| F1 | Major dependency upgrades (`next`, `nodemailer`, `react`). | Per user instruction, do not merge major upgrades as part of Phase 9. Classify separately. |
+| F2 | `@types/nodemailer@^8` mismatch with `nodemailer@9.1.0`. | Type-only mismatch; no runtime impact. Address with the nodemailer upgrade. |
+| F3 | `npm audit` covers production deps only. | Low risk; dev deps don't ship to production. Can expand in a future CI hardening PR. |
+| F4 | Origin/Referer checks for CSRF. | Defense-in-depth; `sameSite: "strict"` + double-submit cookie is currently sufficient. |
+| F5 | Explicit `rehype-sanitize` schema configuration. | Default schema strips dangerous elements; explicit config is defense-in-depth. |
+| F6 | `scryptSync` → async `scrypt` for event-loop blocking. | Performance hardening, not a security vulnerability. |
+| F7 | Inbound email body-size limit at transport level. | Schema limits to 200KB; DB truncates to 100KB. Low risk. |
+| F8 | Foreign-key constraints for `contact_messages.organisation_id` / `person_id`. | Referential integrity hardening; not exploitable without admin access. |
+
+### Phase 9A scope (this PR)
+
+The smallest high-value remediation, prioritizing exploitable issues:
+
+1. **Reject bootstrap tokens when named admins exist** — enforce `countActiveAdmins() > 0` check in `verifySessionToken` for `BOOTSTRAP_ACTOR_ID` tokens.
+2. **Reject disabled admin sessions** — add a DB check in `verifySessionToken` for named-admin tokens to verify the admin is still active.
+3. **Add consent gate to media POST** — enforce the same `published + consent` invariant on creation that PATCH enforces.
+4. **Fail closed on missing `ADMIN_SECRET` for analytics** — remove the hardcoded fallback; reject analytics events when `ADMIN_SECRET` is unset.
+5. **Fix CSP for GA4** — add `googletagmanager.com` and `google-analytics.com` to CSP when `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is set.
+6. **Harden CI workflow** — add `permissions: { contents: read }` and pin actions to SHA digests.
+7. **Use `safeSecretEqual` for `ADMIN_SECRET` comparison** — replace local `safeEqual` with the project's constant-time helper.
+8. **Add regression tests** for each fix.
+9. **Update `docs/security.md`** with the single-admin-role model and session revocation behavior.
+
+### Phase 9 closure
+
+- **Phase 9 reconciliation — complete.** Every old Phase 9 checklist item was classified with evidence.
+- **Phase 9A security remediation — complete.** PR (this PR) fixes the 7 genuine findings.
+- **RBAC remains a management decision** — the single-admin-role design is documented accurately, not invented as RBAC.
+- **Major dependency upgrades remain deferred** — classified separately per user instruction.
+- **Data retention scheduling remains a management/legal decision** — purge helpers exist but scheduling requires policy.
 
 ---
 

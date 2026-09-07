@@ -91,7 +91,11 @@ CREATE TABLE IF NOT EXISTS media_objects (
   -- Soft-delete timestamp. Soft-deleted rows are excluded from list queries
   -- but retained for audit; the R2 object is deleted immediately on soft-delete.
   deleted_at TIMESTAMP WITH TIME ZONE,
-  CONSTRAINT media_consent_values CHECK (consent IN ('none', 'verified', 'pending', 'group-consent'))
+  CONSTRAINT media_consent_values CHECK (consent IN ('none', 'verified', 'pending', 'group-consent')),
+  -- Consent invariant: published media must not have pending consent.
+  -- This is defense-in-depth at the DB level; the application layer also
+  -- enforces this atomically in the UPDATE WHERE clause (lib/db/media.ts).
+  CONSTRAINT media_published_consent CHECK (NOT (published = true AND consent = 'pending'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_objects_programme ON media_objects(programme);

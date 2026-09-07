@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest } from "@/lib/csrf";
 import { getMediaObjects } from "@/lib/db/media";
 import { Container } from "@/components/shared/Container";
@@ -23,7 +24,7 @@ export default async function AdminMediaPage({
   const { created, updated, deleted, error } = await searchParams;
   const cookieStore = await cookies();
 
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

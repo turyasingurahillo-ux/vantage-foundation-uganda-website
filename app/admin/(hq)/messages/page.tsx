@@ -37,7 +37,8 @@ import type {
   PersonRow,
 } from "@/lib/organisation-types";
 import { getAdmins } from "@/lib/db/admins";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
 import { Container } from "@/components/shared/Container";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
@@ -109,7 +110,7 @@ export default async function AdminMessagesPage({
   const params = await searchParams;
   const cookieStore = await cookies();
 
-  const session = verifySessionToken(
+  const session = await verifyActiveAdminSession(
     cookieStore.get(sessionCookieName)?.value,
   );
   if (!session) {

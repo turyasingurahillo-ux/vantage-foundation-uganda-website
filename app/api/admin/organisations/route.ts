@@ -13,7 +13,8 @@ import {
 } from "@/lib/db/organisations";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { logWarn } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
 
@@ -32,7 +33,7 @@ const createSchema = z.object({
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
-  const session = verifySessionToken(
+  const session = await verifyActiveAdminSession(
     cookieStore.get(sessionCookieName)?.value,
   );
   if (!session) {
@@ -54,7 +55,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
-  const session = verifySessionToken(
+  const session = await verifyActiveAdminSession(
     cookieStore.get(sessionCookieName)?.value,
   );
   if (!session) {

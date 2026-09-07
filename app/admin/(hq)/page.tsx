@@ -11,7 +11,8 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import {
   getDashboardAttention,
   getDashboardUpcomingActions,
@@ -35,7 +36,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

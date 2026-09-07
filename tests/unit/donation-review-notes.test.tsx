@@ -7,6 +7,17 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/session", () => ({
   sessionCookieName: "admin_session",
   verifySessionToken: vi.fn(() => true),
+  BOOTSTRAP_ACTOR_ID: "bootstrap",
+}));
+
+vi.mock("@/lib/auth", () => ({
+  verifyActiveAdminSession: vi.fn(async () => ({ actorId: "1" })),
+  guard: vi.fn(async () => ({
+    ok: true as const,
+    ip: "127.0.0.1",
+    actorId: "1",
+    cookieStore: { get: vi.fn() },
+  })),
 }));
 
 vi.mock("@/lib/csrf", () => ({

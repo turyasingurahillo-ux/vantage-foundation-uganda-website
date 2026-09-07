@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { getAuditLogs, AuditLogEntry } from "@/lib/db/audit";
 import { getAdmins } from "@/lib/db/admins";
 import { Container } from "@/components/shared/Container";
@@ -58,7 +59,7 @@ export default async function AdminAuditPage({
   const { resourceType, action } = await searchParams;
   const cookieStore = await cookies();
 
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 

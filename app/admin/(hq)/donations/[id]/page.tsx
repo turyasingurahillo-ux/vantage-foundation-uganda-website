@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { ArrowLeft, Check, X } from "lucide-react";
 import { getDonationById } from "@/lib/db";
 import { getCsrfTokenFromRequest, CSRF_FIELD_NAME } from "@/lib/csrf";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { Container } from "@/components/shared/Container";
 import { PageHeader } from "@/components/admin/hq/PageHeader";
 import { StatusBadge } from "@/components/admin/hq/StatusBadge";
@@ -51,7 +52,7 @@ export default async function DonationReviewPage({
   const id = Number(idParam);
 
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  if (!(await verifyActiveAdminSession(cookieStore.get(sessionCookieName)?.value))) {
     redirect("/admin/login");
   }
 
