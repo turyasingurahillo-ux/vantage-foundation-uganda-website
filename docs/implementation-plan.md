@@ -614,16 +614,16 @@ The old Phase 8 checklist was written before the SEO architecture was built. Mos
 
 1. **Admin layout missing centralized `robots`** — `app/admin/layout.tsx` did not set `robots: { index: false, follow: false }`. Child layouts set it individually, but the parent should centralize it for future-proofing. `docs/security.md:74` claimed it was centralized when it wasn't.
 2. **`og:url` on editorial detail pages used localized path instead of canonical** — `lib/metadata.ts:100` set `url: localizedPath` in Open Graph, but for `contentLocalized: false` pages, the canonical is the English URL. Social platforms use `og:url` for canonicalization, so this split engagement signals and contradicted the canonical tag.
-3. **Article JSON-LD `image` used raw WebP hero instead of social-safe image** — `stories/[slug]/page.tsx:157` passed `story.heroImage` (always WebP) to `buildArticleJsonLd`. Google's Article structured data recommends JPEG/PNG. The JSON-LD image should match the social-safe image used for `og:image`.
+3. **Article JSON-LD `image` — clarified, not a format bug** — The initial audit flagged that `stories/[slug]/page.tsx` passed `story.heroImage` (WebP) to `buildArticleJsonLd` and recommended switching to the social-safe JPEG card. On review, this was a false finding: Google Images supports WebP, AVIF, JPEG, PNG, GIF, BMP and SVG, so the raw hero is valid for Article structured data. The stricter JPEG/PNG policy in `lib/social-image.ts` is an **Open Graph / link-preview compatibility** concern (X, LinkedIn, Facebook, WhatsApp do not reliably render WebP/AVIF as `og:image`), not a Google structured-data requirement. The implementation retains the raw hero image for Article JSON-LD because it is the most representative article image. The E2E test was corrected to validate Google-supported formats (not just JPEG/PNG) and absolute HTTPS same-origin URLs.
 4. **Team member `og:image` always fell back to default** — `about-us/team/[slug]/page.tsx:40` passed a WebP portrait which was always rejected by the social image resolver. The dead image argument was removed for clarity; the default branded card is the explicit fallback.
 
 ### Phase 8A scope (this PR)
 
 1. Add `robots: { index: false, follow: false }` to `app/admin/layout.tsx`.
 2. Fix `og:url` to use `canonicalPath` instead of `localizedPath` in `lib/metadata.ts`.
-3. Pass the resolved social image URL to `buildArticleJsonLd` instead of raw `story.heroImage`.
+3. Keep the raw hero image for Article JSON-LD (WebP is valid for Google); document the distinction between OG image compatibility and Google structured-data image requirements.
 4. Remove the dead WebP image argument from team member `generateMetadata`.
-5. Add regression tests: unit test for `createPublicMetadata` `og:url`/canonical alignment; E2E test for `og:url` matching canonical on detail pages; E2E test for Article JSON-LD image format.
+5. Add regression tests: unit test for `createPublicMetadata` `og:url`/canonical alignment; E2E test for `og:url` matching canonical on detail pages; E2E test for Article JSON-LD image validity (absolute HTTPS, Google-supported format).
 6. Update this implementation plan with Phase 7 closure and Phase 8 reconciliation.
 
 ### Phase 8 closure
