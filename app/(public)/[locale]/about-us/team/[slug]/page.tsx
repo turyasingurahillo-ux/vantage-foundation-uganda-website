@@ -37,7 +37,6 @@ export async function generateMetadata({
     title: member.displayName,
     description: member.shortBio,
     path: `/about-us/team/${slug}`,
-    image: `${member.image}-portrait.webp`,
     locale,
     contentLocalized: false,
   });

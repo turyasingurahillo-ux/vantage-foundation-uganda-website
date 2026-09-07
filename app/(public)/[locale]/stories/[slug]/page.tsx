@@ -154,6 +154,13 @@ export default async function StoryPage({
           dateModified: story.updatedAt,
           author: story.author,
           authorType: story.authorType,
+          // Use the raw hero image for Article JSON-LD. Google Images
+          // supports WebP, AVIF, JPEG, PNG, GIF, BMP and SVG, so the
+          // hero format is valid for structured data. The stricter
+          // JPEG/PNG policy in lib/social-image.ts is an Open Graph /
+          // link-preview compatibility concern, not a Google structured-
+          // data requirement. The hero is the most representative image
+          // of the article.
           image: story.heroImage,
         })}
       />

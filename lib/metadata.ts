@@ -97,7 +97,7 @@ function openGraphLocaleValue(locale: Locale): string {
   const openGraphBase = {
     title: socialTitle,
     description,
-    url: localizedPath,
+    url: canonicalPath,
     siteName: site.name,
     locale: openGraphLocaleValue(locale),
     alternateLocale: ["en_UG", "de_DE", "fr_FR", "es_ES", "ar_AR"].filter(

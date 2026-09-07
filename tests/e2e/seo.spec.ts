@@ -164,6 +164,26 @@ test.describe("SEO — page metadata", () => {
       .getAttribute("content");
     expect(metaRobots).toContain("noindex");
   });
+
+  test("editorial detail pages: og:url matches canonical", async ({ page }) => {
+    const routes = [
+      "/projects/kasaale-deep-borehole",
+      "/stories/what-are-we-without-our-dreams",
+      "/programmes/health",
+      "/about-us/team/nassazi-kauthar-wangi",
+    ];
+
+    for (const path of routes) {
+      await page.goto(path);
+      const canonical = await page
+        .locator('link[rel="canonical"]')
+        .getAttribute("href");
+      const ogUrl = await page
+        .locator('meta[property="og:url"]')
+        .getAttribute("content");
+      expect(ogUrl, path).toBe(canonical);
+    }
+  });
 });
 
 test.describe("SEO — structured data", () => {
@@ -187,12 +207,31 @@ test.describe("SEO — structured data", () => {
     ).toBe(true);
   });
 
-  test("story page has Article JSON-LD", async ({ page }) => {
+  test("story page has Article JSON-LD with valid image", async ({ page }) => {
     await page.goto("/stories/what-are-we-without-our-dreams");
     const records = await page
       .locator('script[type="application/ld+json"]')
       .allTextContents();
-    expect(records.some((record) => record.includes('"Article"'))).toBe(true);
+    const articleRecord = records.find((record) => record.includes('"Article"'));
+    expect(articleRecord, "Article JSON-LD should be present").toBeTruthy();
+    expect(articleRecord).toContain('"image"');
+
+    // Google Images supports BMP, GIF, JPEG, PNG, WebP, SVG and AVIF.
+    // The stricter JPEG/PNG policy in lib/social-image.ts is an Open
+    // Graph / link-preview compatibility concern, not a Google
+    // structured-data requirement. Article.image must:
+    //   - be an absolute HTTPS URL (same-origin, crawlable);
+    //   - use a Google-supported image format;
+    //   - represent the article (the hero image, not a generic fallback).
+    const imageMatch = articleRecord!.match(
+      /"image"\s*:\s*"([^"]+)"/,
+    );
+    expect(imageMatch, "Article JSON-LD image URL should be present").toBeTruthy();
+    const imageUrl = imageMatch![1];
+    expect(imageUrl).toMatch(/^https:\/\/www\.vantagefoundationuganda\.com\//);
+    expect(imageUrl).toMatch(
+      /\.(jpg|jpeg|png|gif|bmp|webp|avif|svg)([?#]|$)/i,
+    );
   });
 
   test("FAQ page has FAQPage JSON-LD", async ({ page }) => {
