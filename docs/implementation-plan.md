@@ -286,35 +286,35 @@ Goal: make every form safe, accessible, and abuse-resistant.
 
 #### Admin request protection — full route inventory
 
-Every state-changing admin API route has `verifySessionToken` (except login/logout which create/clear sessions) and CSRF validation:
+Every state-changing admin API route uses Layer B active-session verification (`verifyActiveAdminSession` or the shared `guard()` helper) — except login/logout which create/clear sessions. Layer B performs cryptographic verification (Layer A) plus a current database check so disabled admins and retired bootstrap sessions are rejected immediately. All routes also have CSRF validation:
 
 | Route | Auth | CSRF | Rate limit |
 |---|---|---|---|
 | `/api/admin/login` | N/A (creates session) | `validateCsrf` | 5/min + lockout |
 | `/api/admin/logout` | N/A (clears session) | `validateCsrf` | **None** |
-| `/api/admin/verify` | `verifySessionToken` | `validateCsrf` | 20/min |
+| `/api/admin/verify` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
 | `/api/admin/admins` (POST/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 20/min |
-| `/api/admin/media/presign` | `verifySessionToken` | `validateCsrf`/`validateCsrfHeader` | 20/min |
+| `/api/admin/media/presign` | `verifyActiveAdminSession` | `validateCsrf`/`validateCsrfHeader` | 20/min |
 | `/api/admin/media` (POST/PATCH/DELETE) | `guard()` | `validateCsrf`/`validateCsrfHeader` | 60/min |
 | `/api/admin/stories` (POST/PATCH/DELETE) | `guard()` | `validateCsrfHeader` | 60/min |
-| `/api/admin/messages/reply` | `verifySessionToken` | `validateCsrf` | 10/min |
-| `/api/admin/messages/resend` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/messages/resolve` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/messages/status` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/update` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/note` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/intake` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/cases/actions` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/decision` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/cases/due-diligence` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/communication` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/referrals` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/cases/link` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/persons` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/organisations` | `verifySessionToken` | `validateCsrf` | 20/min |
-| `/api/admin/organisations/[id]` | `verifySessionToken` | `validateCsrf` | 30/min |
-| `/api/admin/analytics` (GET) | `verifySessionToken` | `validateCsrfHeader` | 60/min |
-| `/api/admin/analytics/export` (GET) | `verifySessionToken` | `validateCsrfHeader` | 10/min |
+| `/api/admin/messages/reply` | `verifyActiveAdminSession` | `validateCsrf` | 10/min |
+| `/api/admin/messages/resend` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/messages/resolve` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/messages/status` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/update` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/note` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/intake` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/cases/actions` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/decision` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/cases/due-diligence` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/communication` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/referrals` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/cases/link` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/persons` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/organisations` | `verifyActiveAdminSession` | `validateCsrf` | 20/min |
+| `/api/admin/organisations/[id]` | `verifyActiveAdminSession` | `validateCsrf` | 30/min |
+| `/api/admin/analytics` (GET) | `guard()` | `validateCsrfHeader` | 60/min |
+| `/api/admin/analytics/export` (GET) | `verifyActiveAdminSession` | `validateCsrfHeader` | 10/min |
 
 No admin route accepts a user-supplied `returnTo`/`redirectTo` URL — all redirects are hardcoded internal paths.
 
@@ -661,7 +661,7 @@ The old Phase 9 checklist was written before the security architecture was built
 |---|---|---|
 | Cookie attributes | **Correct** | `httpOnly: true`, `secure` in production, `sameSite: "strict"`, `path: "/"`, `maxAge: 86400` |
 | CSRF double-submit cookie | **Correct** | `lib/csrf.ts:35-109`; `middleware.ts:119-128`; constant-time comparison |
-| All admin API routes require session | **Correct** | All `/api/admin/*` routes call `verifySessionToken` or `guard()` |
+| All admin API routes require session | **Correct** | All `/api/admin/*` routes call `verifyActiveAdminSession` or `guard()` (Layer B active-session verification) |
 | All admin mutations require CSRF | **Correct** | All POST/PATCH/DELETE admin routes call `validateCsrf` or `validateCsrfHeader` |
 | All admin mutations are rate-limited | **Correct** | Per-route rate limits (10-60/min) |
 | All admin mutations are audit-logged | **Correct** | `appendAuditLog` on every state-changing route |

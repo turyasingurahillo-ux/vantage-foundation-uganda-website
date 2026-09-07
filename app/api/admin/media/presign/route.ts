@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { verifySessionToken, sessionCookieName } from "@/lib/session";
+import { sessionCookieName } from "@/lib/session";
+import { verifyActiveAdminSession } from "@/lib/auth";
 import { validateCsrf, validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { logWarn, logInfo, logError } from "@/lib/logger";
@@ -33,7 +34,16 @@ const presignSchema = z.object({
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
-  if (!verifySessionToken(cookieStore.get(sessionCookieName)?.value)) {
+  // Layer B — active authorization required. A presigned upload URL is
+  // upload capability, so it must only be issued to a cryptographically
+  // valid token whose actor is currently authorized (active named admin,
+  // or bootstrap only when zero named admins exist). Fails closed on DB
+  // errors. This prevents disabled admins and retired bootstrap sessions
+  // from retaining upload ability until token expiry.
+  const session = await verifyActiveAdminSession(
+    cookieStore.get(sessionCookieName)?.value
+  );
+  if (!session) {
     logWarn("media_presign_unauthorized", {});
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
