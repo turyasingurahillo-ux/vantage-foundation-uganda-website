@@ -207,7 +207,7 @@ for (const viewport of MOBILE_VIEWPORTS) {
   });
 }
 
-test("closing the menu restores the page without blank space", async ({ page }) => {
+test("@smoke closing the menu restores the page without blank space", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(IMPACT_PAGE, { waitUntil: "networkidle" });
   const { menu, scrollYBeforeMenu, trigger } = await openMenuOverImpactEvidence(page);

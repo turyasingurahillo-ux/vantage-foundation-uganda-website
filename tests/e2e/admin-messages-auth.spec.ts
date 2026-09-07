@@ -21,7 +21,7 @@ const FORGED_TOKEN = `${"a".repeat(64)}.9999999999.${"b".repeat(64)}`;
 const EXPIRED_TOKEN = `${"a".repeat(64)}.1.${"b".repeat(64)}`;
 
 test.describe("/admin/messages access control", () => {
-  test("an unauthenticated visitor gets no message data", async ({ page }) => {
+  test("@smoke an unauthenticated visitor gets no message data", async ({ page }) => {
     await page.goto("/admin/messages");
 
     const html = await page.content();
@@ -76,5 +76,15 @@ test.describe("/admin/messages access control", () => {
   test("robots.txt disallows the admin area", async ({ request }) => {
     const body = await (await request.get("/robots.txt")).text();
     expect(body).toMatch(/Disallow:\s*\/admin\//);
+  });
+
+  test("@smoke an unauthenticated admin API request returns 401", async ({
+    request,
+  }) => {
+    const res = await request.post("/api/admin/media/presign", {
+      data: { filename: "test.jpg", contentType: "image/jpeg", contentLength: 1000, folder: "gallery" },
+      headers: { "content-type": "application/json" },
+    });
+    expect(res.status()).toBe(401);
   });
 });

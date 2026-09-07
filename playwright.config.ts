@@ -32,6 +32,16 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    // Smoke project: a small high-value subset tagged @smoke in the
+    // existing spec files. Selected via `grep: "@smoke"` so no test
+    // code is duplicated. CI runs this project alongside the full
+    // accessibility spec to cover the critical application contract
+    // without executing the entire Playwright suite on every push.
+    {
+      name: "smoke",
+      use: { ...devices["Desktop Chrome"] },
+      grep: /@smoke/,
+    },
   ],
   webServer: {
     command: `npm run build && npm run start -- -p ${PORT}`,

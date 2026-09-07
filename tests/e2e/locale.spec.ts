@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const locales = ["en", "de", "fr", "es", "ar"] as const;
 
 test.describe("public locale switching", () => {
-  test("switches between all supported locales and persists the choice", async ({ page, context }) => {
+  test("@smoke switches between all supported locales and persists the choice", async ({ page, context }) => {
     await context.clearCookies();
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");

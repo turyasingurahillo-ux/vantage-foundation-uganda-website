@@ -75,10 +75,11 @@ jobs:
           # are dynamic and won't be prerendered.
           DATABASE_URL: postgresql://placeholder:placeholder@localhost/placeholder
 
-  # E2E accessibility tests with axe-core.
-  # Runs Playwright tests including WCAG 2.2 AA checks.
-  e2e-a11y:
-    name: E2E accessibility (axe-core)
+  # E2E: accessibility (axe-core) + smoke suite.
+  # The same build serves both the accessibility spec and the @smoke-tagged
+  # tests from the existing spec files. No second application build.
+  e2e:
+    name: E2E (accessibility + smoke)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -101,8 +102,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost/placeholder
 
-      - name: Run E2E accessibility tests
+      - name: Run E2E accessibility tests (axe-core)
         run: npx playwright test tests/e2e/accessibility.spec.ts
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost/placeholder
+          ADMIN_SECRET: test-secret-for-ci
+
+      - name: Run E2E smoke suite
+        run: npx playwright test --project=smoke
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost/placeholder
           ADMIN_SECRET: test-secret-for-ci

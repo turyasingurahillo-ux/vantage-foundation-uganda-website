@@ -2,6 +2,12 @@
  * Broken link checker: scans all internal links in the codebase and
  * verifies they point to valid routes or real files in public/.
  *
+ * Route matching understands the site's localization architecture:
+ * - English is the default locale and is unprefixed.
+ * - Translated locales use prefixes (e.g. /de/about-us, /fr/projects).
+ * - /en/... redirects to the unprefixed canonical and is also accepted.
+ * - Dynamic segments are matched as wildcards at any position in the path.
+ *
  * Run: npm run check-links
  */
 import { readFile, readdir } from "node:fs/promises";
@@ -24,12 +30,20 @@ const IGNORED_SCAN_DIRS = new Set([
 const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
 const ROUTE_FILE = /^route\.(tsx|ts|js)$/;
 
+// Supported locales — must match lib/i18n/config.ts.
+const LOCALES = ["en", "de", "fr", "es", "ar"];
+const DEFAULT_LOCALE = "en";
+
 /**
  * Collect routes from the app directory.
  *
  * `basePath` must accumulate down the tree — an earlier version passed only
  * the current segment, so nested routes such as app/about-us/team registered
  * as "/team" and every real link to them was reported broken.
+ *
+ * Dynamic segments (`[locale]`, `[slug]`, `[id]`) are recorded as `*` in the
+ * route pattern. The route pattern is a slash-separated string where `*`
+ * matches exactly one path segment (not zero, not multiple).
  */
 async function collectRoutes(dir, basePath = "") {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -46,7 +60,7 @@ async function collectRoutes(dir, basePath = "") {
       const isDynamic = entry.name.startsWith("[") && entry.name.endsWith("]");
 
       // Route groups contribute no path segment; dynamic segments match
-      // anything below their parent.
+      // exactly one path segment.
       const nextBase = isGroup
         ? basePath
         : isDynamic
@@ -87,6 +101,95 @@ async function collectPublicFiles(dir, basePath = "") {
   return files;
 }
 
+/**
+ * Convert a route pattern (with wildcard segments) into a RegExp.
+ *
+ * Each wildcard in the pattern matches exactly one path segment (one or more
+ * characters that are not a slash). This prevents a wildcard from matching
+ * multiple segments or zero segments.
+ */
+function routePatternToRegex(pattern) {
+  // Escape regex special characters, then replace escaped \* with a
+  // segment-matching group.
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, (ch) => {
+    if (ch === "*") return "\u0000"; // placeholder for wildcard
+    return "\\" + ch;
+  });
+  const regexStr = escaped.replace(/\u0000/g, "([^/]+)");
+  return new RegExp("^" + regexStr + "$");
+}
+
+/**
+ * Match a URL path against the collected route patterns.
+ *
+ * Handles the site localization architecture:
+ * - The [locale] dynamic segment produces a wildcard at the root, so routes
+ *   like wildcard/about-us exist in the route table.
+ * - English is unprefixed: /about-us is the canonical English route.
+ *   We synthesize an English-prefixed version (/en/about-us) for matching
+ *   against the wildcard patterns, and also try the unprefixed path directly.
+ * - /en/... is accepted (it redirects, but the route exists).
+ * - Other locale prefixes (/de/..., /fr/..., etc.) match the wildcard patterns.
+ * - Non-locale first segments (e.g. /admin, /api) match exact or
+ *   non-locale route patterns directly.
+ *
+ * @param {string} urlPath - The URL path (no query string, no fragment).
+ * @param {string[]} routePatterns - Collected route patterns from the app dir.
+ * @returns {boolean} - True if the path matches a valid route.
+ */
+function matchRoute(urlPath, routePatterns) {
+  // We try multiple candidate paths to handle the locale architecture.
+  const candidates = [urlPath];
+
+  const firstSegment = urlPath.split("/")[1] ?? "";
+  const hasLocalePrefix = LOCALES.includes(firstSegment);
+  const isNonLocaleRoute =
+    firstSegment === "admin" ||
+    firstSegment === "api" ||
+    firstSegment === "" ||
+    firstSegment === "icon.svg" ||
+    firstSegment === "manifest.webmanifest" ||
+    firstSegment === "robots.txt" ||
+    firstSegment === "sitemap.xml" ||
+    firstSegment === "apple-icon.png";
+
+  // If the path has no locale prefix and is not a known non-locale route,
+  // try prepending each locale to see if it matches a localized route
+  // pattern. This handles the English canonical case: /about-us should
+  // match the wildcard-prefixed route pattern because English is the
+  // default locale.
+  if (!hasLocalePrefix && !isNonLocaleRoute) {
+    for (const locale of LOCALES) {
+      candidates.push(`/${locale}${urlPath}`);
+    }
+  }
+
+  // If the path starts with /en/, also try the unprefixed version.
+  if (urlPath.startsWith(`/${DEFAULT_LOCALE}/`)) {
+    candidates.push(urlPath.replace(`/${DEFAULT_LOCALE}`, "") || "/");
+  }
+
+  for (const candidate of candidates) {
+    for (const pattern of routePatterns) {
+      // The root "/*" pattern represents the [locale] dynamic segment.
+      // It should only match known locale prefixes, not arbitrary
+      // single-segment paths like /this-route-does-not-exist.
+      if (pattern === "/*") {
+        const seg = candidate.split("/")[1] ?? "";
+        if (LOCALES.includes(seg) && candidate.split("/").length === 2) {
+          return true;
+        }
+        continue;
+      }
+
+      const regex = routePatternToRegex(pattern);
+      if (regex.test(candidate)) return true;
+    }
+  }
+
+  return false;
+}
+
 const LINK_PATTERNS = [
   /href=["'`]([^"'`]+)["'`]/g,
   /<Link\s+href=["'`]([^"'`]+)["'`]/g,
@@ -120,13 +223,24 @@ async function scanLinks(dir) {
   return links;
 }
 
+// Export for testing.
+export {
+  collectRoutes,
+  collectPublicFiles,
+  scanLinks,
+  matchRoute,
+  routePatternToRegex,
+  LINK_PATTERNS,
+  LOCALES,
+};
+
 async function main() {
   console.log("Collecting routes...");
-  const routePaths = await collectRoutes(APP_DIR);
+  const routePatterns = await collectRoutes(APP_DIR);
   const publicFiles = new Set(await collectPublicFiles(PUBLIC_DIR));
 
   console.log(
-    `Found ${routePaths.length} routes and ${publicFiles.size} public files.\n`
+    `Found ${routePatterns.length} routes and ${publicFiles.size} public files.\n`
   );
 
   console.log("Scanning for internal links...");
@@ -142,16 +256,9 @@ async function main() {
 
     if (publicFiles.has(url)) continue;
 
-    const matched = routePaths.some((route) => {
-      if (route === url) return true;
-      if (route.endsWith("/*")) {
-        const prefix = route.slice(0, -2);
-        if (url.startsWith(`${prefix}/`)) return true;
-      }
-      return false;
-    });
-
-    if (!matched) broken.push(link);
+    if (!matchRoute(url, routePatterns)) {
+      broken.push(link);
+    }
   }
 
   if (broken.length === 0) {
@@ -159,7 +266,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log(`⚠ Found ${broken.length} potentially broken link(s):\n`);
+  console.log(`✗ Found ${broken.length} broken link(s):\n`);
   for (const link of broken) {
     const relativePath = link.file
       .replace(ROOT, "")
@@ -168,8 +275,7 @@ async function main() {
     console.log(`  ${link.url} (in ${relativePath})`);
   }
 
-  console.log(`\nNote: Some links may be valid if they're generated dynamically.`);
-  process.exit(0); // Informational only.
+  process.exit(1);
 }
 
 main().catch((err) => {
