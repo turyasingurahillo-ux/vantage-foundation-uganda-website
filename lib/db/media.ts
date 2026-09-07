@@ -228,6 +228,12 @@ export async function updateMediaObject(
     height: update.height === undefined ? current.height : update.height,
   };
 
+  // Atomic consent invariant: the UPDATE only succeeds if the resulting
+  // state does NOT have published=true with consent='pending'. This closes
+  // the TOCTOU race where concurrent PATCH requests each pass the route-level
+  // consent gate against a stale snapshot but combine into a violation.
+  // The route distinguishes "not found" from "consent violation" by checking
+  // whether the row existed before calling this function.
   const rows = await sql`
     UPDATE media_objects SET
       alt_text = ${next.altText},
@@ -240,6 +246,7 @@ export async function updateMediaObject(
       width = ${next.width},
       height = ${next.height}
     WHERE id = ${id} AND deleted_at IS NULL
+      AND NOT (${next.published} = true AND ${next.consent} = 'pending')
     RETURNING *
   `;
   if (rows.length === 0) return null;

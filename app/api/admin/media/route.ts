@@ -276,6 +276,16 @@ export async function PATCH(request: Request) {
   try {
     const row = await updateMediaObject(id, update);
     if (!row) {
+      // If the row existed before the update but the UPDATE returned 0 rows,
+      // the atomic consent invariant in the WHERE clause rejected the write
+      // (a concurrent request changed the state between our read and write).
+      // Map this to the existing 422 consent-required response.
+      if (before) {
+        return NextResponse.json(
+          { error: "consent-required" },
+          { status: 422 }
+        );
+      }
       return NextResponse.json({ error: "not-found" }, { status: 404 });
     }
     logInfo("media_updated", { id, ip });

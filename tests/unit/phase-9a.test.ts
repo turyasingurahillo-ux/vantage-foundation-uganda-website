@@ -136,6 +136,143 @@ describe("media consent gate — shared invariant", () => {
   });
 });
 
+describe("media consent gate — atomic PATCH invariant (race condition fix)", () => {
+  beforeEach(() => {
+    vi.stubEnv("ADMIN_SECRET", "test-secret");
+  });
+
+  it("returns 422 when atomic UPDATE rejects a concurrent consent violation", async () => {
+    // Simulate a TOCTOU race: the route reads the row (published=false,
+    // consent="verified"), the route-level consent gate passes, but between
+    // the read and the write, a concurrent request changed the row. The
+    // atomic WHERE clause in updateMediaObject catches the violation and
+    // returns null. The route must map this to 422 consent-required, not 404.
+    const updateMock = vi.fn().mockResolvedValue(null);
+    vi.doMock("@/lib/auth", () => ({
+      guard: vi.fn().mockResolvedValue({
+        ok: true,
+        ip: "127.0.0.1",
+        actorId: "1",
+        cookieStore: mockCookieStore(),
+      }),
+    }));
+    vi.doMock("next/headers", () => ({
+      cookies: vi.fn().mockResolvedValue(mockCookieStore()),
+    }));
+    vi.doMock("@/lib/csrf", () => ({
+      validateCsrf: vi.fn().mockReturnValue(true),
+      validateCsrfHeader: vi.fn().mockReturnValue(true),
+      CSRF_HEADER_NAME: "x-csrf-token",
+      getCsrfTokenFromRequest: vi.fn().mockReturnValue("csrf-token"),
+    }));
+    vi.doMock("@/lib/db/media", () => ({
+      getMediaObjects: vi.fn().mockResolvedValue([]),
+      getMediaObjectByKey: vi.fn().mockResolvedValue(null),
+      // The row exists (published=false, consent="verified") — route-level
+      // gate passes. But the atomic UPDATE will reject it (returns null)
+      // because a concurrent request changed consent to "pending" between
+      // the read and the write.
+      getMediaObjectById: vi.fn().mockResolvedValue({
+        id: 1,
+        published: false,
+        consent: "verified",
+        altText: "",
+        caption: null,
+        consentNotes: null,
+        programme: null,
+        projectSlug: null,
+      }),
+      createMediaObject: vi.fn(),
+      updateMediaObject: updateMock,
+      deleteMediaObject: vi.fn(),
+    }));
+    vi.doMock("@/lib/storage/r2-client", () => ({
+      ALLOWED_UPLOAD_TYPES: {},
+      MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+      headR2Object: vi.fn(),
+      deleteR2Object: vi.fn(),
+      getPublicSrc: vi.fn(),
+    }));
+    vi.doMock("@/lib/db/audit", () => ({
+      appendAuditLog: vi.fn().mockResolvedValue(undefined),
+    }));
+
+    const request = new Request("http://localhost/api/admin/media", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 1,
+        published: true,
+      }),
+    });
+
+    const { PATCH } = await import("@/app/api/admin/media/route");
+    const response = await PATCH(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.error).toBe("consent-required");
+    expect(updateMock).toHaveBeenCalled();
+  });
+
+  it("returns 404 when the row does not exist (not a consent violation)", async () => {
+    const updateMock = vi.fn().mockResolvedValue(null);
+    vi.doMock("@/lib/auth", () => ({
+      guard: vi.fn().mockResolvedValue({
+        ok: true,
+        ip: "127.0.0.1",
+        actorId: "1",
+        cookieStore: mockCookieStore(),
+      }),
+    }));
+    vi.doMock("next/headers", () => ({
+      cookies: vi.fn().mockResolvedValue(mockCookieStore()),
+    }));
+    vi.doMock("@/lib/csrf", () => ({
+      validateCsrf: vi.fn().mockReturnValue(true),
+      validateCsrfHeader: vi.fn().mockReturnValue(true),
+      CSRF_HEADER_NAME: "x-csrf-token",
+      getCsrfTokenFromRequest: vi.fn().mockReturnValue("csrf-token"),
+    }));
+    vi.doMock("@/lib/db/media", () => ({
+      getMediaObjects: vi.fn().mockResolvedValue([]),
+      getMediaObjectByKey: vi.fn().mockResolvedValue(null),
+      // Row does not exist — the 0-rows result from UPDATE is a genuine
+      // not-found, not a consent violation.
+      getMediaObjectById: vi.fn().mockResolvedValue(null),
+      createMediaObject: vi.fn(),
+      updateMediaObject: updateMock,
+      deleteMediaObject: vi.fn(),
+    }));
+    vi.doMock("@/lib/storage/r2-client", () => ({
+      ALLOWED_UPLOAD_TYPES: {},
+      MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+      headR2Object: vi.fn(),
+      deleteR2Object: vi.fn(),
+      getPublicSrc: vi.fn(),
+    }));
+    vi.doMock("@/lib/db/audit", () => ({
+      appendAuditLog: vi.fn().mockResolvedValue(undefined),
+    }));
+
+    const request = new Request("http://localhost/api/admin/media", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 999,
+        altText: "updated text",
+      }),
+    });
+
+    const { PATCH } = await import("@/app/api/admin/media/route");
+    const response = await PATCH(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("not-found");
+  });
+});
+
 describe("analytics HMAC fail-closed", () => {
   it("does not use a hardcoded fallback when ADMIN_SECRET is unset", async () => {
     vi.stubEnv("ADMIN_SECRET", "");
