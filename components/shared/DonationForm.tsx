@@ -83,6 +83,8 @@ export function DonationForm({
             setAmount("");
           }}
           className="mt-1.5"
+          aria-invalid={state.fieldErrors?.amount ? true : undefined}
+          aria-describedby={state.fieldErrors?.amount ? "amount-error" : undefined}
         />
         <FieldError id="amount-error" message={state.fieldErrors?.amount} />
       </div>
@@ -174,7 +176,15 @@ export function DonationForm({
 
       <div>
         <Label htmlFor="donor-phone">{form.phoneLabel}</Label>
-        <Input id="donor-phone" name="phone" type="tel" className="mt-1.5" />
+        <Input
+          id="donor-phone"
+          name="phone"
+          type="tel"
+          className="mt-1.5"
+          aria-invalid={state.fieldErrors?.phone ? true : undefined}
+          aria-describedby={state.fieldErrors?.phone ? "donor-phone-error" : undefined}
+        />
+        <FieldError id="donor-phone-error" message={state.fieldErrors?.phone} />
       </div>
 
       <div>
@@ -186,12 +196,22 @@ export function DonationForm({
           name="transactionReference"
           placeholder={form.transactionPlaceholder}
           className="mt-1.5"
+          aria-invalid={state.fieldErrors?.transactionReference ? true : undefined}
+          aria-describedby={state.fieldErrors?.transactionReference ? "donor-transaction-error" : undefined}
         />
+        <FieldError id="donor-transaction-error" message={state.fieldErrors?.transactionReference} />
       </div>
 
       <div>
         <Label htmlFor="donor-message">{form.messageLabel}</Label>
-        <Input id="donor-message" name="message" className="mt-1.5" />
+        <Input
+          id="donor-message"
+          name="message"
+          className="mt-1.5"
+          aria-invalid={state.fieldErrors?.message ? true : undefined}
+          aria-describedby={state.fieldErrors?.message ? "donor-message-error" : undefined}
+        />
+        <FieldError id="donor-message-error" message={state.fieldErrors?.message} />
       </div>
 
       <Button type="submit" disabled={pending || !displayAmount} className="w-full">

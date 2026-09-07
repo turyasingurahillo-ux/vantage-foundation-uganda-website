@@ -109,7 +109,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
         {current && (
           <div className="relative flex max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-black">
             <div className="flex items-center justify-between gap-4 bg-black/90 px-4 py-3 text-white">
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-white/70" aria-live="polite">
                 {(openIndex ?? 0) + 1} / {images.length}
               </p>
               <button

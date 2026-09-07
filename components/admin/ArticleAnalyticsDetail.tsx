@@ -168,7 +168,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* Performance overview */}
       {hasData && p && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Performance overview</h3>
+          <h2 className="text-base font-semibold">Performance overview</h2>
           <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             <Metric label="Views" value={formatNumber(p.views)} />
             <Metric label="Unique readers" value={formatNumber(p.readers)} />
@@ -195,7 +195,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
               <span className="text-xs opacity-80">/ 100</span>
             </div>
             <div>
-              <h3 className="text-base font-semibold">Article Impact Score</h3>
+              <h2 className="text-base font-semibold">Article Impact Score</h2>
               <p className="text-sm text-muted-foreground">A composite score (0–100) combining reach, engagement, search, amplification and action. Used for comparing articles — not an absolute measure.</p>
             </div>
           </div>
@@ -227,7 +227,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">Performance over time</h3>
+            <h2 className="text-base font-semibold">Performance over time</h2>
             <select value={trendMetric} onChange={(e) => setTrendMetric(e.target.value)} className="rounded-lg border border-border px-2 py-1 text-sm">
               <option value="views">Views</option>
               <option value="readers">Readers</option>
@@ -246,7 +246,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* Reading behaviour funnel */}
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Reading behaviour</h3>
+          <h2 className="text-base font-semibold">Reading behaviour</h2>
           <p className="mt-1 text-xs text-muted-foreground">How far readers scroll. Completion rate = readers reaching 90% / total readers. Repeated scroll events from the same session are not double-counted.</p>
           <div className="mt-4">
             {data.funnel.opened > 0 ? (
@@ -266,7 +266,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* Traffic sources */}
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Where readers came from</h3>
+          <h2 className="text-base font-semibold">Where readers came from</h2>
           <p className="mt-1 text-xs text-muted-foreground">Traffic source attribution with UTM support (utm_source, utm_medium, utm_campaign, utm_content). UTMs are not stripped before attribution.</p>
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
             {donutData.length > 0 ? <DonutChart data={donutData} /> : <p className="text-sm text-muted-foreground">Traffic data will appear once readers arrive.</p>}
@@ -295,7 +295,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* Google Search Console */}
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Google Search performance</h3>
+          <h2 className="text-base font-semibold">Google Search performance</h2>
           {data.searchPerf.available ? (
             <>
               <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -318,7 +318,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* Sharing analytics */}
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Sharing analytics</h3>
+          <h2 className="text-base font-semibold">Sharing analytics</h2>
           <p className="mt-1 text-xs text-muted-foreground">Clicks on article share controls, broken down by platform.</p>
           <div className="mt-4">
             {shareBars.length > 0 ? <BarChart data={shareBars} /> : <p className="text-sm text-muted-foreground">Sharing data will appear once readers begin using share buttons.</p>}
@@ -329,7 +329,7 @@ export function ArticleAnalyticsDetail({ articleId }: { articleId: number }) {
       {/* CTA / Impact tracking */}
       {hasData && (
         <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h3 className="text-base font-semibold">Article-generated actions</h3>
+          <h2 className="text-base font-semibold">Article-generated actions</h2>
           <p className="mt-1 text-xs text-muted-foreground">Meaningful actions originating from this article: donations, volunteering, partnerships, newsletter sign-ups, etc.</p>
           <div className="mt-4">
             {ctaBars.length > 0 ? <BarChart data={ctaBars} /> : <p className="text-sm text-muted-foreground">No CTA actions recorded yet for this article.</p>}

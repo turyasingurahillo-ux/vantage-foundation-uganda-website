@@ -105,6 +105,7 @@ export function InstagramPostCard({ post, locale = "en" }: InstagramPostCardProp
           aria-label={`${ui.viewOnInstagram}${post.caption ? `: ${truncateCaption(post.caption, 60)}` : ""}`}
         >
           {ui.viewOnInstagram}
+          <span className="sr-only">(opens in new tab)</span>
         </a>
       </div>
     </Card>

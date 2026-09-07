@@ -11,6 +11,31 @@ interface AdminShellProps {
   actorName: string;
 }
 
+/** Keep the page behind the modal drawer out of the tab order and a11y tree. */
+function isolatePageBehind(menu: HTMLElement): () => void {
+  const siblings = Array.from(document.body.children).filter(
+    (element) => element !== menu && !element.contains(menu) && element.tagName !== "SCRIPT",
+  );
+  const previous = siblings.map((element) => ({
+    element,
+    wasInert: element.hasAttribute("inert"),
+    ariaHidden: element.getAttribute("aria-hidden"),
+  }));
+
+  for (const element of siblings) {
+    element.setAttribute("inert", "");
+    element.setAttribute("aria-hidden", "true");
+  }
+
+  return () => {
+    for (const { element, wasInert, ariaHidden } of previous) {
+      if (!wasInert) element.removeAttribute("inert");
+      if (ariaHidden === null) element.removeAttribute("aria-hidden");
+      else element.setAttribute("aria-hidden", ariaHidden);
+    }
+  };
+}
+
 export function AdminShell({
   children,
   csrfToken,
@@ -19,16 +44,45 @@ export function AdminShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!mobileOpen) return;
 
+    const drawer = drawerRef.current;
+    if (!drawer) return;
+
     // Focus the close button when the drawer opens.
     closeButtonRef.current?.focus();
+
+    const releasePage = isolatePageBehind(drawer);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileOpen(false);
+        return;
+      }
+
+      if (e.key === "Tab" && drawer) {
+        const focusable = drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !drawer.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !drawer.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 
@@ -39,6 +93,7 @@ export function AdminShell({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = originalOverflow;
+      releasePage();
     };
   }, [mobileOpen]);
 
@@ -75,6 +130,7 @@ export function AdminShell({
           onClick={() => setMobileOpen(false)}
         >
           <div
+            ref={drawerRef}
             id="admin-mobile-nav"
             className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl"
             role="dialog"
@@ -89,7 +145,7 @@ export function AdminShell({
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close navigation"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>

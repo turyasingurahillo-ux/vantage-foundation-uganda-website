@@ -82,6 +82,7 @@ export function WhatsAppButtonClient({
     >
       <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
       {label}
+      <span className="sr-only">(opens in new tab)</span>
     </a>
   );
 }

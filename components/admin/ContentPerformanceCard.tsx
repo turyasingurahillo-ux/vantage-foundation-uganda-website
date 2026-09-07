@@ -78,8 +78,8 @@ export function ContentPerformanceCard() {
 
   if (!dbAvailable) {
     return (
-      <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Content performance</h2>
+      <div className="rounded-xl border border-border bg-white p-6 shadow-sm" aria-live="polite">
+        <p className="text-lg font-semibold">Content performance</p>
         <p className="mt-2 text-sm text-muted-foreground">
           Analytics tables not set up. Run{" "}
           <code className="rounded bg-slate-100 px-1 text-xs">
@@ -92,12 +92,13 @@ export function ContentPerformanceCard() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-white p-6 shadow-sm" aria-live="polite">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Content performance</h2>
+        <p className="text-lg font-semibold">Content performance</p>
         <span className="text-xs text-muted-foreground">This month</span>
       </div>
 
+      <div aria-live="polite">
       {loading ? (
         <p className="mt-4 text-sm text-muted-foreground">Loading…</p>
       ) : overview ? (
@@ -173,6 +174,7 @@ export function ContentPerformanceCard() {
           start viewing articles.
         </p>
       )}
+      </div>
     </div>
   );
 }

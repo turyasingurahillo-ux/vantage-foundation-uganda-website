@@ -40,12 +40,12 @@ export default async function OrganisationsPage({
       />
 
       {params.created && (
-        <div className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
+        <div role="status" className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
           Organisation created.
         </div>
       )}
       {params.error && (
-        <div className="mb-4 rounded-md bg-destructive-bg px-4 py-2 text-sm text-destructive-fg">
+        <div role="alert" className="mb-4 rounded-md bg-destructive-bg px-4 py-2 text-sm text-destructive-fg">
           {params.error === "invalid"
             ? "Invalid input."
             : params.error === "csrf"
@@ -57,8 +57,10 @@ export default async function OrganisationsPage({
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <form method="get" className="flex-1">
+        <form method="get" className="flex-1" role="search">
+          <label htmlFor="org-search" className="sr-only">Search organisations</label>
           <input
+            id="org-search"
             type="text"
             name="q"
             defaultValue={query}
@@ -68,9 +70,9 @@ export default async function OrganisationsPage({
         </form>
         <a
           href="#new-organisation"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden="true" />
           New organisation
         </a>
       </div>
@@ -90,10 +92,10 @@ export default async function OrganisationsPage({
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/50">
               <tr>
-                <th className="px-4 py-2 text-left font-medium">Name</th>
-                <th className="px-4 py-2 text-left font-medium">Type</th>
-                <th className="px-4 py-2 text-left font-medium">Relationship</th>
-                <th className="px-4 py-2 text-left font-medium">Owner</th>
+                <th scope="col" className="px-4 py-2 text-left font-medium">Name</th>
+                <th scope="col" className="px-4 py-2 text-left font-medium">Type</th>
+                <th scope="col" className="px-4 py-2 text-left font-medium">Relationship</th>
+                <th scope="col" className="px-4 py-2 text-left font-medium">Owner</th>
               </tr>
             </thead>
             <tbody>
@@ -140,8 +142,9 @@ export default async function OrganisationsPage({
           <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">Name *</label>
+              <label htmlFor="org-name" className="mb-1 block text-sm font-medium">Name *</label>
               <input
+                id="org-name"
                 type="text"
                 name="name"
                 required
@@ -150,8 +153,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Type</label>
+              <label htmlFor="org-type" className="mb-1 block text-sm font-medium">Type</label>
               <select
+                id="org-type"
                 name="organisationType"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
@@ -169,8 +173,9 @@ export default async function OrganisationsPage({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Website</label>
+              <label htmlFor="org-website" className="mb-1 block text-sm font-medium">Website</label>
               <input
+                id="org-website"
                 type="url"
                 name="website"
                 maxLength={500}
@@ -178,8 +183,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
+              <label htmlFor="org-email" className="mb-1 block text-sm font-medium">Email</label>
               <input
+                id="org-email"
                 type="email"
                 name="email"
                 maxLength={200}
@@ -187,8 +193,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Phone</label>
+              <label htmlFor="org-phone" className="mb-1 block text-sm font-medium">Phone</label>
               <input
+                id="org-phone"
                 type="tel"
                 name="phone"
                 maxLength={50}
@@ -196,8 +203,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Geographic area</label>
+              <label htmlFor="org-area" className="mb-1 block text-sm font-medium">Geographic area</label>
               <input
+                id="org-area"
                 type="text"
                 name="geographicArea"
                 maxLength={200}
@@ -205,8 +213,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Registration number</label>
+              <label htmlFor="org-reg" className="mb-1 block text-sm font-medium">Registration number</label>
               <input
+                id="org-reg"
                 type="text"
                 name="registrationNumber"
                 maxLength={100}
@@ -214,8 +223,9 @@ export default async function OrganisationsPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Relationship status</label>
+              <label htmlFor="org-status" className="mb-1 block text-sm font-medium">Relationship status</label>
               <select
+                id="org-status"
                 name="relationshipStatus"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
@@ -235,8 +245,9 @@ export default async function OrganisationsPage({
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Notes</label>
+            <label htmlFor="org-notes" className="mb-1 block text-sm font-medium">Notes</label>
             <textarea
+              id="org-notes"
               name="notes"
               maxLength={5000}
               rows={3}
@@ -246,9 +257,9 @@ export default async function OrganisationsPage({
           </div>
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Create organisation
           </button>
         </form>

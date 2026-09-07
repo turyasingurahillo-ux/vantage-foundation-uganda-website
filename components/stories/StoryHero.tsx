@@ -101,7 +101,7 @@ export function StoryHero({ story, framing, readingTime, locale = "en" }: StoryH
     <section className="bg-primary py-16 text-white md:py-24">
       <Container>
         <div className="max-w-3xl">
-          <Badge variant="accent">{kicker}</Badge>
+          <Badge variant="accent" className="border border-white/30 bg-white/10 text-white">{kicker}</Badge>
           <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{story.title}</h1>
           <p className="mt-4 text-lg text-white/90">{story.excerpt}</p>
           <StoryByline story={story} readingTime={readingTime} tone="onBrand" locale={locale} />
@@ -140,7 +140,7 @@ function StoryByline({
   ].filter(Boolean) as string[];
 
   return (
-    <div className={tone === "onImage" ? "mt-6 text-white/85" : "mt-6 text-white/80"}>
+    <div className={tone === "onImage" ? "mt-6 text-white/85" : "mt-6 text-white/90"}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         {meta.map((item) => (
           <span key={item}>{item}</span>

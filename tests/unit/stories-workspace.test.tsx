@@ -187,7 +187,7 @@ describe("StoriesWorkspace — New Story button", () => {
         staticStories={[]}
       />,
     );
-    fireEvent.click(screen.getByText("+ New Story"));
+    fireEvent.click(screen.getByRole("button", { name: /new story/i }));
     // The editor form should now be visible
     expect(screen.getByText("Write a story or insight")).toBeTruthy();
   });

@@ -25,7 +25,8 @@ export function AdminTopbar({
           aria-label="Open Vantage HQ navigation"
           aria-expanded={mobileOpen}
           aria-controls="admin-mobile-nav"
-          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border lg:hidden"
+          aria-haspopup="dialog"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 lg:hidden"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>

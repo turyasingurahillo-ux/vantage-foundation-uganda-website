@@ -60,7 +60,7 @@ export function StatusTabs({ tabs, basePath, ariaLabel, className }: StatusTabsP
                 className={cn(
                   "inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums",
                   tab.active
-                    ? "bg-white/20 text-white"
+                    ? "bg-white/10 text-white"
                     : tab.count > 0
                       ? "bg-warning-bg text-warning-fg"
                       : "bg-surface text-muted-foreground",

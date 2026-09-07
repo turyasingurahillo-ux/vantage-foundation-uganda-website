@@ -83,17 +83,17 @@ export default async function OrganisationDetailPage({
       </Link>
 
       {sp.updated && (
-        <div className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
+        <div role="status" className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
           Organisation updated.
         </div>
       )}
       {sp.dd && (
-        <div className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
+        <div role="status" className="mb-4 rounded-md bg-success-bg px-4 py-2 text-sm text-success-fg">
           Due-diligence check updated.
         </div>
       )}
       {sp.error && (
-        <div className="mb-4 rounded-md bg-destructive-bg px-4 py-2 text-sm text-destructive-fg">
+        <div role="alert" className="mb-4 rounded-md bg-destructive-bg px-4 py-2 text-sm text-destructive-fg">
           {sp.error === "invalid"
             ? "Invalid input."
             : sp.error === "csrf"
@@ -110,8 +110,9 @@ export default async function OrganisationDetailPage({
           <input type="hidden" name="id" value={org.id} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium">Name</label>
+              <label htmlFor="edit-org-name" className="mb-1 block text-sm font-medium">Name</label>
               <input
+                id="edit-org-name"
                 type="text"
                 name="name"
                 defaultValue={org.name}
@@ -121,8 +122,9 @@ export default async function OrganisationDetailPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Relationship status</label>
+              <label htmlFor="edit-org-status" className="mb-1 block text-sm font-medium">Relationship status</label>
               <select
+                id="edit-org-status"
                 name="relationshipStatus"
                 defaultValue={org.relationshipStatus}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
@@ -142,8 +144,9 @@ export default async function OrganisationDetailPage({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Website</label>
+              <label htmlFor="edit-org-website" className="mb-1 block text-sm font-medium">Website</label>
               <input
+                id="edit-org-website"
                 type="url"
                 name="website"
                 defaultValue={org.website ?? ""}
@@ -152,8 +155,9 @@ export default async function OrganisationDetailPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
+              <label htmlFor="edit-org-email" className="mb-1 block text-sm font-medium">Email</label>
               <input
+                id="edit-org-email"
                 type="email"
                 name="email"
                 defaultValue={org.email ?? ""}
@@ -162,8 +166,9 @@ export default async function OrganisationDetailPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Phone</label>
+              <label htmlFor="edit-org-phone" className="mb-1 block text-sm font-medium">Phone</label>
               <input
+                id="edit-org-phone"
                 type="tel"
                 name="phone"
                 defaultValue={org.phone ?? ""}
@@ -172,8 +177,9 @@ export default async function OrganisationDetailPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Geographic area</label>
+              <label htmlFor="edit-org-area" className="mb-1 block text-sm font-medium">Geographic area</label>
               <input
+                id="edit-org-area"
                 type="text"
                 name="geographicArea"
                 defaultValue={org.geographicArea ?? ""}
@@ -182,8 +188,9 @@ export default async function OrganisationDetailPage({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Registration number</label>
+              <label htmlFor="edit-org-reg" className="mb-1 block text-sm font-medium">Registration number</label>
               <input
+                id="edit-org-reg"
                 type="text"
                 name="registrationNumber"
                 defaultValue={org.registrationNumber ?? ""}
@@ -193,8 +200,9 @@ export default async function OrganisationDetailPage({
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Internal notes</label>
+            <label htmlFor="edit-org-notes" className="mb-1 block text-sm font-medium">Internal notes</label>
             <textarea
+              id="edit-org-notes"
               name="notes"
               defaultValue={org.notes ?? ""}
               maxLength={5000}
@@ -204,7 +212,7 @@ export default async function OrganisationDetailPage({
           </div>
           <button
             type="submit"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             Save changes
           </button>
@@ -215,7 +223,7 @@ export default async function OrganisationDetailPage({
         {/* Contacts */}
         <div className="rounded-lg border border-border p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-            <Users className="h-5 w-5" />
+            <Users className="h-5 w-5" aria-hidden="true" />
             Contacts ({persons.length})
           </h2>
           {persons.length === 0 ? (
@@ -247,38 +255,54 @@ export default async function OrganisationDetailPage({
             <form action="/api/admin/persons" method="POST" className="mt-3 space-y-3">
               <input type="hidden" name={CSRF_FIELD_NAME} value={csrfToken} />
               <input type="hidden" name="organisationId" value={org.id} />
-              <input
-                type="text"
-                name="fullName"
-                placeholder="Full name *"
-                required
-                maxLength={200}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              />
-              <input
-                type="email"
-                name="primaryEmail"
-                placeholder="Email"
-                maxLength={200}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              />
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Phone"
-                maxLength={50}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              />
-              <input
-                type="text"
-                name="roleTitle"
-                placeholder="Role / title"
-                maxLength={200}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              />
+              <div>
+                <label htmlFor="contact-name" className="sr-only">Full name</label>
+                <input
+                  id="contact-name"
+                  type="text"
+                  name="fullName"
+                  placeholder="Full name *"
+                  required
+                  maxLength={200}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-email" className="sr-only">Email</label>
+                <input
+                  id="contact-email"
+                  type="email"
+                  name="primaryEmail"
+                  placeholder="Email"
+                  maxLength={200}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-phone" className="sr-only">Phone</label>
+                <input
+                  id="contact-phone"
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone"
+                  maxLength={50}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-role" className="sr-only">Role / title</label>
+                <input
+                  id="contact-role"
+                  type="text"
+                  name="roleTitle"
+                  placeholder="Role / title"
+                  maxLength={200}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
               <button
                 type="submit"
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary/90"
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Add contact
               </button>
@@ -289,7 +313,7 @@ export default async function OrganisationDetailPage({
         {/* Cases */}
         <div className="rounded-lg border border-border p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-            <ClipboardList className="h-5 w-5" />
+            <ClipboardList className="h-5 w-5" aria-hidden="true" />
             Cases ({cases.length})
           </h2>
           {cases.length === 0 ? (
@@ -323,7 +347,7 @@ export default async function OrganisationDetailPage({
       {/* Due diligence */}
       <div id="due-diligence" className="mt-8 rounded-lg border border-border p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <ShieldCheck className="h-5 w-5" />
+          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           Due diligence
         </h2>
         <p className="mb-4 text-sm text-muted-foreground">
@@ -337,7 +361,7 @@ export default async function OrganisationDetailPage({
               <h3 className="mb-2 text-sm font-semibold">{level.label}</h3>
               <p className="mb-3 text-xs text-muted-foreground">{level.description}</p>
               <div className="space-y-2">
-                {levelChecks.map((checkDef) => {
+                {levelChecks.map((checkDef, index) => {
                   const existing = ddChecks.find(
                     (c) => c.checkKey === checkDef.key,
                   );
@@ -353,9 +377,10 @@ export default async function OrganisationDetailPage({
                       <input type="hidden" name="organisationId" value={org.id} />
                       <input type="hidden" name="level" value={level.value} />
                       <input type="hidden" name="checkKey" value={checkDef.key} />
-                      <span className="flex-1">{checkDef.label}</span>
+                      <span id={`dd-label-${index}`} className="flex-1">{checkDef.label}</span>
                       <select
                         name="status"
+                        aria-labelledby={`dd-label-${index}`}
                         defaultValue={currentStatus}
                         className="rounded-md border border-border bg-background px-2 py-1 text-xs"
                       >
@@ -368,6 +393,7 @@ export default async function OrganisationDetailPage({
                       <input
                         type="text"
                         name="note"
+                        aria-labelledby={`dd-label-${index}`}
                         placeholder="Note..."
                         defaultValue={existing?.note ?? ""}
                         maxLength={2000}
@@ -375,7 +401,7 @@ export default async function OrganisationDetailPage({
                       />
                       <button
                         type="submit"
-                        className="rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-fg hover:bg-primary/90"
+                        className="rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       >
                         Save
                       </button>

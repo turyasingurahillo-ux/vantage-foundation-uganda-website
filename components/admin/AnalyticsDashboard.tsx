@@ -184,24 +184,32 @@ function RowMenu({
   const publicHref = publicStoryHref(article);
 
   return (
-    <div className="relative inline-block">
+    <div
+      className="relative inline-block"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setOpen(false);
+        }
+      }}
+    >
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
         className="rounded-lg p-1.5 text-muted-foreground hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={`Actions for ${article.title}`}
         aria-expanded={open}
+        aria-haspopup="menu"
       >
         ⋮
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-border bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-border bg-white py-1 shadow-lg" role="menu">
           <a
             href={publicHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+            className="block px-3 py-1.5 text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            role="menuitem"
           >
             View public story
           </a>
@@ -209,22 +217,25 @@ function RowMenu({
             <>
               <a
                 href={`${adminHref}?tab=analytics`}
-                className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+                className="block px-3 py-1.5 text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                role="menuitem"
               >
                 View analytics
               </a>
               {onEdit ? (
                 <button
                   type="button"
-                  onMouseDown={() => onEdit(article)}
-                  className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+                  onClick={() => onEdit(article)}
+                  className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  role="menuitem"
                 >
                   Edit
                 </button>
               ) : (
                 <a
                   href={`${adminHref}?tab=edit`}
-                  className="block px-3 py-1.5 text-sm hover:bg-slate-50"
+                  className="block px-3 py-1.5 text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  role="menuitem"
                 >
                   Edit
                 </a>
@@ -237,10 +248,11 @@ function RowMenu({
           )}
           <button
             type="button"
-            onMouseDown={() =>
+            onClick={() =>
               navigator.clipboard?.writeText(`${window.location.origin}${publicHref}`)
             }
-            className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+            className="block w-full px-3 py-1.5 text-left text-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            role="menuitem"
           >
             Copy public link
           </button>
@@ -249,8 +261,9 @@ function RowMenu({
               <div className="my-1 border-t border-border" />
               <button
                 type="button"
-                onMouseDown={() => onDelete(article)}
-                className="block w-full px-3 py-1.5 text-left text-sm text-destructive-fg hover:bg-red-50"
+                onClick={() => onDelete(article)}
+                className="block w-full px-3 py-1.5 text-left text-sm text-destructive-fg hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                role="menuitem"
               >
                 Delete
               </button>
@@ -581,7 +594,7 @@ export function AnalyticsDashboard({
           <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-base font-semibold">Performance over time</h3>
+                <h2 className="text-base font-semibold">Performance over time</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Daily rollup metrics for the selected period.
                 </p>
@@ -614,7 +627,7 @@ export function AnalyticsDashboard({
           </div>
 
           <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
-            <h3 className="text-base font-semibold">Where readers come from</h3>
+            <h2 className="text-base font-semibold">Where readers come from</h2>
             <div className="mt-4 grid gap-6 lg:grid-cols-2">
               {donutData.length ? (
                 <DonutChart data={donutData} />
@@ -664,6 +677,7 @@ export function AnalyticsDashboard({
 
       {!loading && activeTab === "performance" && (
         <div className="space-y-4">
+          <h2 className="sr-only">Article performance</h2>
           <div className="flex flex-wrap items-center gap-3">
             <input
               type="search"
@@ -726,16 +740,29 @@ export function AnalyticsDashboard({
                   ] as [SortKey, string][]).map(([key, label]) => (
                     <th
                       key={key}
-                      className="cursor-pointer whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                      onClick={() => handleSort(key)}
+                      scope="col"
+                      aria-sort={sortKey === key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                      className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                     >
-                      {label} {sortKey === key && (sortDir === "asc" ? "↑" : "↓")}
+                      <button
+                        type="button"
+                        onClick={() => handleSort(key)}
+                        className="inline-flex items-center gap-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      >
+                        {label}
+                        {sortKey === key && (
+                          <span aria-hidden="true">{sortDir === "asc" ? "↑" : "↓"}</span>
+                        )}
+                        <span className="sr-only">
+                          {sortKey === key ? `, sorted ${sortDir === "asc" ? "ascending" : "descending"}` : ", click to sort"}
+                        </span>
+                      </button>
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Status
                   </th>
-                  <th className="px-4 py-3" />
+                  <th scope="col" className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -804,7 +831,9 @@ export function AnalyticsDashboard({
       )}
 
       {!loading && activeTab === "rankings" && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <h2 className="sr-only">Top content rankings</h2>
+          <div className="grid gap-6 lg:grid-cols-2">
           {([
             ["Most viewed", "views"],
             ["Most read / completed", "readers"],
@@ -821,11 +850,13 @@ export function AnalyticsDashboard({
               metric={metric}
             />
           ))}
+          </div>
         </div>
       )}
 
       {!loading && activeTab === "categories" && (
         <div className="space-y-4">
+          <h2 className="sr-only">Category intelligence</h2>
           <p className="text-sm text-muted-foreground">
             Aggregate analytics by content category. Search clicks reflect the
             current Search Console query window.
