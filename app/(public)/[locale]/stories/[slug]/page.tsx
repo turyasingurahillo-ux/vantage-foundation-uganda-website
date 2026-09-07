@@ -22,7 +22,7 @@ import { StoryHero } from "@/components/stories/StoryHero";
 import { StoryContextRail, StoryShareRail } from "@/components/stories/StoryRails";
 import { site } from "@/content/site";
 import { createPublicMetadata } from "@/lib/metadata";
-import { contentSocialImageCandidates } from "@/lib/social-image";
+import { contentSocialImageCandidates, resolveSocialImage } from "@/lib/social-image";
 import { getLocalImageDimensions } from "@/lib/image-dimensions";
 import {
   estimateReadingTime,
@@ -154,7 +154,10 @@ export default async function StoryPage({
           dateModified: story.updatedAt,
           author: story.author,
           authorType: story.authorType,
-          image: story.heroImage,
+          image: resolveSocialImage(
+            contentSocialImageCandidates(story),
+            story.heroImageAlt || story.title
+          ).url,
         })}
       />
       {story.slug === "beyond-the-ward" ? (

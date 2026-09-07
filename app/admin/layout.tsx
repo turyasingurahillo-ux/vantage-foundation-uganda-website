@@ -9,6 +9,7 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: {
     default: "Vantage Foundation Uganda",
     template: `%s | Vantage Foundation Uganda`,

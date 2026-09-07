@@ -549,18 +549,30 @@ Phase 6 is **complete**. All closure criteria are met:
 
 Goal: no major accessibility failures in critical flows.
 
-- [ ] Audit heading order on every page (single h1, no skipped levels).
-- [ ] Verify colour contrast for all text on primary, slate-50, white, and amber backgrounds.
-- [ ] Add visible focus indicators to all interactive elements (Button has them; verify custom buttons in `DonationForm` and `Header` mobile menu).
-- [ ] Trap focus in the mobile menu dialog and restore focus on close.
-- [ ] Add `aria-label` to all icon-only buttons and links.
-- [ ] Add `aria-describedby` to form fields with hints/errors.
-- [ ] Add screen-reader announcements for form submission states (already `role="status"` — verify).
-- [ ] Verify keyboard navigation through the project filter, FAQ accordion, and mobile menu.
-- [ ] Add captions or transcripts for any video.
-- [ ] Test with a screen reader (NVDA or VoiceOver) on critical journeys.
-- [ ] Add automated axe-core checks to CI.
-- [ ] Document manual testing in `docs/accessibility.md` (new).
+### Phase 7 reconciliation — complete
+
+Phase 7 accessibility reconciliation was performed against `main` and implemented in PR #84 (merged as `7b349e8`).
+
+**What was done:**
+
+- Fixed heading-order issues across public routes (`/projects`, `/impact`, `/donors-and-sponsors`) and admin routes (analytics, stories/[id] analytics, stories delete modal, donation detail error state, admin dashboard duplicate headings).
+- Changed footer column labels and `MapTooltip` district names from heading elements to non-heading elements.
+- Hardened Markdown rendering so authored `h1` content renders as `h2` to prevent duplicate page-level headings.
+- Fixed color contrast issues on `StoryHero` badge/byline, project detail category badge, admin `StatusTabs`, `SectionHeader` light eyebrow, and brand-guide color swatches.
+- Implemented accessible admin mobile drawer: focus close button on open, focus trap, Escape to close, restore focus to trigger, lock body scroll, isolate page behind drawer with `inert`/`aria-hidden`.
+- Converted sortable table headers to keyboard-accessible buttons with `aria-sort` in `StoriesWorkspace` and `AnalyticsDashboard`.
+- Replaced `onMouseDown` with `onClick` on `AnalyticsDashboard` row-action menus with correct focus/blur management.
+- Added `aria-invalid` and `aria-describedby` to validated `DonationForm` fields.
+- Fixed organisation admin forms: label associations, search input label, due-diligence `aria-labelledby`, focus-visible styles, status/alert semantics on flash messages.
+- Added live-region semantics to `ContentPerformanceCard`, organisation flash messages, gallery image counter, and `CopyBankDetails` copy confirmation.
+- Added `aria-current` to audit filter links, `aria-hidden` on decorative icons/separators.
+- Fixed external-link warnings to include screen-reader text, added `scope="col"` to table headers, prevented `ProjectMarkers` from exposing duplicated names.
+- Expanded axe-core E2E coverage from 17 to 23 routes (added project detail, brand-guide, and additional pages).
+- Created `docs/accessibility.md` documenting automated axe checks, keyboard testing, focus behavior, mobile menu behavior, screen-reader considerations, manual testing expectations, and known limitations.
+
+**Automated coverage:** No axe-core violations on 23 covered routes (WCAG 2.0/2.1/2.2 A and AA tags). This covers automated checks only — it does not constitute full accessibility certification. Manual screen-reader testing (NVDA/VoiceOver) on critical journeys remains a recommended follow-up.
+
+**PR:** #84, merged as `7b349e8`. All CI checks passed (lint, type-check, unit tests, production build, E2E axe-core accessibility).
 
 ---
 
@@ -568,16 +580,58 @@ Goal: no major accessibility failures in critical flows.
 
 Goal: complete, accurate, non-spammy discoverability.
 
-- [ ] Add unique `metadata` to every page (most have it; verify `/projects` and `/stories` index pages have descriptions).
-- [ ] Add canonical URLs to all pages.
-- [ ] Add Open Graph images per project and per story (currently only the generated default).
-- [ ] Add `noindex` to `/admin/*` and any preview/staging routes.
-- [ ] Add `Article` structured data to story pages.
-- [ ] Add `BreadcrumbList` structured data.
-- [ ] Add `Event` structured data where event stories have dates.
-- [ ] Verify `sitemap.xml` and `robots.txt` render correctly in production.
-- [ ] Add a social sharing image per page (or confirm the generated default is sufficient).
-- [ ] Avoid keyword stuffing and fabricated claims (content review).
+### Phase 8 reconciliation (performed 2026-09-06 against `main` at `7b349e8`)
+
+The old Phase 8 checklist was written before the SEO architecture was built. Most items are already implemented. The reconciled status is below.
+
+#### Already implemented (no action needed)
+
+| Old checklist item | Status | Evidence |
+|---|---|---|
+| Unique `metadata` on every page | **Already implemented** | All 23 public routes use `createPublicMetadata` (`lib/metadata.ts:46-149`) with unique title, description, OG, Twitter |
+| Canonical URLs on all pages | **Already implemented** | `lib/metadata.ts:113` sets `alternates.canonical`; English unprefixed via `localePath`; editorial detail pages canonicalize to English URL |
+| Open Graph images per project/story | **Already implemented** | `contentSocialImageCandidates` (`lib/social-image.ts:153-162`); 17 generated JPEG cards in `public/images/social/`; fallback to branded card |
+| `noindex` on `/admin/*` | **Already implemented** | `app/admin/layout.tsx` (centralized after Phase 8A fix); `(hq)/layout.tsx` and `login/page.tsx` also set individually |
+| `Article` structured data on story pages | **Already implemented** | `buildArticleJsonLd` (`components/shared/JsonLd.tsx:46-89`) emitted on `stories/[slug]` |
+| `BreadcrumbList` structured data | **Already implemented** | Emitted on all detail + listing pages via `buildBreadcrumbJsonLd` |
+| `Event` structured data | **Obsolete** — no event content model exists; no management-approved events. Do not fabricate. |  |
+| `sitemap.xml` and `robots.txt` in production | **Already implemented** | `app/sitemap.ts` includes all routes with hreflang alternates; `app/robots.ts` disallows `/admin/`, `/api/`, `/brand-guide` |
+| Social sharing image per page | **Already implemented** | `resolveSocialImage` falls back to branded card; generated cards for stories/projects |
+| No keyword stuffing / fabricated claims | **Already implemented** | No keyword stuffing in metadata; content validation in `lib/validate-content.ts` |
+
+#### Additional verified behavior
+
+- **hreflang**: Correctly emitted for translated pages (`contentLocalized: true`); suppressed for English-only editorial detail pages. See `lib/metadata.ts:27-43` for the design rationale.
+- **`/en` redirect**: 308 redirect in `middleware.ts:66-72`.
+- **404 noindex**: Both `not-found.tsx` and `global-not-found.tsx` set `robots: { index: false, follow: true }`.
+- **Unpublished content**: Excluded from `generateMetadata`, sitemap, and slug generation in production. `generateMetadata` returns `{}` for unpublished items.
+- **RSS feed**: `app/(public)/[locale]/stories/rss.xml/route.ts` includes only published stories with canonical English URLs.
+- **JSON-LD inventory**: Organization/NGO + WebSite (all pages via layout), BreadcrumbList (detail + listing pages), Article (stories), FAQPage (FAQ). All URLs are absolute.
+- **Social image safety**: `lib/social-image.ts` rejects WebP/AVIF and off-origin URLs; falls back to branded JPEG card.
+- **E2E SEO tests**: `tests/e2e/seo.spec.ts` covers canonical URLs, metadata uniqueness, admin noindex, structured data presence, sitemap, robots, social image accessibility.
+
+#### Genuinely missing (Phase 8A scope)
+
+1. **Admin layout missing centralized `robots`** — `app/admin/layout.tsx` did not set `robots: { index: false, follow: false }`. Child layouts set it individually, but the parent should centralize it for future-proofing. `docs/security.md:74` claimed it was centralized when it wasn't.
+2. **`og:url` on editorial detail pages used localized path instead of canonical** — `lib/metadata.ts:100` set `url: localizedPath` in Open Graph, but for `contentLocalized: false` pages, the canonical is the English URL. Social platforms use `og:url` for canonicalization, so this split engagement signals and contradicted the canonical tag.
+3. **Article JSON-LD `image` used raw WebP hero instead of social-safe image** — `stories/[slug]/page.tsx:157` passed `story.heroImage` (always WebP) to `buildArticleJsonLd`. Google's Article structured data recommends JPEG/PNG. The JSON-LD image should match the social-safe image used for `og:image`.
+4. **Team member `og:image` always fell back to default** — `about-us/team/[slug]/page.tsx:40` passed a WebP portrait which was always rejected by the social image resolver. The dead image argument was removed for clarity; the default branded card is the explicit fallback.
+
+### Phase 8A scope (this PR)
+
+1. Add `robots: { index: false, follow: false }` to `app/admin/layout.tsx`.
+2. Fix `og:url` to use `canonicalPath` instead of `localizedPath` in `lib/metadata.ts`.
+3. Pass the resolved social image URL to `buildArticleJsonLd` instead of raw `story.heroImage`.
+4. Remove the dead WebP image argument from team member `generateMetadata`.
+5. Add regression tests: unit test for `createPublicMetadata` `og:url`/canonical alignment; E2E test for `og:url` matching canonical on detail pages; E2E test for Article JSON-LD image format.
+6. Update this implementation plan with Phase 7 closure and Phase 8 reconciliation.
+
+### Phase 8 closure
+
+- **Phase 8 reconciliation — complete.** Every old Phase 8 checklist item was classified with evidence.
+- **Phase 8A SEO remediation — complete.** PR (this PR) fixes the 4 genuine findings.
+- **Event structured data remains obsolete** — no event content model exists.
+- **Team member social cards remain deferred** — blocked on consent-cleared team photos (Phase 2 management gate). The default branded card is the explicit fallback.
 
 ---
 

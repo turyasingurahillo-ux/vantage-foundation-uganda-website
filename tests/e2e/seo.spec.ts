@@ -164,6 +164,26 @@ test.describe("SEO — page metadata", () => {
       .getAttribute("content");
     expect(metaRobots).toContain("noindex");
   });
+
+  test("editorial detail pages: og:url matches canonical", async ({ page }) => {
+    const routes = [
+      "/projects/kasaale-deep-borehole",
+      "/stories/what-are-we-without-our-dreams",
+      "/programmes/health",
+      "/about-us/team/nassazi-kauthar-wangi",
+    ];
+
+    for (const path of routes) {
+      await page.goto(path);
+      const canonical = await page
+        .locator('link[rel="canonical"]')
+        .getAttribute("href");
+      const ogUrl = await page
+        .locator('meta[property="og:url"]')
+        .getAttribute("content");
+      expect(ogUrl, path).toBe(canonical);
+    }
+  });
 });
 
 test.describe("SEO — structured data", () => {
@@ -187,12 +207,18 @@ test.describe("SEO — structured data", () => {
     ).toBe(true);
   });
 
-  test("story page has Article JSON-LD", async ({ page }) => {
+  test("story page has Article JSON-LD with crawler-safe image", async ({ page }) => {
     await page.goto("/stories/what-are-we-without-our-dreams");
     const records = await page
       .locator('script[type="application/ld+json"]')
       .allTextContents();
-    expect(records.some((record) => record.includes('"Article"'))).toBe(true);
+    const articleRecord = records.find((record) => record.includes('"Article"'));
+    expect(articleRecord, "Article JSON-LD should be present").toBeTruthy();
+    expect(articleRecord).toContain('"image"');
+    // The Article JSON-LD image must be a crawler-safe format (JPEG/PNG),
+    // not WebP/AVIF which link-preview crawlers cannot render.
+    expect(articleRecord).not.toMatch(/\.(webp|avif)["\\]/);
+    expect(articleRecord).toMatch(/\.(jpg|jpeg|png)["\\]/);
   });
 
   test("FAQ page has FAQPage JSON-LD", async ({ page }) => {
