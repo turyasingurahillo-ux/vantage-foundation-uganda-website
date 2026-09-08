@@ -120,8 +120,10 @@ vantage-website/
 │   └── validate-content.ts # Zod content validation
 ├── types/                  # TypeScript interfaces
 ├── tests/                  # Test files
-│   ├── unit/               # Vitest unit tests
-│   └── e2e/                # Playwright E2E tests
+│   ├── unit/               # Vitest unit/component tests
+│   ├── integration/        # Vitest integration tests (PGlite + real PG)
+│   ├── e2e/                # Playwright E2E tests
+│   └── helpers/            # Test utilities (PGlite, seed data)
 ├── docs/                   # Documentation
 ├── scripts/                # Setup scripts
 └── public/                 # Static assets (images, etc.)
@@ -163,15 +165,28 @@ See `docs/deployment.md` for detailed database setup instructions.
 ## Testing
 
 ```bash
-# Unit tests (65 tests)
+# Unit, component, and in-process integration tests (Vitest + PGlite)
 npm test
 
-# E2E tests (Playwright — requires build first)
+# Real PostgreSQL integration tests (requires local PG + INTEGRATION_TEST=1)
+INTEGRATION_TEST=1 INTEGRATION_DATABASE_URL=postgresql://localhost/vantage_test npx vitest run tests/integration/
+
+# Full Playwright E2E suite (requires build first)
 npm run test:e2e
 
+# CI smoke suite — a small high-value subset tagged @smoke
+npm run test:e2e:smoke
+
 # Accessibility tests (axe-core, WCAG 2.2 AA)
-npx playwright test tests/e2e/accessibility.spec.ts
+npm run test:e2e:a11y
 ```
+
+CI runs lint, type-check, content validation, placeholder checking, internal-link
+checking, Vitest, a production dependency audit, a production build, and Playwright
+E2E (accessibility + smoke). Some integration tests require an explicit local
+PostgreSQL environment (`INTEGRATION_TEST=1`) and are intentionally excluded from
+normal CI — the PGlite-backed integration tests that exercise the same SQL do run
+in every CI pass.
 
 See `docs/accessibility.md` for the accessibility testing checklist.
 

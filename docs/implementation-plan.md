@@ -760,21 +760,35 @@ The smallest high-value remediation, prioritizing exploitable issues:
 
 Goal: confidence without slowing down the team.
 
-- [ ] Add a GitHub Actions CI workflow: install, lint, type-check, build, test.
-- [ ] Install Vitest for unit tests; add tests for `lib/utils.ts`, content helpers, and Zod schemas.
-- [ ] Add React Testing Library component tests for `ContactForm`, `DonationForm`, `NewsletterForm`, `Header` (mobile menu), `ProjectList` (filtering).
-- [ ] Add Playwright E2E tests for the 8 critical journeys in the issue:
-  1. Visit homepage and navigate to a programme.
-  2. Open a project detail page.
-  3. Submit a contact enquiry.
-  4. Submit a volunteer enquiry.
-  5. Open donation information.
-  6. Read an article or story.
-  7. Use the site fully on mobile navigation.
-  8. Use major flows with keyboard only.
-- [ ] Add axe-core accessibility checks to E2E.
-- [ ] Add a broken-link checker to CI.
-- [ ] Document the test strategy in the README.
+### Already implemented
+
+- [x] **GitHub Actions CI workflow** — `.github/workflows/ci.yml` runs lint, type-check, content validation, placeholder checking, internal-link checking, Vitest, production dependency audit, production build, and Playwright E2E (accessibility + smoke). Least-privilege `permissions: contents: read`, SHA-pinned actions, npm caching.
+- [x] **Vitest for unit tests** — 72 test files, 782+ tests covering `lib/utils`, content helpers, Zod schemas, auth/session, media consent, analytics, case management, and more.
+- [x] **React Testing Library component tests** — `ContactForm` origin_page tracking (`phase-3b.test.tsx`), `AdminShell` keyboard/focus (`AdminShell.test.tsx`), `Button`, `Breadcrumbs`, `DonationCard`, `Logo`, `Markdown`, `MessageListItem`, `ReplyComposer`, `SectionHeader`, `SkipToContent`, `StatusTabs`, `StoryEditorForm`, `UgandaReachMap`, and more.
+- [x] **Playwright E2E for critical journeys** — 12 spec files, 171 tests covering all 8 original journeys:
+  1. Homepage + programme navigation — `homepage.spec.ts` (11 tests)
+  2. Project detail — `seo.spec.ts` canonical checks, `accessibility.spec.ts` page checks
+  3. Contact enquiry — `contact-privacy.spec.ts` (22 tests: validation, honeypot, time-trap, privacy)
+  4. Volunteer enquiry — covered via contact form category pre-selection deep links
+  5. Donation information — `/donate` covered in accessibility and SEO specs
+  6. Article/story — `stories.spec.ts` (20 tests), `career-guide.spec.ts` (4 tests)
+  7. Mobile navigation — `mobile-menu.spec.ts` (8 tests), `responsive.spec.ts` (8 tests)
+  8. Keyboard-only — `accessibility.spec.ts` (52 tests including keyboard navigation, skip link, focus order)
+- [x] **axe-core accessibility checks** — `tests/e2e/accessibility.spec.ts` runs in CI with WCAG 2 A/AA + 2.1/2.2 AA scans across ~22 pages.
+- [x] **Broken-link checker in CI** — `scripts/check-links.mjs` runs in CI. Phase 10A fixed the route matcher to correctly handle dynamic segments at any position, locale prefixes (en/de/fr/es/ar), English canonical (unprefixed), and static assets. Broken links now cause exit code 1.
+- [x] **Test strategy documented in README** — Testing section describes unit/component/integration/E2E/accessibility/smoke commands and the CI architecture.
+
+### Partially implemented (addressed in Phase 10A)
+
+- [x] **CI E2E smoke suite** — Phase 10A added a `@smoke`-tagged subset of 10 existing tests (no duplication) covering homepage, programme navigation, project/story detail, mobile menu, localization, SEO metadata, editorial canonical/OG, admin page redirect, and admin API 401. CI runs these alongside accessibility in a single E2E job with one build.
+- [x] **SEO E2E timing** — Phase 10A changed the metadata enumeration loop to `waitUntil: "domcontentloaded"` to eliminate a transient timeout on `/get-involved` caused by waiting for all resources on a cold server.
+
+### Intentionally deferred
+
+- **Contact/volunteer/donation form submission E2E in CI** — requires a database. Form validation, privacy, honeypot, time-trap, and keyboard reachability are covered by `contact-privacy.spec.ts` locally. Server action logic is unit-tested. Adding a DB to CI just for form submission would increase complexity and flake risk.
+- **`case-management.test.ts` in CI** — requires a real TCP PostgreSQL (not PGlite). The PGlite-backed integration tests (`my-cases-count.test.ts`, `workflow-status-constraint.test.ts` — 36 tests) exercise the same SQL in every CI pass.
+- **Broad component tests for DonationForm/NewsletterForm/ProjectList** — the contact form is extensively covered by E2E. Adding component tests would only add value if a specific regression emerges.
+- **Arbitrary code coverage thresholds** — behavioral coverage of critical workflows is more important than a vanity percentage.
 
 ---
 

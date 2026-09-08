@@ -23,7 +23,7 @@ const publicPages = [
 ];
 
 test.describe("SEO — page metadata", () => {
-  test("every public page has unique, complete metadata and an exact canonical", async ({
+  test("@smoke every public page has unique, complete metadata and an exact canonical", async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -31,7 +31,7 @@ test.describe("SEO — page metadata", () => {
     const socialTitles = new Set<string>();
 
     for (const path of publicPages) {
-      await page.goto(path);
+      await page.goto(path, { waitUntil: "domcontentloaded" });
 
       const title = await page.title();
       const description = await page
@@ -79,7 +79,7 @@ test.describe("SEO — page metadata", () => {
     }
   });
 
-  test("dynamic project, story, programme and team routes are canonical", async ({
+  test("@smoke dynamic project, story, programme and team routes are canonical", async ({
     page,
   }) => {
     const routes = [
@@ -165,7 +165,7 @@ test.describe("SEO — page metadata", () => {
     expect(metaRobots).toContain("noindex");
   });
 
-  test("editorial detail pages: og:url matches canonical", async ({ page }) => {
+  test("@smoke editorial detail pages: og:url matches canonical", async ({ page }) => {
     const routes = [
       "/projects/kasaale-deep-borehole",
       "/stories/what-are-we-without-our-dreams",

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Homepage", () => {
-  test("loads and shows hero heading", async ({ page }) => {
+  test("@smoke loads and shows hero heading", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Vantage Foundation Uganda/);
     // The hero section should have an h1.
@@ -15,7 +15,7 @@ test.describe("Homepage", () => {
     await expect(skipLink).toBeAttached();
   });
 
-  test("navigation links work", async ({ page }) => {
+  test("@smoke navigation links work", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /^Programmes$/i }).click();
     await page

@@ -190,7 +190,7 @@ test.describe("Stories — engagement features", () => {
     });
   }
 
-  test("story tags are shown near the byline", async ({ page }) => {
+  test("@smoke story tags are shown near the byline", async ({ page }) => {
     await page.goto("/stories/why-youth-spaces-matter-in-uganda");
     const hero = page.getByTestId("story-hero");
     for (const tag of ["youth empowerment", "education"]) {
