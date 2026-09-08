@@ -11,7 +11,7 @@
  * - Deliberately nonexistent routes and assets
  */
 import { describe, it, expect } from "vitest";
-import { matchRoute, routePatternToRegex } from "../../scripts/check-links.mjs";
+import { matchRoute, routePatternToRegex } from "../../scripts/check-links";
 
 // Route patterns as collected from the app directory by collectRoutes().
 // These mirror the actual app/ structure: [locale] produces a wildcard
@@ -265,7 +265,7 @@ describe("check-links negative fixture — broken link detection", () => {
   it("a known-bad asset path is not in the public files set", async () => {
     // Simulate what the main function does: check against public files.
     // A deliberately nonexistent asset should not be found.
-    const { collectPublicFiles } = await import("../../scripts/check-links.mjs");
+    const { collectPublicFiles } = await import("../../scripts/check-links");
     const { join } = await import("node:path");
     const publicFiles = new Set(
       await collectPublicFiles(join(process.cwd(), "public")),
@@ -274,7 +274,7 @@ describe("check-links negative fixture — broken link detection", () => {
   });
 
   it("a real public asset is found in the public files set", async () => {
-    const { collectPublicFiles } = await import("../../scripts/check-links.mjs");
+    const { collectPublicFiles } = await import("../../scripts/check-links");
     const { join } = await import("node:path");
     const publicFiles = new Set(
       await collectPublicFiles(join(process.cwd(), "public")),
@@ -283,5 +283,97 @@ describe("check-links negative fixture — broken link detection", () => {
     expect(publicFiles.has("/brand/social/vantage-foundation-uganda-og.jpg")).toBe(
       true,
     );
+  });
+});
+
+describe("matchRoute — finite dynamic slug validation", () => {
+  it("accepts a known project slug", () => {
+    expect(matchRoute("/projects/kasaale-deep-borehole", ROUTE_PATTERNS)).toBe(
+      true,
+    );
+  });
+
+  it("rejects an unknown project slug", () => {
+    expect(matchRoute("/projects/not-a-project", ROUTE_PATTERNS)).toBe(false);
+  });
+
+  it("accepts a known localized project slug", () => {
+    expect(
+      matchRoute("/de/projects/kasaale-deep-borehole", ROUTE_PATTERNS),
+    ).toBe(true);
+  });
+
+  it("rejects an unknown localized project slug", () => {
+    expect(matchRoute("/de/projects/not-a-project", ROUTE_PATTERNS)).toBe(false);
+  });
+
+  it("accepts a known programme slug", () => {
+    expect(matchRoute("/programmes/health", ROUTE_PATTERNS)).toBe(true);
+  });
+
+  it("rejects an unknown programme slug", () => {
+    expect(matchRoute("/programmes/not-a-programme", ROUTE_PATTERNS)).toBe(
+      false,
+    );
+  });
+
+  it("accepts a known localized programme slug", () => {
+    expect(matchRoute("/fr/programmes/health", ROUTE_PATTERNS)).toBe(true);
+  });
+
+  it("rejects an unknown localized programme slug", () => {
+    expect(matchRoute("/fr/programmes/not-a-programme", ROUTE_PATTERNS)).toBe(
+      false,
+    );
+  });
+
+  it("accepts a known static story slug", () => {
+    expect(
+      matchRoute("/stories/what-are-we-without-our-dreams", ROUTE_PATTERNS),
+    ).toBe(true);
+  });
+
+  it("rejects an unknown literal story slug", () => {
+    expect(matchRoute("/stories/not-a-story", ROUTE_PATTERNS)).toBe(false);
+  });
+
+  it("accepts a known localized story slug", () => {
+    expect(
+      matchRoute(
+        "/es/stories/what-are-we-without-our-dreams",
+        ROUTE_PATTERNS,
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects an unknown localized story slug", () => {
+    expect(matchRoute("/es/stories/not-a-story", ROUTE_PATTERNS)).toBe(false);
+  });
+
+  it("accepts a known published team slug", () => {
+    expect(
+      matchRoute("/about-us/team/nassazi-kauthar-wangi", ROUTE_PATTERNS),
+    ).toBe(true);
+  });
+
+  it("rejects an unknown team slug", () => {
+    expect(
+      matchRoute("/about-us/team/not-a-team-member", ROUTE_PATTERNS),
+    ).toBe(false);
+  });
+
+  it("accepts a known localized team slug", () => {
+    expect(
+      matchRoute(
+        "/ar/about-us/team/nassazi-kauthar-wangi",
+        ROUTE_PATTERNS,
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects an unknown localized team slug", () => {
+    expect(
+      matchRoute("/ar/about-us/team/not-a-team-member", ROUTE_PATTERNS),
+    ).toBe(false);
   });
 });

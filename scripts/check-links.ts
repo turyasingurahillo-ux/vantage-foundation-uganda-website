@@ -8,11 +8,23 @@
  * - /en/... redirects to the unprefixed canonical and is also accepted.
  * - Dynamic segments are matched as wildcards at any position in the path.
  *
+ * Finite dynamic-route validation:
+ * - /projects/[slug] validated against content/projects.ts slugs.
+ * - /programmes/[slug] validated against content/areas.ts ids.
+ * - /stories/[slug] validated against published static content/stories.ts
+ *   slugs (DB-backed stories are out of scope for a static source checker).
+ * - /about-us/team/[slug] validated against published content/team.ts slugs.
+ *
  * Run: npm run check-links
  */
 import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { getProjectSlugs } from "../content/projects";
+import { areasOfWork } from "../content/areas";
+import { getStorySlugs } from "../content/stories";
+import { getTeamSlugs } from "../content/team";
 
 const ROOT = process.cwd();
 const APP_DIR = join(ROOT, "app");
@@ -35,6 +47,18 @@ const ROUTE_FILE = /^route\.(tsx|ts|js)$/;
 const LOCALES = ["en", "de", "fr", "es", "ar"];
 const DEFAULT_LOCALE = "en";
 
+// Finite slug sets for content-backed dynamic routes.
+// Derived from the authoritative content helpers — no hardcoded lists.
+// Stories: only static content/stories.ts slugs are checked. DB-backed
+// story slugs (runtime-generated) are out of scope for a static source
+// checker and are documented as a known limitation.
+const FINITE_SLUGS: Record<string, Set<string>> = {
+  projects: new Set(getProjectSlugs()),
+  programmes: new Set(areasOfWork.map((a) => a.id)),
+  stories: new Set(getStorySlugs()),
+  team: new Set(getTeamSlugs()),
+};
+
 /**
  * Collect routes from the app directory.
  *
@@ -46,9 +70,9 @@ const DEFAULT_LOCALE = "en";
  * route pattern. The route pattern is a slash-separated string where `*`
  * matches exactly one path segment (not zero, not multiple).
  */
-async function collectRoutes(dir, basePath = "") {
+async function collectRoutes(dir: string, basePath = ""): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
-  const routes = [];
+  const routes: string[] = [];
 
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
@@ -80,7 +104,7 @@ async function collectRoutes(dir, basePath = "") {
 }
 
 /** Every file actually served from public/, as an absolute URL path. */
-async function collectPublicFiles(dir, basePath = "") {
+async function collectPublicFiles(dir: string, basePath = ""): Promise<string[]> {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
@@ -88,12 +112,12 @@ async function collectPublicFiles(dir, basePath = "") {
     return [];
   }
 
-  const files = [];
+  const files: string[] = [];
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(
-        ...(await collectPublicFiles(fullPath, `${basePath}/${entry.name}`))
+        ...(await collectPublicFiles(fullPath, `${basePath}/${entry.name}`)),
       );
     } else {
       files.push(`${basePath}/${entry.name}`);
@@ -109,7 +133,7 @@ async function collectPublicFiles(dir, basePath = "") {
  * characters that are not a slash). This prevents a wildcard from matching
  * multiple segments or zero segments.
  */
-function routePatternToRegex(pattern) {
+function routePatternToRegex(pattern: string): RegExp {
   // Escape regex special characters, then replace escaped \* with a
   // segment-matching group.
   const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, (ch) => {
@@ -118,6 +142,21 @@ function routePatternToRegex(pattern) {
   });
   const regexStr = escaped.replace(/\u0000/g, "([^/]+)");
   return new RegExp("^" + regexStr + "$");
+}
+
+/**
+ * Extract the slug from a candidate path for a given finite route prefix.
+ *
+ * For example, given prefix "wildcard/projects" and candidate
+ * "/en/projects/kasaale", returns "kasaale". Returns null if the path
+ * does not match the prefix shape.
+ */
+function extractSlug(candidate: string, prefix: string): string | null {
+  // Build a regex that captures the slug segment after the prefix.
+  // The prefix uses * as a wildcard for one segment.
+  const prefixRegex = routePatternToRegex(`${prefix}/*`);
+  const match = candidate.match(prefixRegex);
+  return match ? match[match.length - 1] : null;
 }
 
 /**
@@ -134,11 +173,10 @@ function routePatternToRegex(pattern) {
  * - Non-locale first segments (e.g. /admin, /api) match exact or
  *   non-locale route patterns directly.
  *
- * @param {string} urlPath - The URL path (no query string, no fragment).
- * @param {string[]} routePatterns - Collected route patterns from the app dir.
- * @returns {boolean} - True if the path matches a valid route.
+ * Finite dynamic routes (projects, programmes, stories, team) validate
+ * the slug against the known content slug sets.
  */
-function matchRoute(urlPath, routePatterns) {
+function matchRoute(urlPath: string, routePatterns: string[]): boolean {
   // We try multiple candidate paths to handle the locale architecture.
   const candidates = [urlPath];
 
@@ -193,7 +231,43 @@ function matchRoute(urlPath, routePatterns) {
       }
 
       const regex = routePatternToRegex(pattern);
-      if (regex.test(candidate)) return true;
+      if (!regex.test(candidate)) continue;
+
+      // Finite dynamic-route validation: check the slug against known
+      // content slugs for content-backed routes.
+      //
+      // The pattern is like "/*/projects/*" (locale/projects/[slug]).
+      // We need to extract the slug and check it against FINITE_SLUGS.
+      //
+      // Map route prefixes to finite slug set keys.
+      const finiteRouteMap: Record<string, keyof typeof FINITE_SLUGS> = {
+        "/*/projects": "projects",
+        "/*/programmes": "programmes",
+        "/*/stories": "stories",
+        "/*/about-us/team": "team",
+      };
+
+      let isFiniteRoute = false;
+      for (const [prefix, slugKey] of Object.entries(finiteRouteMap)) {
+        if (pattern === `${prefix}/*`) {
+          isFiniteRoute = true;
+          const slug = extractSlug(candidate, prefix);
+          if (slug && FINITE_SLUGS[slugKey].has(slug)) {
+            return true;
+          }
+          // Slug doesn't match — this candidate is invalid for this
+          // finite route. Break out of the inner loop; do NOT fall
+          // through to the generic "pattern matched" return true below.
+          break;
+        }
+      }
+
+      // If this was a finite route pattern but the slug didn't match,
+      // do not accept the candidate — try the next pattern.
+      if (isFiniteRoute) continue;
+
+      // Not a finite dynamic route — pattern matched, accept it.
+      return true;
     }
   }
 
@@ -206,9 +280,9 @@ const LINK_PATTERNS = [
   /url:\s*["'`]([^"'`]+)["'`]/g,
 ];
 
-async function scanLinks(dir) {
+async function scanLinks(dir: string): Promise<{ url: string; file: string }[]> {
   const entries = await readdir(dir, { withFileTypes: true });
-  const links = [];
+  const links: { url: string; file: string }[] = [];
 
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
@@ -240,8 +314,10 @@ export {
   scanLinks,
   matchRoute,
   routePatternToRegex,
+  extractSlug,
   LINK_PATTERNS,
   LOCALES,
+  FINITE_SLUGS,
 };
 
 async function main() {
@@ -250,7 +326,7 @@ async function main() {
   const publicFiles = new Set(await collectPublicFiles(PUBLIC_DIR));
 
   console.log(
-    `Found ${routePatterns.length} routes and ${publicFiles.size} public files.\n`
+    `Found ${routePatterns.length} routes and ${publicFiles.size} public files.\n`,
   );
 
   console.log("Scanning for internal links...");
@@ -259,7 +335,7 @@ async function main() {
   const uniqueLinks = [...new Map(links.map((l) => [l.url, l])).values()];
   console.log(`Found ${uniqueLinks.length} unique internal links.\n`);
 
-  const broken = [];
+  const broken: { url: string; file: string }[] = [];
   for (const link of uniqueLinks) {
     const url = link.url.split("?")[0].split("#")[0];
     if (url === "/" || url === "") continue;
@@ -288,7 +364,7 @@ async function main() {
   process.exit(1);
 }
 
-// Run main() only when this module is the direct entry point (node scripts/check-links.mjs),
+// Run main() only when this module is the direct entry point,
 // not when imported as a library (e.g. by tests/unit/check-links.test.ts).
 const isMainModule = (() => {
   if (!process.argv[1]) return false;

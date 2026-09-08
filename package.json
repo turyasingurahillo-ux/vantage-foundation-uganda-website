@@ -15,7 +15,7 @@
     "test:e2e:smoke": "playwright test --project=smoke",
     "test:e2e:a11y": "playwright test tests/e2e/accessibility.spec.ts",
     "check-placeholders": "node scripts/check-placeholders.mjs",
-    "check-links": "node scripts/check-links.mjs",
+    "check-links": "tsx scripts/check-links.ts",
     "generate:social": "tsx scripts/generate-social-cards.mjs",
     "prebuild": "npm run validate-content && node scripts/migrate-on-build.mjs"
   },
