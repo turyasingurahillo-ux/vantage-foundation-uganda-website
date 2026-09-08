@@ -803,15 +803,19 @@ PR #93 squash-merged to `main` as `d2a496ed7a824da86dee8f5db3c84272f877dc1a`. Al
 
 Goal: a project-specific, complete README and docs set.
 
-- [ ] Replace the default README with a project-specific one: purpose, stack, architecture, local setup, env vars, commands, content workflow, media workflow, testing, deployment, database/migrations, email config, security notes, troubleshooting.
-- [ ] Finalise `docs/technical-audit.md` (update with post-fix status).
-- [ ] Finalise `docs/content-model.md`.
-- [ ] Finalise `docs/design-system.md` (design tokens, colours, typography, spacing, components).
-- [ ] Finalise `docs/media-guidelines.md`.
-- [ ] Finalise `docs/deployment.md`.
-- [ ] Finalise `docs/editorial-guidelines.md`.
-- [ ] Finalise `docs/safeguarding-and-consent.md`.
-- [ ] Add `docs/accessibility.md`.
+- [x] Replace the default README with a project-specific one: purpose, stack, architecture, local setup, env vars, commands, content workflow, media workflow, testing, deployment, database/migrations, email config, security notes, troubleshooting.
+- [x] Finalise `docs/technical-audit.md` — marked as historical Phase 1 snapshot with a notice pointing to current docs.
+- [x] Finalise `docs/content-model.md` — added Case Management section.
+- [x] Finalise `docs/design-system.md` — marked as superseded, points to `docs/design-tokens.md` and `docs/brand/colour-system.md`.
+- [x] Finalise `docs/media-guidelines.md` — added R2 admin media upload workflow section.
+- [x] Finalise `docs/deployment.md` — added all missing env vars, expanded admin section, updated audit logging and migrations.
+- [x] Finalise `docs/editorial-guidelines.md` — added admin story editor and R2 media upload sections.
+- [x] Finalise `docs/safeguarding-and-consent.md` — updated management approval section (operational but not finalised).
+- [x] Add `docs/accessibility.md` — already existed and was current.
+
+### Phase 11 merged
+
+PR #95 squash-merged to `main` as `42941cdf1e023442691f8134dbc67a8452063f63`. All CI checks passed (lint/type-check/unit, build, E2E, Vercel, Devin Review).
 
 ---
 
