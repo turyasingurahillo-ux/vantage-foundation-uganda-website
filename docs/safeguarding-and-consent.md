@@ -126,11 +126,17 @@ For consent questions, removal requests, or safeguarding concerns:
 
 ## Management approval
 
-This policy is a draft. It requires review and approval by Vantage Foundation
-Uganda leadership before public launch. Items requiring management input:
+This policy requires review and approval by Vantage Foundation Uganda
+leadership before public launch. The operational principles and consent
+classification system are implemented in the codebase; the following
+items require management input to finalise:
 
 1. Final consent form templates (adult, child, group).
 2. Data retention periods (how long to keep photos after consent expires).
 3. Who is the designated safeguarding officer.
 4. Process for handling safeguarding incidents.
 5. Legal requirements under Ugandan data protection law.
+
+Until these items are resolved, the policy is operational but not
+finalised. The codebase enforces consent defaults (`pending` + `unpublished`)
+so no media can be published without explicit admin action.
