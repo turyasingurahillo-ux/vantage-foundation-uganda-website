@@ -166,3 +166,24 @@ manually review for `[` characters in content fields.
   `ImageOrPlaceholder` component shows a styled placeholder.
 - Every published image should have a corresponding entry in
   `content/media.ts` with consent metadata.
+- Operational media (photos, documents, logos) can also be uploaded at
+  runtime through `/admin/media` (Cloudflare R2). See
+  `docs/media-guidelines.md` for the R2 upload workflow.
+
+## Admin story editor
+
+In addition to editing `content/stories.ts` directly, stories can be
+created and managed through the admin dashboard at `/admin/stories`:
+
+- Stories created via the admin editor are stored in the `stories`
+  PostgreSQL table, not in `content/stories.ts`.
+- New entries default to drafts; publishing is explicit.
+- The public `/stories` route merges both sources (static + database),
+  deduplicating by slug (static takes precedence).
+- Hero images can be uploaded through the media presign flow.
+- The admin editor opens to a Content Analytics & Intelligence Dashboard
+  with KPI summary, trend chart, traffic source breakdown, and
+  performance rankings.
+
+See `docs/content-model.md` → "Database-Backed Stories" for the merge
+logic and build-time requirements.

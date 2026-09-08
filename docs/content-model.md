@@ -120,6 +120,22 @@ Media featuring people uses a `consentClassification` field:
 
 See `docs/safeguarding-and-consent.md` for the full consent policy.
 
+## Case Management
+
+Contact form submissions are stored in the `contact_messages` table and
+enriched with case-management fields (additive, not a separate table).
+The case workflow is tracked separately from the message delivery state:
+
+- **Message delivery state** (`status`): new / awaiting_response / replied / archived — tracks email correspondence.
+- **Case workflow state** (`workflow_status`): new / triage / awaiting_vantage / awaiting_external / under_review / due_diligence / meeting_scheduled / decision_required / accepted / referred / declined / completed / archived — tracks what happens next in the relationship.
+
+Key files:
+- `lib/case-types.ts` — shared domain model (workflow status, case type, source, priority, risk, strategic value, outcome, decline reason, referral outcome, programme, filters). Client/server safe.
+- `lib/db/cases.ts` — case data access layer (seed from contact submission, manual intake, search with operational filters, counts, upcoming actions, update, notes, first-response stamping).
+- `lib/db/migrations/case-management-pipeline.sql` — additive, idempotent schema migration.
+
+See `docs/case-management-workflows.md` for the full case management documentation.
+
 ## Build-Time Validation
 
 `lib/validate-content.ts` runs Zod schema validation on all content modules before the build. Run it with:

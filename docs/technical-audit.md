@@ -1,4 +1,12 @@
-# Vantage Foundation Uganda Website — Technical Audit
+# Vantage Foundation Uganda Website — Technical Audit (Phase 1, Historical)
+
+> **Historical document.** This audit was conducted on 2026-07-25 against
+> commit `306101e` (Phase 1). The codebase has since progressed through
+> Phases 2–10. Many findings here have been resolved; some remain as
+> documented decisions. This document is preserved for historical context
+> and to trace why specific architectural choices were made. For the
+> current state of the project, see `README.md`,
+> `docs/implementation-plan.md`, and `AGENTS.md`.
 
 **Date:** 2026-07-25
 **Auditor:** Devin (Phase 1 of GitHub Issue #1)
