@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Globe2 } from "lucide-react";
 import {
   localeNames,
@@ -44,6 +45,7 @@ export function LanguageSelector({
   const [changing, setChanging] = useState(false);
   const generatedId = useId();
   const selectId = id ?? generatedId;
+  const router = useRouter();
 
   async function changeLocale(nextLocale: Locale) {
     if (nextLocale === locale || changing) return;
@@ -58,7 +60,7 @@ export function LanguageSelector({
       const destination = `${localePath(window.location.pathname, nextLocale)}${window.location.search}${window.location.hash}`;
       // A full document load, not a client transition: the locale lives in the
       // root layout, so `<html lang>` and the whole shell have to be re-rendered.
-      window.location.assign(destination);
+      router.push(destination);
     } catch {
       setChanging(false);
     }
