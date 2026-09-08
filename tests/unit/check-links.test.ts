@@ -215,6 +215,14 @@ describe("matchRoute — nonexistent routes", () => {
   it("rejects a nonexistent admin sub-route", () => {
     expect(matchRoute("/admin/nonexistent", ROUTE_PATTERNS)).toBe(false);
   });
+
+  it("rejects an unsupported locale prefix (/xx/about-us)", () => {
+    expect(matchRoute("/xx/about-us", ROUTE_PATTERNS)).toBe(false);
+  });
+
+  it("rejects an unsupported locale prefix on a detail route (/xx/projects/example)", () => {
+    expect(matchRoute("/xx/projects/example", ROUTE_PATTERNS)).toBe(false);
+  });
 });
 
 describe("matchRoute — admin routes (non-locale)", () => {

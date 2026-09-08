@@ -11,7 +11,8 @@
  * Run: npm run check-links
  */
 import { readFile, readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const ROOT = process.cwd();
 const APP_DIR = join(ROOT, "app");
@@ -182,6 +183,15 @@ function matchRoute(urlPath, routePatterns) {
         continue;
       }
 
+      // Patterns starting with "/*/" represent [locale]/... routes.
+      // The first wildcard segment must be a known locale, not an
+      // arbitrary string like "xx". This prevents /xx/about-us from
+      // matching the /*/about-us pattern.
+      if (pattern.startsWith("/*/")) {
+        const seg = candidate.split("/")[1] ?? "";
+        if (!LOCALES.includes(seg)) continue;
+      }
+
       const regex = routePatternToRegex(pattern);
       if (regex.test(candidate)) return true;
     }
@@ -278,7 +288,18 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
-  console.error("Link check failed:", err);
-  process.exit(1);
-});
+// Run main() only when this module is the direct entry point (node scripts/check-links.mjs),
+// not when imported as a library (e.g. by tests/unit/check-links.test.ts).
+const isMainModule = (() => {
+  if (!process.argv[1]) return false;
+  const argvPath = resolve(process.argv[1]).replace(/\\/g, "/");
+  const modulePath = fileURLToPath(import.meta.url).replace(/\\/g, "/");
+  return argvPath === modulePath;
+})();
+
+if (isMainModule) {
+  main().catch((err) => {
+    console.error("Link check failed:", err);
+    process.exit(1);
+  });
+}
