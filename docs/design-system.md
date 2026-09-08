@@ -1,11 +1,21 @@
 # Design System
 
 > **Superseded.** This document predates the current brand system and its
-> colour values are stale. See `docs/design-tokens.md` (implementation) and
-> `docs/brand/colour-system.md` (palette + contrast ratios) for the current
-> source of truth. Kept for historical reference only.
+> colour values are stale. The canonical design system documentation now
+> lives in:
+>
+> - **`docs/design-tokens.md`** — implementation tokens (CSS custom
+>   properties, Tailwind mapping)
+> - **`docs/brand/colour-system.md`** — colour palette with contrast ratios
+>
+> This file is preserved for historical reference only. Do not update the
+> values below — update the canonical sources instead.
 
-This document describes the design tokens, colors, typography, spacing, and components used on the Vantage Foundation Uganda website.
+---
+
+The following is the original Phase 1–2 design system documentation,
+preserved for historical context. It may not reflect the current
+codebase.
 
 ## Design Tokens
 
