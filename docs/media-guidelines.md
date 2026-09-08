@@ -128,3 +128,67 @@ The original raw photos in `vantage photos/` should be backed up securely
 and not committed to the git repository (they contain personal data and
 are large). The processed WebP/AVIF files in `public/images/photos/` are
 committed to the repository.
+
+## Admin media uploads (Cloudflare R2)
+
+In addition to the committed static image pipeline, operational media
+(photos, documents, logos) can be uploaded at runtime through the admin
+dashboard at `/admin/media`. These uploads are stored in Cloudflare R2,
+not in the git repository.
+
+### Upload flow
+
+1. The admin selects a file and folder in `/admin/media`.
+2. The browser requests a presigned PUT URL from `/api/admin/media/presign`.
+   - Authorization uses Layer B (active session verification) — disabled
+     admins and retired bootstrap sessions are rejected before any upload
+     capability is minted.
+   - CSRF validation runs before presigning.
+   - The server validates the MIME type and file size against the allowed
+     set (JPEG, PNG, WebP, AVIF, GIF, PDF).
+3. The browser uploads directly to R2 via the presigned PUT URL.
+4. The server confirms the object via HEAD and records it in the
+   `media_objects` table.
+5. The object key (not a signed URL) is stored in the database for
+   stability; presigned GET URLs are minted at render time.
+
+### Consent and publication
+
+New uploads default to:
+- `consent: "pending"` — consent must be verified before publishing.
+- `published: false` — the object is not visible on the public site until
+  an admin explicitly publishes it.
+
+Set both fields before publishing. See the human review checklist above
+for consent classification guidance.
+
+### Audit
+
+All media create, update, and delete actions are written to the immutable
+`audit_log` table with:
+- Actor identity (admin username or bootstrap)
+- Before/after JSON snapshot
+- Admin IP address
+- Timestamp
+
+### Key files
+
+- `lib/storage/r2-client.ts` — R2 client and presigned URL generation
+- `lib/storage/vantage-objects.ts` — object key conventions
+- `lib/db/media.ts` — media object database queries
+- `app/api/admin/media/presign/route.ts` — presign endpoint
+- `app/api/admin/media/route.ts` — media CRUD endpoints
+- `components/admin/MediaManager.tsx` — admin media manager UI
+
+### Relationship to the static image pipeline
+
+The two systems are complementary:
+- **Committed static images** (`public/images/photos/`) — content images
+  bundled with the codebase, processed through `scripts/process-images.js`
+  and tracked in `content/media.ts`.
+- **Admin R2 uploads** — operational media managed at runtime through the
+  admin dashboard, stored in R2 and tracked in the `media_objects` table.
+
+Both systems enforce the same consent classification model. The static
+pipeline is for images that ship with the codebase; R2 uploads are for
+images added by admins without a code deployment.
