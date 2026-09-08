@@ -763,7 +763,7 @@ Goal: confidence without slowing down the team.
 ### Already implemented
 
 - [x] **GitHub Actions CI workflow** — `.github/workflows/ci.yml` runs lint, type-check, content validation, placeholder checking, internal-link checking, Vitest, production dependency audit, production build, and Playwright E2E (accessibility + smoke). Least-privilege `permissions: contents: read`, SHA-pinned actions, npm caching.
-- [x] **Vitest for unit tests** — 72 test files, 782+ tests covering `lib/utils`, content helpers, Zod schemas, auth/session, media consent, analytics, case management, and more.
+- [x] **Vitest for unit tests** — 73 test files, 834+ tests covering `lib/utils`, content helpers, Zod schemas, auth/session, media consent, analytics, case management, link-checker route matching, and more.
 - [x] **React Testing Library component tests** — `ContactForm` origin_page tracking (`phase-3b.test.tsx`), `AdminShell` keyboard/focus (`AdminShell.test.tsx`), `Button`, `Breadcrumbs`, `DonationCard`, `Logo`, `Markdown`, `MessageListItem`, `ReplyComposer`, `SectionHeader`, `SkipToContent`, `StatusTabs`, `StoryEditorForm`, `UgandaReachMap`, and more.
 - [x] **Playwright E2E for critical journeys** — 12 spec files, 171 tests covering all 8 original journeys:
   1. Homepage + programme navigation — `homepage.spec.ts` (11 tests)
@@ -775,19 +775,26 @@ Goal: confidence without slowing down the team.
   7. Mobile navigation — `mobile-menu.spec.ts` (8 tests), `responsive.spec.ts` (8 tests)
   8. Keyboard-only — `accessibility.spec.ts` (52 tests including keyboard navigation, skip link, focus order)
 - [x] **axe-core accessibility checks** — `tests/e2e/accessibility.spec.ts` runs in CI with WCAG 2 A/AA + 2.1/2.2 AA scans across ~22 pages.
-- [x] **Broken-link checker in CI** — `scripts/check-links.mjs` runs in CI. Phase 10A fixed the route matcher to correctly handle dynamic segments at any position, locale prefixes (en/de/fr/es/ar), English canonical (unprefixed), and static assets. Broken links now cause exit code 1.
+- [x] **Broken-link checker in CI** — `scripts/check-links.ts` (converted from `.mjs` to TypeScript, executed via `tsx`) runs in CI. Phase 10A fixed the route matcher to correctly handle dynamic segments at any position, locale prefixes (en/de/fr/es/ar), English canonical (unprefixed), and static assets. Broken links now cause exit code 1. Finite dynamic-route slug validation was added: `/projects/[slug]`, `/programmes/[slug]`, `/stories/[slug]`, and `/about-us/team/[slug]` are validated against authoritative content helpers (no hardcoded lists). DB-backed story slugs are out of scope for a static source checker and documented as a known limitation.
 - [x] **Test strategy documented in README** — Testing section describes unit/component/integration/E2E/accessibility/smoke commands and the CI architecture.
 
 ### Partially implemented (addressed in Phase 10A)
 
 - [x] **CI E2E smoke suite** — Phase 10A added a `@smoke`-tagged subset of 10 existing tests (no duplication) covering homepage, programme navigation, project/story detail, mobile menu, localization, SEO metadata, editorial canonical/OG, admin page redirect, and admin API 401. CI runs these alongside accessibility in a single E2E job with one build.
 - [x] **SEO E2E timing** — Phase 10A changed the metadata enumeration loop to `waitUntil: "domcontentloaded"` to eliminate a transient timeout on `/get-involved` caused by waiting for all resources on a cold server.
+- [x] **Finite dynamic-route slug validation** — Phase 10A converted the link checker to TypeScript (`scripts/check-links.ts`, run via `tsx`) and imported authoritative content helpers directly. `/projects/[slug]`, `/programmes/[slug]`, `/stories/[slug]`, and `/about-us/team/[slug]` are validated against `getProjectSlugs()`, `areasOfWork` ids, `getStorySlugs()`, and `getTeamSlugs()` respectively. Unknown literals like `/projects/not-a-project` now fail. 52 unit tests in `tests/unit/check-links.test.ts`.
+- [x] **Vitest isolation investigation** — `presign-route.test.ts` was observed failing once in the full suite. Investigation: 4 consecutive clean full-suite runs (834 passed, 27 skipped, 0 failed) and 3 targeted bisect runs (36 passed, 0 failed). No deterministic cause found. The earlier flake is most plausibly explained by the pre-fix `check-links.mjs` import side effect (`process.exit` on import corrupting Vitest's module registry). After the import-gating fix the issue no longer reproduces. No Vitest retries were added.
+
+### Phase 10A merged
+
+PR #93 squash-merged to `main` as `d2a496ed7a824da86dee8f5db3c84272f877dc1a`. All three Devin Review threads replied to and resolved. Production smoke checks passed (all public routes 200, `/admin/login` 200 with `noindex, nofollow`, security headers present).
 
 ### Intentionally deferred
 
 - **Contact/volunteer/donation form submission E2E in CI** — requires a database. Form validation, privacy, honeypot, time-trap, and keyboard reachability are covered by `contact-privacy.spec.ts` locally. Server action logic is unit-tested. Adding a DB to CI just for form submission would increase complexity and flake risk.
 - **`case-management.test.ts` in CI** — requires a real TCP PostgreSQL (not PGlite). The PGlite-backed integration tests (`my-cases-count.test.ts`, `workflow-status-constraint.test.ts` — 36 tests) exercise the same SQL in every CI pass.
 - **Broad component tests for DonationForm/NewsletterForm/ProjectList** — the contact form is extensively covered by E2E. Adding component tests would only add value if a specific regression emerges.
+- **DB-backed story slugs in the link checker** — runtime-generated story URLs from the `stories` table cannot be validated by a static source checker without a database. The checker validates literal source links against published static `content/stories.ts` slugs only.
 - **Arbitrary code coverage thresholds** — behavioral coverage of critical workflows is more important than a vanity percentage.
 
 ---
