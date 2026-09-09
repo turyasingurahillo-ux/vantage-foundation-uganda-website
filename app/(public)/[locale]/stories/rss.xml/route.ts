@@ -1,4 +1,5 @@
 import { getPublishedStoriesWithDb } from "@/lib/stories-public";
+import { toCanonicalUrl } from "@/lib/site-url";
 import { site } from "@/content/site";
 
 export const revalidate = 3600;
@@ -12,8 +13,8 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>>[number], baseUrl: string): string {
-  const url = `${baseUrl}/stories/${story.slug}`;
+function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>>[number]): string {
+  const url = toCanonicalUrl(`/stories/${story.slug}`);
   const description = escapeXml(story.excerpt);
   const title = escapeXml(story.title);
   const author = story.author ? escapeXml(story.author) : site.name;
@@ -21,10 +22,12 @@ function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>
     ? story.tags.map((t) => `      <category>${escapeXml(t)}</category>`).join("\n")
     : "";
 
+  const urlXml = escapeXml(url);
+
   return `    <item>
       <title>${title}</title>
-      <link>${url}</link>
-      <guid isPermaLink="true">${url}</guid>
+      <link>${urlXml}</link>
+      <guid isPermaLink="true">${urlXml}</guid>
       <description>${description}</description>
       <dc:creator>${author}</dc:creator>
       <pubDate>${new Date(story.date).toUTCString()}</pubDate>${categories ? "\n" + categories : ""}
@@ -32,20 +35,22 @@ function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>
 }
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url || "https://vantagefoundationuganda.org";
   const stories = await getPublishedStoriesWithDb();
   const lastBuildDate = stories.length > 0
     ? new Date(stories[0].date).toUTCString()
     : new Date().toUTCString();
 
-  const items = stories.map((s) => storyToItem(s, baseUrl)).join("\n");
+  const items = stories.map((s) => storyToItem(s)).join("\n");
+
+  const channelLink = escapeXml(toCanonicalUrl("/stories"));
+  const selfLink = escapeXml(toCanonicalUrl("/stories/rss.xml"));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escapeXml(site.name)} — Stories</title>
-    <link>${baseUrl}/stories</link>
-    <atom:link href="${baseUrl}/stories/rss.xml" rel="self" type="application/rss+xml" />
+    <link>${channelLink}</link>
+    <atom:link href="${selfLink}" rel="self" type="application/rss+xml" />
     <description>Stories and updates from ${escapeXml(site.name)}</description>
     <language>en</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
