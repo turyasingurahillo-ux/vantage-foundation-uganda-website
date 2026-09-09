@@ -1,5 +1,5 @@
 import { getPublishedStoriesWithDb } from "@/lib/stories-public";
-import { resolveSiteUrl } from "@/lib/site-url";
+import { toCanonicalUrl } from "@/lib/site-url";
 import { site } from "@/content/site";
 
 export const revalidate = 3600;
@@ -13,12 +13,8 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function toBaseUrlUrl(path: string, baseUrl: string): string {
-  return new URL(path, `${baseUrl}/`).toString();
-}
-
-function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>>[number], baseUrl: string): string {
-  const url = toBaseUrlUrl(`/stories/${story.slug}`, baseUrl);
+function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>>[number]): string {
+  const url = toCanonicalUrl(`/stories/${story.slug}`);
   const description = escapeXml(story.excerpt);
   const title = escapeXml(story.title);
   const author = story.author ? escapeXml(story.author) : site.name;
@@ -39,16 +35,15 @@ function storyToItem(story: Awaited<ReturnType<typeof getPublishedStoriesWithDb>
 }
 
 export async function GET() {
-  const baseUrl = resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
   const stories = await getPublishedStoriesWithDb();
   const lastBuildDate = stories.length > 0
     ? new Date(stories[0].date).toUTCString()
     : new Date().toUTCString();
 
-  const items = stories.map((s) => storyToItem(s, baseUrl)).join("\n");
+  const items = stories.map((s) => storyToItem(s)).join("\n");
 
-  const channelLink = escapeXml(toBaseUrlUrl("/stories", baseUrl));
-  const selfLink = escapeXml(toBaseUrlUrl("/stories/rss.xml", baseUrl));
+  const channelLink = escapeXml(toCanonicalUrl("/stories"));
+  const selfLink = escapeXml(toCanonicalUrl("/stories/rss.xml"));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
