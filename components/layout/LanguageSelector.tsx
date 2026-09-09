@@ -58,7 +58,8 @@ export function LanguageSelector({
       const destination = `${localePath(window.location.pathname, nextLocale)}${window.location.search}${window.location.hash}`;
       // A full document load, not a client transition: the locale lives in the
       // root layout, so `<html lang>` and the whole shell have to be re-rendered.
-      window.location.assign(destination);
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full document load is required to remount the locale-owned shell
+      window.location.href = destination;
     } catch {
       setChanging(false);
     }
