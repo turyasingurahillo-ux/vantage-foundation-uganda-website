@@ -4,7 +4,6 @@ import { site } from "@/content/site";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { DonationForm } from "@/components/shared/DonationForm";
-import { InternationalTransferOptions } from "@/components/shared/InternationalTransferOptions";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Shield, Heart, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -148,10 +147,8 @@ export default async function DonatePage({
         </Container>
       </section>
 
-      <InternationalTransferOptions locale={locale} />
-
       {/* How it works — step by step */}
-      <section className="py-16 md:py-24">
+      <section className="bg-surface py-16 md:py-24">
         <Container>
           <SectionHeader
             eyebrow={content.stepsEyebrow}
