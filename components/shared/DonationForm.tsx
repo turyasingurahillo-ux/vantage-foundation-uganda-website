@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useActionState } from "react";
 import { submitDonor, FormState } from "@/app/actions";
 import { Input } from "@/components/ui/Input";
@@ -31,6 +31,40 @@ const initialState: FormState = {
   message: "",
 };
 
+function createReferenceStore() {
+  let clientValue = "";
+  let scheduled = false;
+  const listeners = new Set<() => void>();
+
+  function setClientValue() {
+    if (clientValue) return;
+    clientValue = createDonationReference();
+    listeners.forEach((listener) => listener());
+  }
+
+  function schedule() {
+    if (scheduled || typeof window === "undefined") return;
+    scheduled = true;
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(setClientValue);
+    } else {
+      setTimeout(setClientValue, 0);
+    }
+  }
+
+  function subscribe(listener: () => void) {
+    listeners.add(listener);
+    if (!clientValue) schedule();
+    return () => listeners.delete(listener);
+  }
+
+  return {
+    subscribe,
+    getSnapshot: () => clientValue,
+    getServerSnapshot: () => "",
+  };
+}
+
 export function DonationForm({
   form,
   campaigns,
@@ -43,13 +77,14 @@ export function DonationForm({
   const [custom, setCustom] = useState("");
   const [transferMethod, setTransferMethod] =
     useState<DonationTransferMethod>("bank");
-  const [donationReference, setDonationReference] = useState("");
+  const [referenceStore] = useState(createReferenceStore);
+  const donationReference = useSyncExternalStore(
+    referenceStore.subscribe,
+    referenceStore.getSnapshot,
+    referenceStore.getServerSnapshot,
+  );
   const [state, formAction, pending] = useActionState(submitDonor, initialState);
   const transferCopy = donationTransferCopy[locale];
-
-  useEffect(() => {
-    setDonationReference(createDonationReference());
-  }, []);
 
   const displayAmount = custom || amount || "";
 
