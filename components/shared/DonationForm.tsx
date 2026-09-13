@@ -1,22 +1,28 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { useActionState } from "react";
-import { submitDonor, FormState } from "@/app/actions";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Label } from "@/components/ui/Label";
-import { Button } from "@/components/ui/Button";
-import { HoneypotFields } from "@/components/shared/HoneypotFields";
+import { useActionState, useState, useSyncExternalStore, type FormEvent } from "react";
+import { Check, Copy, ExternalLink, Landmark, ShieldCheck } from "lucide-react";
+import { submitDonor, type FormState } from "@/app/actions";
+import { site } from "@/content/site";
 import { FieldError } from "@/components/shared/FieldError";
 import { FormPrivacyNotice } from "@/components/shared/FormPrivacyNotice";
+import { HoneypotFields } from "@/components/shared/HoneypotFields";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Select } from "@/components/ui/Select";
 import {
   createDonationReference,
+  OFFICIAL_TRANSFER_URLS,
   type DonationTransferMethod,
 } from "@/lib/donation-transfer";
+import { donationFlowCopy } from "@/lib/i18n/content/donation-flow";
 import { donationTransferCopy } from "@/lib/i18n/content/donation-transfer";
 import { localePath, type Locale } from "@/lib/i18n/config";
-import type { DonationFormCopy, DonationCampaign } from "@/lib/i18n/content/engagement";
+import type {
+  DonationCampaign,
+  DonationFormCopy,
+} from "@/lib/i18n/content/engagement";
 
 interface DonationFormProps {
   form: DonationFormCopy;
@@ -26,10 +32,7 @@ interface DonationFormProps {
   locale?: Locale;
 }
 
-const initialState: FormState = {
-  success: false,
-  message: "",
-};
+const initialState: FormState = { success: false, message: "" };
 
 function createReferenceStore() {
   let clientValue = "";
@@ -65,6 +68,58 @@ function createReferenceStore() {
   };
 }
 
+function StepRail({
+  active,
+  labels,
+}: {
+  active: 1 | 2 | 3;
+  labels: [string, string, string];
+}) {
+  return (
+    <ol className="grid grid-cols-3 gap-2" aria-label="Donation progress">
+      {labels.map((label, index) => {
+        const step = (index + 1) as 1 | 2 | 3;
+        const complete = step < active;
+        const current = step === active;
+        return (
+          <li key={label} className="min-w-0">
+            <div
+              className={`h-1.5 rounded-full ${complete || current ? "bg-primary" : "bg-border"}`}
+              aria-hidden="true"
+            />
+            <div className="mt-2 flex items-start gap-2">
+              <span
+                className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  complete
+                    ? "bg-primary text-white"
+                    : current
+                      ? "border-2 border-primary text-primary"
+                      : "border border-border text-muted-foreground"
+                }`}
+              >
+                {complete ? (
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  step
+                )}
+              </span>
+              <span
+                className={`hidden text-xs leading-5 sm:block ${
+                  current
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {label}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export function DonationForm({
   form,
   campaigns,
@@ -72,9 +127,12 @@ export function DonationForm({
   privacyLabel,
   locale = "en",
 }: DonationFormProps) {
-  const [amount, setAmount] = useState<string>("");
-  const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
+  const [amount, setAmount] = useState("");
   const [custom, setCustom] = useState("");
+  const [frequency, setFrequency] = useState<"one-time" | "monthly">(
+    "one-time",
+  );
+  const [email, setEmail] = useState("");
   const [transferMethod, setTransferMethod] =
     useState<DonationTransferMethod>("bank");
   const [referenceStore] = useState(createReferenceStore);
@@ -84,13 +142,316 @@ export function DonationForm({
     referenceStore.getServerSnapshot,
   );
   const [state, formAction, pending] = useActionState(submitDonor, initialState);
-  const transferCopy = donationTransferCopy[locale];
+  const [copiedKey, setCopiedKey] = useState("");
+  const [transactionReference, setTransactionReference] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [confirmationSuccess, setConfirmationSuccess] = useState(false);
 
-  const displayAmount = custom || amount || "";
+  const transferCopy = donationTransferCopy[locale];
+  const flow = donationFlowCopy[locale];
+  const displayAmount = custom || amount;
+  const selectedMethod = transferCopy.methods[transferMethod];
+
+  async function copyValue(key: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedKey(key);
+      window.setTimeout(
+        () => setCopiedKey((current) => (current === key ? "" : current)),
+        1800,
+      );
+    } catch {
+      setCopiedKey("");
+    }
+  }
+
+  const transferDetails = [
+    `${transferCopy.bankLabel}: ${site.bankDetails.bankName}`,
+    `${transferCopy.accountNameLabel}: ${site.bankDetails.accountName}`,
+    `${transferCopy.accountNumberLabel}: ${site.bankDetails.accountNumber}`,
+    `${transferCopy.swiftLabel}: ${site.bankDetails.swiftCode}`,
+    `${flow.paymentReference}: ${donationReference}`,
+  ].join("\n");
+
+  async function confirmTransfer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!transactionReference.trim() || confirming) return;
+
+    setConfirming(true);
+    setConfirmationMessage("");
+    setConfirmationSuccess(false);
+
+    try {
+      const response = await fetch("/api/donations/confirm-transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          donationReference,
+          email,
+          transactionReference: transactionReference.trim(),
+        }),
+      });
+      const data = (await response.json()) as {
+        success?: boolean;
+        message?: string;
+      };
+      setConfirmationSuccess(Boolean(response.ok && data.success));
+      setConfirmationMessage(data.message || flow.confirmationError);
+    } catch {
+      setConfirmationMessage(flow.confirmationError);
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  if (state.success && donationReference) {
+    const providerUrl =
+      transferMethod === "worldremit"
+        ? OFFICIAL_TRANSFER_URLS.worldremit
+        : transferMethod === "remitly"
+          ? OFFICIAL_TRANSFER_URLS.remitly
+          : null;
+
+    const beneficiaryRows = [
+      ["bank", transferCopy.bankLabel, site.bankDetails.bankName],
+      ["name", transferCopy.accountNameLabel, site.bankDetails.accountName],
+      [
+        "account",
+        transferCopy.accountNumberLabel,
+        site.bankDetails.accountNumber,
+      ],
+      ["swift", transferCopy.swiftLabel, site.bankDetails.swiftCode],
+    ] as const;
+
+    return (
+      <div className="space-y-6">
+        <StepRail
+          active={confirmationSuccess ? 3 : 2}
+          labels={flow.steps}
+        />
+
+        <div className="rounded-xl border border-success/30 bg-success/10 p-4">
+          <p className="text-sm font-semibold text-foreground">
+            {flow.savedTitle}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {flow.savedBody}
+          </p>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-bold">{flow.transferTitle}</h3>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {flow.transferBody}
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {flow.amountLabel}
+            </p>
+            <p className="mt-1 text-lg font-bold text-foreground">
+              UGX {Number(displayAmount || 0).toLocaleString("en-UG")}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {flow.methodLabel}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              {selectedMethod.label}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-primary-light p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {flow.paymentReference}
+              </p>
+              <p className="mt-1 break-all font-mono text-base font-bold text-foreground">
+                {donationReference}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => copyValue("reference", donationReference)}
+              className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {copiedKey === "reference" ? (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Copy className="h-4 w-4" aria-hidden="true" />
+              )}
+              {copiedKey === "reference" ? flow.copied : flow.copy}
+            </button>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            {flow.paymentReferenceHelp}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-white p-5">
+          <div className="flex items-center gap-2">
+            <Landmark className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h4 className="font-semibold">{flow.beneficiaryTitle}</h4>
+          </div>
+          <dl className="mt-4 divide-y divide-border text-sm">
+            {beneficiaryRows.map(([key, label, value]) => (
+              <div
+                key={key}
+                className="grid grid-cols-[1fr_auto] gap-4 py-3 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                  <dd
+                    className={`mt-0.5 break-words font-semibold ${
+                      key === "account" || key === "swift" ? "font-mono" : ""
+                    }`}
+                  >
+                    {value}
+                  </dd>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyValue(key, value)}
+                  aria-label={`${flow.copy}: ${label}`}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-surface hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {copiedKey === key ? (
+                    <Check className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </dl>
+          <button
+            type="button"
+            onClick={() => copyValue("all", transferDetails)}
+            className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            {copiedKey === "all" ? (
+              <Check className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Copy className="h-4 w-4" aria-hidden="true" />
+            )}
+            {copiedKey === "all" ? flow.copiedAll : flow.copyAll}
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-5">
+          <p className="text-sm leading-6 text-foreground">
+            {transferMethod === "bank"
+              ? flow.directInstruction
+              : transferMethod === "worldremit"
+                ? flow.worldRemitInstruction
+                : flow.remitlyInstruction}
+          </p>
+
+          {transferMethod !== "bank" && (
+            <div className="mt-4 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning-bg p-4 text-xs leading-5 text-warning-fg">
+              <ShieldCheck
+                className="mt-0.5 h-4 w-4 shrink-0"
+                aria-hidden="true"
+              />
+              <p>
+                {transferMethod === "worldremit"
+                  ? flow.worldRemitEligibility
+                  : flow.remitlyEligibility}
+              </p>
+            </div>
+          )}
+
+          {providerUrl && (
+            <>
+              <a
+                href={providerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {transferMethod === "worldremit"
+                  ? flow.openWorldRemit
+                  : flow.openRemitly}
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                {flow.keepTabOpen}
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border p-5">
+          <h4 className="font-semibold">{flow.confirmTitle}</h4>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {flow.confirmBody}
+          </p>
+
+          {confirmationSuccess ? (
+            <div
+              role="status"
+              className="mt-4 rounded-lg border border-success/30 bg-success/10 p-4"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                {flow.confirmedTitle}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {confirmationMessage || flow.confirmedBody}
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={confirmTransfer} className="mt-4 space-y-3">
+              <div>
+                <Label htmlFor="transfer-confirmation-reference">
+                  {flow.transactionLabel}
+                </Label>
+                <Input
+                  id="transfer-confirmation-reference"
+                  value={transactionReference}
+                  onChange={(event) =>
+                    setTransactionReference(event.target.value)
+                  }
+                  placeholder={flow.transactionPlaceholder}
+                  maxLength={200}
+                  required
+                  className="mt-1.5"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={
+                  confirming || transactionReference.trim().length < 3
+                }
+                className="w-full"
+              >
+                {confirming ? flow.confirming : flow.confirmButton}
+              </Button>
+              {confirmationMessage && !confirmationSuccess && (
+                <p role="alert" className="text-sm text-destructive">
+                  {confirmationMessage}
+                </p>
+              )}
+            </form>
+          )}
+        </div>
+
+        <p className="text-xs leading-5 text-muted-foreground">
+          {transferCopy.thirdPartyNote}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form action={formAction} className="space-y-6" noValidate>
       <HoneypotFields withIdempotency />
+      <StepRail active={1} labels={flow.steps} />
 
       <fieldset>
         <legend>
@@ -126,8 +487,8 @@ export function DonationForm({
           min={1}
           placeholder={form.customAmountPlaceholder}
           value={custom}
-          onChange={(e) => {
-            setCustom(e.target.value);
+          onChange={(event) => {
+            setCustom(event.target.value);
             setAmount("");
           }}
           className="mt-1.5"
@@ -136,7 +497,6 @@ export function DonationForm({
         />
         <FieldError id="amount-error" message={state.fieldErrors?.amount} />
       </div>
-
       <input type="hidden" name="amount" value={displayAmount} />
 
       <fieldset>
@@ -144,36 +504,26 @@ export function DonationForm({
           <Label>{form.frequencyLegend}</Label>
         </legend>
         <div className="mt-2 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setFrequency("one-time")}
-            aria-pressed={frequency === "one-time"}
-            className={`rounded-lg border px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-              frequency === "one-time"
-                ? "border-primary bg-primary text-white"
-                : "border-border bg-white hover:bg-surface"
-            }`}
-          >
-            {form.oneTime}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFrequency("monthly")}
-            aria-pressed={frequency === "monthly"}
-            className={`rounded-lg border px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-              frequency === "monthly"
-                ? "border-primary bg-primary text-white"
-                : "border-border bg-white hover:bg-surface"
-            }`}
-          >
-            {form.monthly}
-          </button>
+          {(["one-time", "monthly"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFrequency(value)}
+              aria-pressed={frequency === value}
+              className={`rounded-lg border px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                frequency === value
+                  ? "border-primary bg-primary text-white"
+                  : "border-border bg-white hover:bg-surface"
+              }`}
+            >
+              {value === "one-time" ? form.oneTime : form.monthly}
+            </button>
+          ))}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {form.frequencyNote}
         </p>
       </fieldset>
-
       <input type="hidden" name="frequency" value={frequency} />
 
       <div>
@@ -184,7 +534,9 @@ export function DonationForm({
           required
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.campaign ? true : undefined}
-          aria-describedby={state.fieldErrors?.campaign ? "campaign-error" : undefined}
+          aria-describedby={
+            state.fieldErrors?.campaign ? "campaign-error" : undefined
+          }
         >
           {campaigns.map((campaign) => (
             <option key={campaign.id} value={campaign.id}>
@@ -219,8 +571,15 @@ export function DonationForm({
                       : "border-border bg-white hover:bg-surface"
                   }`}
                 >
-                  <span className="block text-sm font-semibold text-foreground">
-                    {option.label}
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      {option.label}
+                    </span>
+                    {method === "bank" && (
+                      <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white">
+                        {flow.recommended}
+                      </span>
+                    )}
                   </span>
                   <span className="mt-1 block text-xs leading-5 text-muted-foreground">
                     {option.description}
@@ -235,6 +594,20 @@ export function DonationForm({
           message={state.fieldErrors?.transferMethod}
         />
       </fieldset>
+
+      {transferMethod !== "bank" && (
+        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-bg p-4 text-xs leading-5 text-warning-fg">
+          <ShieldCheck
+            className="mt-0.5 h-4 w-4 shrink-0"
+            aria-hidden="true"
+          />
+          <p>
+            {transferMethod === "worldremit"
+              ? flow.worldRemitEligibility
+              : flow.remitlyEligibility}
+          </p>
+        </div>
+      )}
 
       <input type="hidden" name="transferMethod" value={transferMethod} />
       <input
@@ -267,7 +640,9 @@ export function DonationForm({
           required
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.name ? true : undefined}
-          aria-describedby={state.fieldErrors?.name ? "donor-name-error" : undefined}
+          aria-describedby={
+            state.fieldErrors?.name ? "donor-name-error" : undefined
+          }
         />
         <FieldError id="donor-name-error" message={state.fieldErrors?.name} />
       </div>
@@ -279,9 +654,13 @@ export function DonationForm({
           name="email"
           type="email"
           required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.email ? true : undefined}
-          aria-describedby={state.fieldErrors?.email ? "donor-email-error" : undefined}
+          aria-describedby={
+            state.fieldErrors?.email ? "donor-email-error" : undefined
+          }
         />
         <FieldError id="donor-email-error" message={state.fieldErrors?.email} />
       </div>
@@ -294,28 +673,11 @@ export function DonationForm({
           type="tel"
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.phone ? true : undefined}
-          aria-describedby={state.fieldErrors?.phone ? "donor-phone-error" : undefined}
+          aria-describedby={
+            state.fieldErrors?.phone ? "donor-phone-error" : undefined
+          }
         />
         <FieldError id="donor-phone-error" message={state.fieldErrors?.phone} />
-      </div>
-
-      <div>
-        <Label htmlFor="donor-transaction">
-          {form.transactionLabel}
-        </Label>
-        <Input
-          id="donor-transaction"
-          name="transactionReference"
-          placeholder={
-            transferMethod === "bank"
-              ? form.transactionPlaceholder
-              : transferCopy.providerReferencePlaceholder
-          }
-          className="mt-1.5"
-          aria-invalid={state.fieldErrors?.transactionReference ? true : undefined}
-          aria-describedby={state.fieldErrors?.transactionReference ? "donor-transaction-error" : undefined}
-        />
-        <FieldError id="donor-transaction-error" message={state.fieldErrors?.transactionReference} />
       </div>
 
       <div>
@@ -325,18 +687,25 @@ export function DonationForm({
           name="message"
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.message ? true : undefined}
-          aria-describedby={state.fieldErrors?.message ? "donor-message-error" : undefined}
+          aria-describedby={
+            state.fieldErrors?.message ? "donor-message-error" : undefined
+          }
         />
         <FieldError id="donor-message-error" message={state.fieldErrors?.message} />
       </div>
 
-      <Button
-        type="submit"
-        disabled={pending || !displayAmount || !donationReference}
-        className="w-full"
-      >
-        {pending ? form.submitPending : form.submitLabel}
-      </Button>
+      <div className="space-y-2">
+        <Button
+          type="submit"
+          disabled={pending || !displayAmount || !donationReference || !email}
+          className="w-full"
+        >
+          {pending ? flow.savingIntent : flow.saveIntent}
+        </Button>
+        <p className="text-center text-xs leading-5 text-muted-foreground">
+          {flow.saveHelp}
+        </p>
+      </div>
 
       <FormPrivacyNotice
         text={form.privacyNotice}
@@ -344,31 +713,8 @@ export function DonationForm({
         privacyHref={localePath("/privacy", locale)}
       />
 
-      {state.success && donationReference && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="rounded-xl border border-success/30 bg-success/10 p-4"
-        >
-          <p className="text-sm font-semibold text-foreground">
-            {transferCopy.successTitle}
-          </p>
-          <p className="mt-2 text-sm text-foreground">
-            {transferCopy.successReferenceIntro}{" "}
-            <strong className="font-mono">{donationReference}</strong>.
-          </p>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            {transferCopy.successReferenceHelp}
-          </p>
-        </div>
-      )}
-
-      {state.message && (
-        <p
-          role={state.success ? undefined : "alert"}
-          aria-live="polite"
-          className={`text-sm ${state.success ? "text-success" : "text-destructive"}`}
-        >
+      {state.message && !state.success && (
+        <p role="alert" aria-live="polite" className="text-sm text-destructive">
           {state.message}
         </p>
       )}
