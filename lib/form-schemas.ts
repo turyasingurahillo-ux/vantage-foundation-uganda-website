@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
 import {
+  createDonationReference,
   DONATION_TRANSFER_METHODS,
   transferMethodLabel,
 } from "@/lib/donation-transfer";
@@ -77,15 +78,20 @@ const donationIntentSchema = z.object({
     .max(1_000_000_000, "Amount is too large"),
   frequency: z.enum(["one-time", "monthly"]),
   campaign: z.string().min(1, "Please select a campaign").max(MAX_CAMPAIGN, "Campaign is too long"),
-  transferMethod: z.enum(DONATION_TRANSFER_METHODS, {
-    message: "Please choose how you will send the funds",
-  }),
+  // Defaults keep stale/legacy donation forms valid during a rolling deploy.
+  // New forms always send both fields explicitly.
+  transferMethod: z
+    .enum(DONATION_TRANSFER_METHODS, {
+      message: "Please choose how you will send the funds",
+    })
+    .default("bank"),
   donationReference: z
     .string()
     .regex(
       /^VFU-\d{4}-[A-Z0-9]{10}$/,
-      "Donation reference is missing or invalid. Please reload the page and try again.",
-    ),
+      "Donation reference is invalid. Please reload the page and try again.",
+    )
+    .optional(),
   transactionReference: z.string().max(MAX_TRANSACTION_REF, "Transaction reference is too long").optional(),
   message: z.string().max(MAX_MESSAGE, "Message is too long").optional(),
   website: z.string().optional(), // honeypot 1
@@ -96,8 +102,9 @@ const donationIntentSchema = z.object({
 
 export const donorSchema = donationIntentSchema.transform((data) => {
   const donorMessage = data.message?.trim();
+  const donationReference = data.donationReference ?? createDonationReference();
   const trackingMetadata = [
-    `Vantage donation reference: ${data.donationReference}`,
+    `Vantage donation reference: ${donationReference}`,
     `Transfer method: ${transferMethodLabel(data.transferMethod)}`,
   ].join("\n");
 
@@ -107,6 +114,7 @@ export const donorSchema = donationIntentSchema.transform((data) => {
   // second payment ledger.
   return {
     ...data,
+    donationReference,
     message: donorMessage
       ? `${donorMessage}\n\n${trackingMetadata}`
       : trackingMetadata,
