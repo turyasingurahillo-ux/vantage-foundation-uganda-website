@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
+import {
+  createDonationReference,
+  DONATION_TRANSFER_METHODS,
+  transferMethodLabel,
+} from "@/lib/donation-transfer";
 
 // Field limits. These are generous enough for a detailed grant or partnership
 // inquiry but bounded so a bot cannot post megabytes through the endpoint.
@@ -63,7 +68,7 @@ export const newsletterSchema = z.object({
   form_loaded_at: z.string().optional(), // time-trap
 });
 
-export const donorSchema = z.object({
+const donationIntentSchema = z.object({
   name: z.string().min(2, "Name is required").max(MAX_NAME, "Name is too long"),
   email: z.string().email("Please enter a valid email").max(MAX_EMAIL, "Email is too long"),
   phone: z.string().max(MAX_PHONE, "Phone number is too long").optional(),
@@ -73,10 +78,45 @@ export const donorSchema = z.object({
     .max(1_000_000_000, "Amount is too large"),
   frequency: z.enum(["one-time", "monthly"]),
   campaign: z.string().min(1, "Please select a campaign").max(MAX_CAMPAIGN, "Campaign is too long"),
+  // Defaults keep stale/legacy donation forms valid during a rolling deploy.
+  // New forms always send both fields explicitly.
+  transferMethod: z
+    .enum(DONATION_TRANSFER_METHODS, {
+      message: "Please choose how you will send the funds",
+    })
+    .default("bank"),
+  donationReference: z
+    .string()
+    .regex(
+      /^VFU-\d{4}-[A-Z0-9]{10}$/,
+      "Donation reference is invalid. Please reload the page and try again.",
+    )
+    .optional(),
   transactionReference: z.string().max(MAX_TRANSACTION_REF, "Transaction reference is too long").optional(),
   message: z.string().max(MAX_MESSAGE, "Message is too long").optional(),
   website: z.string().optional(), // honeypot 1
   company_url: z.string().optional(), // honeypot 2
   form_loaded_at: z.string().optional(), // time-trap
   submissionId: z.string().optional(), // idempotency token
+});
+
+export const donorSchema = donationIntentSchema.transform((data) => {
+  const donorMessage = data.message?.trim();
+  const donationReference = data.donationReference ?? createDonationReference();
+  const trackingMetadata = [
+    `Vantage donation reference: ${donationReference}`,
+    `Transfer method: ${transferMethodLabel(data.transferMethod)}`,
+  ].join("\n");
+
+  // Keep the existing verification ledger provider-agnostic. Persist the
+  // selected transfer route and public matching reference in the audited
+  // message field so current admin review receives them without introducing a
+  // second payment ledger.
+  return {
+    ...data,
+    donationReference,
+    message: donorMessage
+      ? `${donorMessage}\n\n${trackingMetadata}`
+      : trackingMetadata,
+  };
 });
