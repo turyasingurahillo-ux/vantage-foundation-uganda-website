@@ -50,6 +50,41 @@ export async function createDonation(input: DonationInput): Promise<DonationRow>
 }
 
 /**
+ * Attaches a bank/provider transaction reference after a donor has completed
+ * the external transfer. Matching requires both the public Vantage reference
+ * and the donor email, and only pending non-deleted records can be updated.
+ *
+ * The Vantage reference currently lives in the audited message metadata so
+ * this remains backwards-compatible with donation records created before an
+ * explicit reference column exists.
+ */
+export async function attachDonationTransferReference(input: {
+  donationReference: string;
+  email: string;
+  transactionReference: string;
+}): Promise<DonationRow | null> {
+  const sql = getSql();
+  const referenceMarker = `%Vantage donation reference: ${input.donationReference}%`;
+
+  const rows = await sql`
+    UPDATE donations
+    SET transaction_reference = ${input.transactionReference}
+    WHERE deleted_at IS NULL
+      AND status = 'pending'
+      AND LOWER(email) = LOWER(${input.email})
+      AND message LIKE ${referenceMarker}
+      AND (
+        transaction_reference IS NULL
+        OR transaction_reference = ${input.transactionReference}
+      )
+    RETURNING *
+  `;
+
+  if (rows.length === 0) return null;
+  return mapRow(rows[0]);
+}
+
+/**
  * Returns all non-deleted donations, newest first.
  * Soft-deleted records (deleted_at IS NOT NULL) are excluded.
  */
