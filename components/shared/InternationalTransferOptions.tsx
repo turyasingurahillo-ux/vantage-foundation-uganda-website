@@ -45,7 +45,7 @@ export function InternationalTransferOptions({ locale }: { locale: Locale }) {
   const copy = donationTransferCopy[locale];
 
   return (
-    <section className="bg-surface py-16 md:py-24" aria-labelledby="international-giving-title">
+    <section className="bg-surface py-16 md:py-24">
       <Container>
         <SectionHeader
           eyebrow={copy.sectionEyebrow}
