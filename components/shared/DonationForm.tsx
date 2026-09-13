@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { submitDonor, FormState } from "@/app/actions";
 import { Input } from "@/components/ui/Input";
@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/Button";
 import { HoneypotFields } from "@/components/shared/HoneypotFields";
 import { FieldError } from "@/components/shared/FieldError";
 import { FormPrivacyNotice } from "@/components/shared/FormPrivacyNotice";
+import {
+  createDonationReference,
+  type DonationTransferMethod,
+} from "@/lib/donation-transfer";
+import { donationTransferCopy } from "@/lib/i18n/content/donation-transfer";
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { DonationFormCopy, DonationCampaign } from "@/lib/i18n/content/engagement";
 
@@ -36,7 +41,15 @@ export function DonationForm({
   const [amount, setAmount] = useState<string>("");
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [custom, setCustom] = useState("");
+  const [transferMethod, setTransferMethod] =
+    useState<DonationTransferMethod>("bank");
+  const [donationReference, setDonationReference] = useState("");
   const [state, formAction, pending] = useActionState(submitDonor, initialState);
+  const transferCopy = donationTransferCopy[locale];
+
+  useEffect(() => {
+    setDonationReference(createDonationReference());
+  }, []);
 
   const displayAmount = custom || amount || "";
 
@@ -147,6 +160,70 @@ export function DonationForm({
         <FieldError id="campaign-error" message={state.fieldErrors?.campaign} />
       </div>
 
+      <fieldset>
+        <legend>
+          <Label>{transferCopy.formLegend}</Label>
+        </legend>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          {transferCopy.formHelp}
+        </p>
+        <div className="mt-3 grid gap-2">
+          {(Object.keys(transferCopy.methods) as DonationTransferMethod[]).map(
+            (method) => {
+              const selected = transferMethod === method;
+              const option = transferCopy.methods[method];
+              return (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setTransferMethod(method)}
+                  aria-pressed={selected}
+                  className={`rounded-xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    selected
+                      ? "border-primary bg-primary-light"
+                      : "border-border bg-white hover:bg-surface"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold text-foreground">
+                    {option.label}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            },
+          )}
+        </div>
+        <FieldError
+          id="transfer-method-error"
+          message={state.fieldErrors?.transferMethod}
+        />
+      </fieldset>
+
+      <input type="hidden" name="transferMethod" value={transferMethod} />
+      <input
+        type="hidden"
+        name="donationReference"
+        value={donationReference}
+      />
+
+      <div className="rounded-lg border border-primary/20 bg-primary-light p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {transferCopy.referenceLabel}
+        </p>
+        <p className="mt-1 font-mono text-sm font-bold text-foreground">
+          {donationReference || "…"}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          {transferCopy.referenceHelp}
+        </p>
+        <FieldError
+          id="donation-reference-error"
+          message={state.fieldErrors?.donationReference}
+        />
+      </div>
+
       <div>
         <Label htmlFor="donor-name">{form.nameLabel}</Label>
         <Input
@@ -194,7 +271,11 @@ export function DonationForm({
         <Input
           id="donor-transaction"
           name="transactionReference"
-          placeholder={form.transactionPlaceholder}
+          placeholder={
+            transferMethod === "bank"
+              ? form.transactionPlaceholder
+              : transferCopy.providerReferencePlaceholder
+          }
           className="mt-1.5"
           aria-invalid={state.fieldErrors?.transactionReference ? true : undefined}
           aria-describedby={state.fieldErrors?.transactionReference ? "donor-transaction-error" : undefined}
@@ -214,7 +295,11 @@ export function DonationForm({
         <FieldError id="donor-message-error" message={state.fieldErrors?.message} />
       </div>
 
-      <Button type="submit" disabled={pending || !displayAmount} className="w-full">
+      <Button
+        type="submit"
+        disabled={pending || !displayAmount || !donationReference}
+        className="w-full"
+      >
         {pending ? form.submitPending : form.submitLabel}
       </Button>
 
@@ -224,9 +309,28 @@ export function DonationForm({
         privacyHref={localePath("/privacy", locale)}
       />
 
+      {state.success && donationReference && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border border-success/30 bg-success/10 p-4"
+        >
+          <p className="text-sm font-semibold text-foreground">
+            {transferCopy.successTitle}
+          </p>
+          <p className="mt-2 text-sm text-foreground">
+            {transferCopy.successReferenceIntro}{" "}
+            <strong className="font-mono">{donationReference}</strong>.
+          </p>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            {transferCopy.successReferenceHelp}
+          </p>
+        </div>
+      )}
+
       {state.message && (
         <p
-          role="status"
+          role={state.success ? undefined : "alert"}
           aria-live="polite"
           className={`text-sm ${state.success ? "text-success" : "text-destructive"}`}
         >
