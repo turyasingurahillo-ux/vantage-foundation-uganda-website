@@ -243,4 +243,28 @@ describe("getPublishedImpactStats", () => {
       expect(stat.href).toMatch(/^\/projects\//);
     }
   });
+
+  it("assigns a valid evidence status to every published figure", () => {
+    const validStatuses = new Set([
+      "verified",
+      "programme-team-figure",
+      "estimated-catchment",
+      "pilot",
+      "planned",
+      "external-evidence",
+    ]);
+    for (const stat of getPublishedImpactStats()) {
+      expect(validStatuses.has(stat.evidenceStatus)).toBe(true);
+    }
+  });
+
+  it("presents the Kasaale figure as an estimated catchment, not a beneficiary count", () => {
+    const kasaale = getPublishedImpactStats().find((s) =>
+      s.href.includes("kasaale")
+    );
+    expect(kasaale).toBeDefined();
+    expect(kasaale?.evidenceStatus).toBe("estimated-catchment");
+    expect(kasaale?.label.toLowerCase()).toContain("catchment");
+    expect(kasaale?.value).not.toContain("+");
+  });
 });

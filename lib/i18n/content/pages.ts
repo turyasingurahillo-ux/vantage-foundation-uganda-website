@@ -1,4 +1,5 @@
 import { Locale } from "@/lib/i18n/config";
+import type { EvidenceStatus } from "@/types";
 import { UiContent, uiContent } from "./ui";
 
 export interface BrandGuideContent {
@@ -112,6 +113,7 @@ export interface PageContent {
     programme: string;
     placeAndPeriod: string;
     howCounted: string;
+    evidenceStatus: Record<EvidenceStatus, string>;
     search: string;
     searchProjectsPlaceholder: string;
     searchStoriesPlaceholder: string;
@@ -342,7 +344,14 @@ function mergeWithEnglish(
   english: PageContent,
 ): PageContent {
   return {
-    common: { ...english.common, ...partial.common },
+    common: {
+      ...english.common,
+      ...partial.common,
+      evidenceStatus: {
+        ...english.common.evidenceStatus,
+        ...partial.common?.evidenceStatus,
+      },
+    },
     ourWork: { ...english.ourWork, ...partial.ourWork },
     projects: { ...english.projects, ...partial.projects },
     programme: { ...english.programme, ...partial.programme },
@@ -377,6 +386,14 @@ const englishPageContent: PageContent = {
     programme: "Programme",
     placeAndPeriod: "Place and period",
     howCounted: "How it was counted",
+    evidenceStatus: {
+      "verified": "Verified",
+      "programme-team-figure": "Programme-team figure",
+      "estimated-catchment": "Estimated catchment",
+      "pilot": "Pilot / early finding",
+      "planned": "Planned / target",
+      "external-evidence": "External evidence",
+    },
     search: "Search",
     searchProjectsPlaceholder: "Search projects...",
     searchStoriesPlaceholder: "Search stories and insights...",
@@ -527,7 +544,7 @@ const englishPageContent: PageContent = {
   team: {
     title: "Our Team",
     description:
-      "A youth-led, volunteer-driven team working across health, education and humanitarian action in Uganda.",
+      "A youth-led, community-rooted team working across health, education and humanitarian action in Uganda.",
     executive: "Executive leadership",
     executiveDescription: "Strategic direction and day-to-day operations.",
     volunteers: "Volunteers and technical contributors",
@@ -580,7 +597,7 @@ const englishPageContent: PageContent = {
       "Yearly summaries of our programmes, reach and organisational development. The first annual report will be published here once approved for public release.",
     financialReports: "Financial reports",
     financialReportsDescription:
-      "Income and expenditure statements showing how donations are used. As a 100% volunteer-run organisation, funds go directly to programmes. Financial statements will be added after formal approval.",
+      "Income and expenditure statements showing how donations are used. Financial statements will be added after formal approval.",
     projectReports: "Project reports",
     projectReportsDescription:
       "Detailed reports from individual projects — including activities, outcomes and lessons learned. Project-level documentation is linked from each project page as it becomes available.",
@@ -589,7 +606,7 @@ const englishPageContent: PageContent = {
       "Our safeguarding policy sets out how we protect children, young people and vulnerable adults across all programmes. The policy is being finalised for publication.",
     governance: "Governance",
     governanceDescription:
-      "Vantage Foundation Uganda is led by a published volunteer leadership team and is working towards a formal board structure. Governance documents will be added here only after approval.",
+      "Vantage Foundation Uganda is led by a published leadership team and is working towards a formal board structure. Governance documents will be added here only after approval.",
     monitoring: "Monitoring & evaluation",
     monitoringDescription:
       "Our approach to measuring impact combines quantitative counts (patients treated, litres of water provided, workshop attendance) with qualitative case studies and community feedback.",
@@ -742,6 +759,14 @@ const germanPageContent: DeepPartial<PageContent> = {
     programme: "Programm",
     placeAndPeriod: "Ort und Zeitraum",
     howCounted: "Wie ermittelt wurde",
+    evidenceStatus: {
+      "verified": "Verifiziert",
+      "programme-team-figure": "Angabe des Programmteams",
+      "estimated-catchment": "Geschätztes Einzugsgebiet",
+      "pilot": "Pilotprojekt / frühe Erkenntnis",
+      "planned": "Geplant / Zielwert",
+      "external-evidence": "Externe Evidenz",
+    },
     search: "Suchen",
     searchProjectsPlaceholder: "Projekte suchen...",
     searchStoriesPlaceholder: "Geschichten und Einblicke suchen...",
@@ -893,7 +918,7 @@ const germanPageContent: DeepPartial<PageContent> = {
   team: {
     title: "Unser Team",
     description:
-      "Ein jugendgeführtes, ehrenamtliches Team, das in den Bereichen Gesundheit, Bildung und humanitäre Hilfe in Uganda arbeitet.",
+      "Ein jugendgeführtes, in den Gemeinschaften verwurzeltes Team, das in den Bereichen Gesundheit, Bildung und humanitäre Hilfe in Uganda arbeitet.",
     executive: "Geschäftsführung",
     executiveDescription: "Strategische Ausrichtung und Tagesgeschäft.",
     volunteers: "Freiwillige und technische Mitwirkende",
@@ -946,7 +971,7 @@ const germanPageContent: DeepPartial<PageContent> = {
       "Jährliche Zusammenfassungen unserer Programme, Reichweite und Organisationsentwicklung. Der erste Jahresbericht wird hier veröffentlicht, sobald er für die Veröffentlichung freigegeben ist.",
     financialReports: "Finanzberichte",
     financialReportsDescription:
-      "Einnahmen- und Ausgabenaufstellungen, die zeigen, wie Spenden verwendet werden. Als 100% ehrenamtlich geführte Organisation fließen Gelder direkt in Programme. Finanzberichte werden nach förmlicher Genehmigung hinzugefügt.",
+      "Einnahmen- und Ausgabenaufstellungen, die zeigen, wie Spenden verwendet werden. Finanzberichte werden nach förmlicher Genehmigung hinzugefügt.",
     projectReports: "Projektberichte",
     projectReportsDescription:
       "Detaillierte Berichte einzelner Projekte — einschließlich Aktivitäten, Ergebnissen und Erkenntnissen. Dokumentation auf Projektebene wird von jeder Projektseite verlinkt, sobald verfügbar.",
@@ -955,7 +980,7 @@ const germanPageContent: DeepPartial<PageContent> = {
       "Unsere Schutzrichtlinie legt fest, wie wir Kinder, Jugendliche und vulnerable Erwachsene in allen Programmen schützen. Die Richtlinie wird zur Veröffentlichung finalisiert.",
     governance: "Governance",
     governanceDescription:
-      "Vantage Foundation Uganda wird von einem veröffentlichten ehrenamtlichen Führungsteam geleitet und arbeitet an einer formellen Vorstandsstruktur. Governance-Dokumente werden hier nur nach Genehmigung hinzugefügt.",
+      "Vantage Foundation Uganda wird von einem veröffentlichten Führungsteam geleitet und arbeitet an einer formellen Vorstandsstruktur. Governance-Dokumente werden hier nur nach Genehmigung hinzugefügt.",
     monitoring: "Monitoring & Evaluation",
     monitoringDescription:
       "Unser Ansatz zur Wirkungsmessung kombiniert quantitative Zahlen (behandelte Patienten, Liter sauberen Wassers, Workshop-Teilnahme) mit qualitativen Fallstudien und Feedback der Gemeinschaft.",
@@ -1108,6 +1133,14 @@ const frenchPageContent: DeepPartial<PageContent> = {
     programme: "Programme",
     placeAndPeriod: "Lieu et période",
     howCounted: "Méthode de comptage",
+    evidenceStatus: {
+      "verified": "Vérifié",
+      "programme-team-figure": "Donnée de l'équipe programme",
+      "estimated-catchment": "Zone de desserte estimée",
+      "pilot": "Pilote / résultat préliminaire",
+      "planned": "Planifié / objectif",
+      "external-evidence": "Données externes",
+    },
     search: "Rechercher",
     searchProjectsPlaceholder: "Rechercher des projets...",
     searchStoriesPlaceholder: "Rechercher des récits et analyses...",
@@ -1259,7 +1292,7 @@ const frenchPageContent: DeepPartial<PageContent> = {
   team: {
     title: "Notre équipe",
     description:
-      "Une équipe jeune et bénévole travaillant dans la santé, l'éducation et l'action humanitaire en Ouganda.",
+      "Une équipe jeune et ancrée dans les communautés, travaillant dans la santé, l'éducation et l'action humanitaire en Ouganda.",
     executive: "Direction exécutive",
     executiveDescription: "Orientation stratégique et opérations quotidiennes.",
     volunteers: "Bénévoles et contributeurs techniques",
@@ -1312,7 +1345,7 @@ const frenchPageContent: DeepPartial<PageContent> = {
       "Résumés annuels de nos programmes, portée et développement organisationnel. Le premier rapport annuel sera publié ici dès son approbation.",
     financialReports: "Rapports financiers",
     financialReportsDescription:
-      "États de revenus et de dépenses montrant comment les dons sont utilisés. En tant qu'organisation 100% bénévole, les fonds vont directement aux programmes. Les états financiers seront ajoutés après approbation formelle.",
+      "États de revenus et de dépenses montrant comment les dons sont utilisés. Les états financiers seront ajoutés après approbation formelle.",
     projectReports: "Rapports de projets",
     projectReportsDescription:
       "Rapports détaillés de projets individuels — activités, résultats et leçons apprises. La documentation au niveau du projet est liée depuis chaque page de projet dès qu'elle est disponible.",
@@ -1321,7 +1354,7 @@ const frenchPageContent: DeepPartial<PageContent> = {
       "Notre politique de sauvegarde définit comment nous protégeons les enfants, les jeunes et les adultes vulnérables dans tous les programmes. La politique est en cours de finalisation.",
     governance: "Gouvernance",
     governanceDescription:
-      "Vantage Foundation Uganda est dirigée par une équipe de direction bénévole publiée et travaille vers une structure formelle de conseil. Les documents de gouvernance seront ajoutés ici uniquement après approbation.",
+      "Vantage Foundation Uganda est dirigée par une équipe de direction publiée et travaille vers une structure formelle de conseil. Les documents de gouvernance seront ajoutés ici uniquement après approbation.",
     monitoring: "Suivi et évaluation",
     monitoringDescription:
       "Notre approche de mesure de l'impact combine des décomptes quantitatifs (patients traités, litres d'eau propre, participation aux ateliers) avec des études de cas qualitatives et les retours de la communauté.",
@@ -1474,6 +1507,14 @@ const spanishPageContent: DeepPartial<PageContent> = {
     programme: "Programa",
     placeAndPeriod: "Lugar y período",
     howCounted: "Cómo se contó",
+    evidenceStatus: {
+      "verified": "Verificado",
+      "programme-team-figure": "Dato del equipo del programa",
+      "estimated-catchment": "Área de influencia estimada",
+      "pilot": "Piloto / hallazgo preliminar",
+      "planned": "Planificado / objetivo",
+      "external-evidence": "Evidencia externa",
+    },
     search: "Buscar",
     searchProjectsPlaceholder: "Buscar proyectos...",
     searchStoriesPlaceholder: "Buscar historias y reflexiones...",
@@ -1625,7 +1666,7 @@ const spanishPageContent: DeepPartial<PageContent> = {
   team: {
     title: "Nuestro equipo",
     description:
-      "Un equipo dirigido por jóvenes e impulsado por voluntarios, que trabaja en salud, educación y acción humanitaria en Uganda.",
+      "Un equipo dirigido por jóvenes y arraigado en las comunidades, que trabaja en salud, educación y acción humanitaria en Uganda.",
     executive: "Dirección ejecutiva",
     executiveDescription: "Dirección estratégica y operaciones diarias.",
     volunteers: "Voluntarios y colaboradores técnicos",
@@ -1678,7 +1719,7 @@ const spanishPageContent: DeepPartial<PageContent> = {
       "Resúmenes anuales de nuestros programas, alcance y desarrollo organizacional. El primer informe anual se publicará aquí una vez aprobado para su publicación.",
     financialReports: "Informes financieros",
     financialReportsDescription:
-      "Estados de ingresos y gastos que muestran cómo se usan las donaciones. Como organización 100% voluntaria, los fondos van directamente a los programas. Los estados financieros se agregarán tras su aprobación formal.",
+      "Estados de ingresos y gastos que muestran cómo se usan las donaciones. Los estados financieros se agregarán tras su aprobación formal.",
     projectReports: "Informes de proyectos",
     projectReportsDescription:
       "Informes detallados de proyectos individuales, incluidas actividades, resultados y lecciones aprendidas. La documentación a nivel de proyecto se vincula desde cada página de proyecto a medida que esté disponible.",
@@ -1687,7 +1728,7 @@ const spanishPageContent: DeepPartial<PageContent> = {
       "Nuestra política de protección establece cómo protegemos a niñas, niños, adolescentes y adultos vulnerables en todos los programas. La política se está finalizando para su publicación.",
     governance: "Gobernanza",
     governanceDescription:
-      "Vantage Foundation Uganda está dirigida por un equipo de liderazgo voluntario publicado y trabaja hacia una estructura formal de junta directiva. Los documentos de gobernanza se agregarán aquí solo después de su aprobación.",
+      "Vantage Foundation Uganda está dirigida por un equipo de liderazgo publicado y trabaja hacia una estructura formal de junta directiva. Los documentos de gobernanza se agregarán aquí solo después de su aprobación.",
     monitoring: "Monitoreo y evaluación",
     monitoringDescription:
       "Nuestro enfoque para medir el impacto combina recuentos cuantitativos (pacientes atendidos, litros de agua proporcionados, asistencia a talleres) con estudios de caso cualitativos y retroalimentación de la comunidad.",
@@ -1840,6 +1881,14 @@ const arabicPageContent: DeepPartial<PageContent> = {
     programme: "البرنامج",
     placeAndPeriod: "المكان والفترة",
     howCounted: "كيف تم العد",
+    evidenceStatus: {
+      "verified": "موثَّق",
+      "programme-team-figure": "رقم من فريق البرنامج",
+      "estimated-catchment": "نطاق خدمة تقديري",
+      "pilot": "تجريبي / نتيجة أولية",
+      "planned": "مخطط / مستهدف",
+      "external-evidence": "دليل خارجي",
+    },
     search: "بحث",
     searchProjectsPlaceholder: "البحث في المشاريع...",
     searchStoriesPlaceholder: "البحث في القصص والرؤى...",
@@ -1991,7 +2040,7 @@ const arabicPageContent: DeepPartial<PageContent> = {
   team: {
     title: "فريقنا",
     description:
-      "فريق يقوده الشباب ويدفعه المتطوعون، يعمل في مجالات الصحة والتعليم والعمل الإنساني في أوغندا.",
+      "فريق يقوده الشباب ومتجذر في المجتمعات، يعمل في مجالات الصحة والتعليم والعمل الإنساني في أوغندا.",
     executive: "القيادة التنفيذية",
     executiveDescription: "التوجيه الاستراتيجي والعمليات اليومية.",
     volunteers: "المتطوعون والمساهمون التقنيون",
@@ -2044,7 +2093,7 @@ const arabicPageContent: DeepPartial<PageContent> = {
       "ملخصات سنوية لبرامجنا وانتشارنا وتطورنا المؤسسي. سينشر التقرير السنوي الأول هنا بمجرد اعتماده للنشر.",
     financialReports: "التقارير المالية",
     financialReportsDescription:
-      "بيانات الدخل والمصروفات توضح كيفية استخدام التبرعات. باعتبارنا منظمة 100% تطوعية، تذهب الأموال مباشرة إلى البرامج. ستُضاف البيانات المالية بعد الموافقة الرسمية.",
+      "بيانات الدخل والمصروفات توضح كيفية استخدام التبرعات. ستُضاف البيانات المالية بعد الموافقة الرسمية.",
     projectReports: "تقارير المشاريع",
     projectReportsDescription:
       "تقارير مفصلة لمشاريع فردية — تشمل الأنشطة والنتائج والدروس المستفادة. تُربط وثائق المشروع من صفحة كل مشروع فور توفرها.",
@@ -2053,7 +2102,7 @@ const arabicPageContent: DeepPartial<PageContent> = {
       "تحدد سياسة الحماية لدينا كيف نحمي الأطفال والشباب والبالغين الضعفاء في جميع البرامج. السياسة قيد الإعداد للنشر.",
     governance: "الحوكمة",
     governanceDescription:
-      "Vantage Foundation Uganda يقودها فريق قيادة تطوعي معلن، وتعمل نحو هيكل مجلس إدارة رسمي. ستُضاف وثائق الحوكمة هنا فقط بعد الموافقة عليها.",
+      "Vantage Foundation Uganda يقودها فريق قيادة معلن، وتعمل نحو هيكل مجلس إدارة رسمي. ستُضاف وثائق الحوكمة هنا فقط بعد الموافقة عليها.",
     monitoring: "المراقبة والتقييم",
     monitoringDescription:
       "يجمع نهجنا لقياس الأثر بين الأعداد الكمية (المرضى المعالجين، لترات المياه النقية المقدمة، حضور ورش العمل) ودراسات الحالة النوعية وملاحظات المجتمع.",

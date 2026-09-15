@@ -12,7 +12,7 @@ export const projects: Project[] = [
     startDate: "2022-01-01",
     endDate: "2025-05-16",
     summary:
-      "A deep water well completed on 16 May 2025, now serving over 10,000 people in Magada Sub-county, Namutumba District. A continuation phase will motorise the well and build a community hall where youth can learn, share and grow.",
+      "A deep water well completed on 16 May 2025, serving an estimated catchment of up to 10,000 people in Magada Sub-county, Namutumba District. A continuation phase will motorise the well and build a community hall where youth can learn, share and grow.",
     objective:
       "Improve access to safe drinking water, reduce water-borne disease, free families — especially women and girls — from long-distance water collection, and establish a community hub for youth learning and development.",
     activities: [
@@ -22,11 +22,11 @@ export const projects: Project[] = [
       "Water point committee formation for maintenance",
     ],
     outcomes: [
-      "Clean water serving over 10,000 community members since May 2025",
+      "Clean water for an estimated catchment of up to 10,000 people since May 2025",
       "Reduced water-related illness in the community",
       "More time for school and livelihood activities",
     ],
-    beneficiaries: "Over 10,000 community members",
+    beneficiaries: "Estimated catchment of up to 10,000 people",
     partners: ["Local community leaders", "WASH technical team"],
     fundingStatus: "Continuation phase (motorisation + community hall) — fundraising open",
     heroImage: "/images/projects/kasaale-borehole-project-01.webp",
@@ -60,7 +60,7 @@ export const projects: Project[] = [
       label: "Donate to the Kasaale water well community project",
       href: "/donate?campaign=kasaale-water-well",
     },
-    body: `The Kasaale Deep Borehole Project is one of our flagship Water, Sanitation and Hygiene (WASH) interventions. Constructed in partnership with the local community in Kasaale, Magada Sub-county, Namutumba District, the deep borehole was completed on 16 May 2025 and now provides a reliable source of clean water to over 10,000 people.
+    body: `The Kasaale Deep Borehole Project is one of our flagship Water, Sanitation and Hygiene (WASH) interventions. Constructed in partnership with the local community in Kasaale, Magada Sub-county, Namutumba District, the deep borehole was completed on 16 May 2025 and now provides a reliable source of clean water to an estimated catchment of up to 10,000 people.
 
 Access to clean water means children spend more time in school, families save time and money, and the burden of waterborne disease is reduced. The community has been supported with hygiene education and a water-user committee to keep the borehole functional for years to come.
 

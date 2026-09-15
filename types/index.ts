@@ -364,6 +364,32 @@ export interface Partner {
   description?: string;
 }
 
+/**
+ * Claim-status taxonomy for public impact and results figures, per the 2026
+ * website strategy blueprint. Every published figure must carry an explicit
+ * status so planned or estimated work is never presented as achieved impact.
+ */
+export type EvidenceStatus =
+  | "verified"
+  | "programme-team-figure"
+  | "estimated-catchment"
+  | "pilot"
+  | "planned"
+  | "external-evidence";
+
+/**
+ * Provenance metadata for a published claim. `methodology`/`sourceLabel` are
+ * plain-text only — never fabricate sources or review dates.
+ */
+export interface EvidenceMeta {
+  status: EvidenceStatus;
+  methodology?: string;
+  sourceLabel?: string;
+  sourceHref?: string;
+  asOf?: string;
+  lastReviewed?: string;
+}
+
 export interface ImpactStat {
   value: string;
   label: string;
@@ -371,6 +397,7 @@ export interface ImpactStat {
   location: string;
   period: string;
   methodology: string;
+  evidenceStatus: EvidenceStatus;
   href: string;
 }
 

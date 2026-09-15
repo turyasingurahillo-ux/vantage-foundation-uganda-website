@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ImpactStat } from "@/types";
 import { localePath, type Locale } from "@/lib/i18n/config";
 import { getPageContent } from "@/lib/i18n/content/pages";
+import { EvidenceBadge } from "@/components/shared/EvidenceBadge";
 
 export function StatCard({
   value,
@@ -10,6 +11,7 @@ export function StatCard({
   location,
   period,
   methodology,
+  evidenceStatus,
   href,
   locale = "en",
 }: ImpactStat & { locale?: Locale }) {
@@ -19,6 +21,7 @@ export function StatCard({
     <article className="flex h-full flex-col rounded-xl border border-border bg-white p-6 shadow-sm">
       <p className="text-3xl font-bold text-primary sm:text-4xl">{value}</p>
       <h3 className="mt-2 text-base font-semibold text-foreground">{label}</h3>
+      <EvidenceBadge status={evidenceStatus} locale={locale} className="mt-3 self-start" />
       <dl className="mt-5 space-y-3 text-sm">
         <div>
           <dt className="font-semibold text-foreground">{c.programme}</dt>

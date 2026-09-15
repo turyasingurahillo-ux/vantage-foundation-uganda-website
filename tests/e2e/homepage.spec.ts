@@ -57,7 +57,7 @@ test.describe("Homepage", () => {
 
     // Trust strip items
     await expect(page.getByText("Youth-led since")).toBeVisible();
-    await expect(page.getByText("100% volunteer-run")).toBeVisible();
+    await expect(page.getByText("Offices in Jinja & Ishaka")).toBeVisible();
 
     // Impact section
     await expect(
