@@ -2,13 +2,14 @@ import { ImpactStat } from "@/types";
 
 export const impactStats: ImpactStat[] = [
   {
-    value: "10,000+",
-    label: "People with access to the Kasaale water point",
+    value: "Up to 10,000",
+    label: "People in the estimated catchment of the Kasaale water point",
     programme: "Water, Sanitation and Hygiene",
     location: "Kasaale, Magada Sub-county, Namutumba District, Uganda",
     period: "Borehole completed 16 May 2025; continuation phase underway",
     methodology:
-      "Community catchment estimate recorded by the project team for the completed borehole.",
+      "Community catchment estimate recorded by the project team for the completed borehole. This is an estimated catchment population, not a verified count of individual users.",
+    evidenceStatus: "estimated-catchment",
     href: "/projects/kasaale-deep-borehole",
   },
   {
@@ -19,6 +20,7 @@ export const impactStats: ImpactStat[] = [
     period: "Cumulative reach since 2021",
     methodology:
       "Cumulative participant count reported by the programme team across mentorship activities.",
+    evidenceStatus: "programme-team-figure",
     href: "/projects/savegirl-uganda",
   },
   {
@@ -29,6 +31,7 @@ export const impactStats: ImpactStat[] = [
     period: "Programme activity since 2022",
     methodology:
       "Count of institutions recorded as receiving at least one relief delivery.",
+    evidenceStatus: "programme-team-figure",
     href: "/projects/orphanage-relief",
   },
 ];
@@ -38,7 +41,7 @@ export function getPublishedImpactStats(): ImpactStat[] {
 }
 
 export const outputs = [
-  "Deep water well constructed and serving over 10,000 people.",
+  "Deep water well constructed, serving an estimated catchment of up to 10,000 people.",
   "Multiple medical camps conducted in rural Uganda.",
   "Semi-annual workshops on mental health, sexual/reproductive health and financial literacy since 2021.",
   "Direct mentorship and book-club activities for youth.",

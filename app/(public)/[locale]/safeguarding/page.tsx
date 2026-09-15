@@ -238,7 +238,7 @@ export default async function SafeguardingPage({
               </ul>
               <p className="mt-3">
                 All reports are treated confidentially and handled by our
-                volunteer leadership team. We cooperate fully with Ugandan
+                leadership team. We cooperate fully with Ugandan
                 authorities, including the Uganda Police Force and the Ministry
                 of Gender, Labour and Social Development, in any investigation.
               </p>

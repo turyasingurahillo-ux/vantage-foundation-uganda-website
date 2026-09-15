@@ -19,7 +19,7 @@ export const faq: FaqItem[] = [
   {
     question: "How are donations used?",
     answer:
-      "Donations support programme costs such as medication, books, well construction, logistics, menstrual products and direct support for orphanages. We operate on a 100% volunteer basis, so funds go directly to programmes. Detailed annual and financial reports will be published when available.",
+      "Donations support programme costs such as medication, books, well construction, logistics, menstrual products and direct support for orphanages. Every donation is recorded and verified against our official bank statement. Detailed annual and financial reports will be published when available.",
   },
   {
     question: "How can I volunteer?",

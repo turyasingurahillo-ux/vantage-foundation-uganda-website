@@ -185,7 +185,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         "Your donation becomes one more advantage for a young person, family or community.",
       whyTitle: "Why donate?",
       whyReasons: [
-        "Your donation goes directly to programmes — we are 100% volunteer-run.",
+        "Your donation is recorded and verified against our official bank statement before it is confirmed.",
         "You can support a specific project, such as the Kasaale Deep Borehole, SaveGirl Uganda or the Advantage Book Club.",
         "You will receive a confirmation and, where possible, an update on how your gift was used.",
         "Every contribution, large or small, is one more advantage for a young person, family or community.",
@@ -210,7 +210,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         copied: "Copied",
       },
       transparencyNote:
-        "We are 100% volunteer-run and committed to financial transparency. Your details will only be used to process your donation and send a receipt.",
+        "We are committed to financial transparency. Your details will only be used to process your donation and send a receipt.",
       formTitle: "Make a donation",
       formDescription:
         "Fill in your details, make the transfer, and include the transaction reference if you have one.",
@@ -266,9 +266,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       transparencyEyebrow: "Transparency",
       transparencyTitle: "Where every shilling goes",
       transparencyDescription:
-        "As a 100% volunteer-run organisation, donations go directly to programmes — not salaries or overhead.",
+        "Every donation is recorded as pending and verified against our official bank statement before it is confirmed.",
       transparencyStats: [
-        { value: "100%", label: "Volunteer-run — no paid staff" },
+        { value: "Every", label: "Donation recorded and verified" },
         { value: "Direct", label: "Funds go to programmes, not intermediaries" },
         { value: "Verified", label: "Every donation checked against bank statements" },
       ],
@@ -432,7 +432,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           donationRelated: true,
           question: "How are donations used?",
           answer:
-            "Donations support programme costs such as medication, books, well construction, logistics, menstrual products and direct support for orphanages. We operate on a 100% volunteer basis, so funds go directly to programmes. Detailed annual and financial reports will be published when available.",
+            "Donations support programme costs such as medication, books, well construction, logistics, menstrual products and direct support for orphanages. Every donation is recorded and verified against our official bank statement. Detailed annual and financial reports will be published when available.",
         },
         {
           id: "volunteer",
@@ -479,7 +479,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         "Ihre Spende wird zu einer weiteren Chance für einen jungen Menschen, eine Familie oder eine Gemeinschaft.",
       whyTitle: "Warum spenden?",
       whyReasons: [
-        "Ihre Spende fließt direkt in die Programme – wir arbeiten zu 100 % ehrenamtlich.",
+        "Ihre Spende wird erfasst und anhand unseres offiziellen Kontoauszugs überprüft, bevor sie bestätigt wird.",
         "Sie können ein bestimmtes Projekt unterstützen, etwa den Kasaale Deep Borehole, SaveGirl Uganda oder den Advantage Book Club.",
         "Sie erhalten eine Bestätigung und, wo möglich, eine Rückmeldung zur Verwendung Ihrer Spende.",
         "Jeder Beitrag – ob groß oder klein – schafft eine weitere Chance für einen jungen Menschen, eine Familie oder eine Gemeinschaft.",
@@ -504,7 +504,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         copied: "Kopiert",
       },
       transparencyNote:
-        "Wir arbeiten zu 100 % ehrenamtlich und stehen für finanzielle Transparenz. Ihre Angaben verwenden wir ausschließlich, um Ihre Spende zu bearbeiten und eine Bestätigung zu senden.",
+        "Wir stehen für finanzielle Transparenz. Ihre Angaben verwenden wir ausschließlich, um Ihre Spende zu bearbeiten und eine Bestätigung zu senden.",
       formTitle: "Jetzt spenden",
       formDescription:
         "Tragen Sie Ihre Angaben ein, führen Sie die Überweisung durch und geben Sie – falls vorhanden – die Transaktionsreferenz an.",
@@ -560,9 +560,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       transparencyEyebrow: "Transparenz",
       transparencyTitle: "Wohin jeder Schilling fließt",
       transparencyDescription:
-        "Da wir vollständig ehrenamtlich arbeiten, fließen Spenden direkt in die Programme – nicht in Gehälter oder Verwaltung.",
+        "Jede Spende wird als ausstehend erfasst und anhand unseres offiziellen Kontoauszugs überprüft, bevor sie bestätigt wird.",
       transparencyStats: [
-        { value: "100 %", label: "Ehrenamtlich – keine bezahlten Kräfte" },
+        { value: "Jede", label: "Spende erfasst und überprüft" },
         { value: "Direkt", label: "Mittel fließen in Programme, nicht an Zwischenstellen" },
         { value: "Geprüft", label: "Jede Spende wird mit dem Kontoauszug abgeglichen" },
       ],
@@ -727,7 +727,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           donationRelated: true,
           question: "Wie werden Spenden verwendet?",
           answer:
-            "Spenden decken Programmkosten wie Medikamente, Bücher, den Bau von Brunnen, Logistik, Menstruationsprodukte und die direkte Unterstützung von Waisenhäusern. Da wir zu 100 % ehrenamtlich arbeiten, fließen die Mittel unmittelbar in die Programme. Ausführliche Jahres- und Finanzberichte veröffentlichen wir, sobald sie vorliegen.",
+            "Spenden decken Programmkosten wie Medikamente, Bücher, den Bau von Brunnen, Logistik, Menstruationsprodukte und die direkte Unterstützung von Waisenhäusern. Jede Spende wird erfasst und anhand unseres offiziellen Kontoauszugs überprüft. Ausführliche Jahres- und Finanzberichte veröffentlichen wir, sobald sie vorliegen.",
         },
         {
           id: "volunteer",
@@ -774,7 +774,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         "Votre don devient une possibilité de plus pour un jeune, une famille ou une communauté.",
       whyTitle: "Pourquoi faire un don ?",
       whyReasons: [
-        "Votre don finance directement les programmes : nous fonctionnons à 100 % grâce à des bénévoles.",
+        "Votre don est enregistré puis vérifié sur notre relevé bancaire officiel avant d'être confirmé.",
         "Vous pouvez soutenir un projet précis, comme le Kasaale Deep Borehole, SaveGirl Uganda ou l’Advantage Book Club.",
         "Vous recevrez une confirmation et, dans la mesure du possible, des nouvelles de l’utilisation de votre don.",
         "Chaque contribution, petite ou grande, crée une possibilité de plus pour un jeune, une famille ou une communauté.",
@@ -799,7 +799,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         copied: "Copié",
       },
       transparencyNote:
-        "Nous fonctionnons à 100 % grâce à des bénévoles et nous engageons à une transparence financière totale. Vos données servent uniquement à traiter votre don et à vous envoyer un reçu.",
+        "Nous nous engageons à une transparence financière totale. Vos données servent uniquement à traiter votre don et à vous envoyer un reçu.",
       formTitle: "Faire un don",
       formDescription:
         "Renseignez vos coordonnées, effectuez le virement et indiquez la référence de la transaction si vous en avez une.",
@@ -855,9 +855,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       transparencyEyebrow: "Transparence",
       transparencyTitle: "Où va chaque shilling",
       transparencyDescription:
-        "Comme notre organisation fonctionne entièrement grâce à des bénévoles, les dons financent directement les programmes, et non des salaires ou des frais administratifs.",
+        "Chaque don est enregistré comme en attente puis vérifié sur notre relevé bancaire officiel avant d'être confirmé.",
       transparencyStats: [
-        { value: "100 %", label: "Bénévole — aucun salarié" },
+        { value: "Chaque", label: "Don enregistré et vérifié" },
         { value: "Direct", label: "Les fonds vont aux programmes, pas à des intermédiaires" },
         { value: "Vérifié", label: "Chaque don est vérifié sur les relevés bancaires" },
       ],
@@ -1027,7 +1027,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           donationRelated: true,
           question: "Comment les dons sont-ils utilisés ?",
           answer:
-            "Les dons couvrent les coûts des programmes : médicaments, livres, construction de puits, logistique, produits menstruels et soutien direct aux orphelinats. Comme nous fonctionnons à 100 % grâce à des bénévoles, les fonds financent directement les programmes. Des rapports annuels et financiers détaillés seront publiés dès qu’ils seront disponibles.",
+            "Les dons couvrent les coûts des programmes : médicaments, livres, construction de puits, logistique, produits menstruels et soutien direct aux orphelinats. Chaque don est enregistré et vérifié sur notre relevé bancaire officiel. Des rapports annuels et financiers détaillés seront publiés dès qu’ils seront disponibles.",
         },
         {
           id: "volunteer",
@@ -1072,7 +1072,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       heroDescription: 'Su donación se convierte en una oportunidad más para una persona joven, una familia o una comunidad.',
       whyTitle: '¿Por qué donar?',
       whyReasons: [
-        'Su donación llega directamente a los programas: somos 100 % voluntarios.',
+        'Su donación se registra y se verifica con nuestro estado de cuenta bancario oficial antes de confirmarse.',
         'Puede apoyar un proyecto específico, como Kasaale Deep Borehole, SaveGirl Uganda o Advantage Book Club.',
         'Recibirá una confirmación y, cuando sea posible, una actualización sobre cómo se usó su donativo.',
         'Cada contribución, grande o pequeña, es una oportunidad más para una persona joven, una familia o una comunidad.',
@@ -1095,7 +1095,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         copy: 'Copiar datos bancarios',
         copied: 'Copiado',
       },
-      transparencyNote: 'Somos una organización 100 % voluntaria y estamos comprometidos con la transparencia financiera. Sus datos solo se usarán para procesar su donación y enviarle un recibo.',
+      transparencyNote: 'Estamos comprometidos con la transparencia financiera. Sus datos solo se usarán para procesar su donación y enviarle un recibo.',
       formTitle: 'Hacer una donación',
       formDescription: 'Complete sus datos, realice la transferencia e incluya la referencia de la transacción si la tiene.',
       pendingNoticeLead: 'Todas las donaciones se registran como ',
@@ -1130,9 +1130,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       ],
       transparencyEyebrow: 'Transparencia',
       transparencyTitle: 'A dónde va cada shilling',
-      transparencyDescription: 'Como una organización 100 % voluntaria, las donaciones van directamente a los programas, no a salarios ni gastos administrativos.',
+      transparencyDescription: 'Cada donación se registra como pendiente y se verifica con nuestro estado de cuenta bancario oficial antes de confirmarse.',
       transparencyStats: [
-        { value: '100 %', label: 'Voluntarios: sin personal remunerado' },
+        { value: 'Cada', label: 'Donación registrada y verificada' },
         { value: 'Directo', label: 'Los fondos llegan a los programas, no a intermediarios' },
         { value: 'Verificado', label: 'Cada donación se contrasta con el extracto bancario' },
       ],
@@ -1201,7 +1201,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         { id: 'what-we-do', question: '¿Qué hace Vantage Foundation Uganda?', answer: 'Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que mejora los medios de vida de las comunidades ugandesas a través de proyectos de salud, educación, ayuda humanitaria y agua, saneamiento e higiene (WASH). Nos enfocamos en distritos rurales desatendidos y asentamientos urbanos informales.' },
         { id: 'where-we-work', question: '¿Dónde trabaja Vantage Foundation Uganda?', answer: 'Nuestro trabajo actual llega a comunidades en el distrito de Bushenyi, Kampala, Kalangala Island, Jinja y otros distritos rurales de Uganda. Identificamos áreas frecuentemente pasadas por alto por las grandes ONG internacionales.' },
         { id: 'project-selection', question: '¿Cómo se seleccionan los proyectos?', answer: 'Trabajamos con líderes locales y miembros de la comunidad para identificar necesidades, esfuerzos existentes y soluciones realistas. Los proyectos se eligen según su potencial de impacto, la disposición de la comunidad y los recursos disponibles.' },
-        { id: 'donations-used', donationRelated: true, question: '¿Cómo se usan las donaciones?', answer: 'Las donaciones apoyan costos de programas como medicamentos, libros, construcción de pozos, logística, productos menstruales y apoyo directo a orfanatos. Operamos 100 % con voluntarios, por lo que los fondos van directamente a los programas. Se publicarán informes anuales y financieros detallados cuando estén disponibles.' },
+        { id: 'donations-used', donationRelated: true, question: '¿Cómo se usan las donaciones?', answer: 'Las donaciones apoyan costos de programas como medicamentos, libros, construcción de pozos, logística, productos menstruales y apoyo directo a orfanatos. Cada donación se registra y se verifica con nuestro estado de cuenta bancario oficial. Se publicarán informes anuales y financieros detallados cuando estén disponibles.' },
         { id: 'volunteer', question: '¿Cómo puedo ser voluntario?', answer: 'Damos la bienvenida a mentores, trabajadores de salud, educadores, voluntarios de comunicaciones y ayudantes de logística. Visite la página Participar y complete el formulario de voluntario, o contáctenos directamente.' },
         { id: 'partner', question: '¿Cómo puedo ser socio de Vantage?', answer: 'Las alianzas pueden tomar la forma de financiamiento, donaciones en especie, experiencia técnica, colaboraciones de RSC o implementación conjunta de programas. Escríbanos a través de la página de Contacto o Participar.' },
         { id: 'tax-deductible', donationRelated: true, question: '¿Las donaciones son deducibles de impuestos?', answer: 'La deducibilidad fiscal depende de su país y de la normativa local. Contáctenos para conocer nuestro estado de registro y la documentación disponible. Estamos trabajando para obtener el estatus de exención fiscal donde corresponda.' },
@@ -1219,7 +1219,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       heroDescription: 'يصبح تبرعك ميزة إضافية لشاب، أو أسرة، أو مجتمع.',
       whyTitle: 'لماذا التبرع؟',
       whyReasons: [
-        'تذهب تبرعاتك مباشرة إلى البرامج؛ فنحن منظمة تطوعية بنسبة 100%.',
+        'يُسجَّل تبرعك ويُتحقق منه مقابل كشف حسابنا البنكي الرسمي قبل تأكيده.',
         'يمكنك دعم مشروع محدد، مثل Kasaale Deep Borehole، أو SaveGirl Uganda، أو Advantage Book Club.',
         'ستتلقى تأكيدًا، وإن أمكن، تحديثًا حول كيفية استخدام هديتك.',
         'كل مساهمة، كبيرة كانت أم صغيرة، هي ميزة إضافية لشاب، أو أسرة، أو مجتمع.',
@@ -1242,7 +1242,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         copy: 'نسخ التفاصيل البنكية',
         copied: 'تم النسخ',
       },
-      transparencyNote: 'نحن منظمة تطوعية بنسبة 100% وملتزمون بالشفافية المالية. ستُستخدم بياناتك فقط لمعالجة تبرعك وإرسال الإيصال.',
+      transparencyNote: 'نحن ملتزمون بالشفافية المالية. ستُستخدم بياناتك فقط لمعالجة تبرعك وإرسال الإيصال.',
       formTitle: 'قدّم تبرعًا',
       formDescription: 'أدخل بياناتك، وأجرِ التحويل، وأضف رقم مرجع المعاملة إن توفّر.',
       pendingNoticeLead: 'تُسجَّل جميع التبرعات على أنها ',
@@ -1277,9 +1277,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       ],
       transparencyEyebrow: 'الشفافية',
       transparencyTitle: 'إلى أين يذهب كل شلن',
-      transparencyDescription: 'بما أننا منظمة تطوعية بنسبة 100%، تذهب التبرعات مباشرة إلى البرامج، لا إلى رواتب أو مصاريف إدارية.',
+      transparencyDescription: 'يُسجَّل كل تبرع كقيد الانتظار ويُتحقق منه مقابل كشف حسابنا البنكي الرسمي قبل تأكيده.',
       transparencyStats: [
-        { value: '100%', label: 'تطوعي بالكامل — لا موظفين مدفوعين' },
+        { value: 'كل', label: 'تبرع يُسجَّل ويُتحقق منه' },
         { value: 'مباشر', label: 'تذهب الأموال إلى البرامج لا إلى وسطاء' },
         { value: 'موثّق', label: 'يُتحقق من كل تبرع مقابل كشوف الحسابات البنكية' },
       ],
@@ -1348,7 +1348,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
         { id: 'what-we-do', question: 'ماذا تفعل Vantage Foundation Uganda؟', answer: 'Vantage Foundation Uganda منظمة غير ربحية يقودها الشباب، تعمل على تحسين سبل العيش في المجتمعات الأوغندية من خلال مشاريع الصحة والتعليم والإغاثة الإنسانية والمياه والصرف الصحي والنظافة (WASH). نركز على المناطق الريفية المحرومة والمستوطنات الحضرية العشوائية.' },
         { id: 'where-we-work', question: 'أين تعمل Vantage Foundation Uganda؟', answer: 'يصل عملنا الحالي إلى مجتمعات في مقاطعة Bushenyi، وKampala، وKalangala Island، وJinja، ومقاطعات ريفية أخرى في أوغندا. نستهدف المناطق التي غالبًا ما تغفلها المنظمات غير الحكومية الدولية الكبرى.' },
         { id: 'project-selection', question: 'كيف تُختار المشاريع؟', answer: 'نعمل مع القادة المحليين وأعضاء المجتمع لتحديد الاحتياجات، والجهود القائمة، والحلول الواقعية. تُختار المشاريع بناءً على إمكانية التأثير، وجاهزية المجتمع، والموارد المتاحة.' },
-        { id: 'donations-used', donationRelated: true, question: 'كيف تُستخدم التبرعات؟', answer: 'تدعم التبرعات تكاليف البرامج مثل الأدوية والكتب وبناء الآبار والخدمات اللوجستية والمنتجات الصحية الحيضية والدعم المباشر لدور الأيتام. نعمل بنسبة 100% تطوعيًا، لذا تذهب الأموال مباشرة إلى البرامج. ستُنشر تقارير سنوية ومالية مفصلة عند توفرها.' },
+        { id: 'donations-used', donationRelated: true, question: 'كيف تُستخدم التبرعات؟', answer: 'تدعم التبرعات تكاليف البرامج مثل الأدوية والكتب وبناء الآبار والخدمات اللوجستية والمنتجات الصحية الحيضية والدعم المباشر لدور الأيتام. يُسجَّل كل تبرع ويُتحقق منه مقابل كشف حسابنا البنكي الرسمي. ستُنشر تقارير سنوية ومالية مفصلة عند توفرها.' },
         { id: 'volunteer', question: 'كيف يمكنني التطوع؟', answer: 'نرحب بالمرشدين، والعاملين الصحيين، والمعلمين، ومتطوعي الاتصالات، ومساعدي الخدمات اللوجستية. قم بزيارة صفحة شارك واملأ استمارة المتطوعين، أو تواصل معنا مباشرة.' },
         { id: 'partner', question: 'كيف يمكنني أن أكون شريكًا لـ Vantage؟', answer: 'يمكن للشراكات أن تأخذ شكل التمويل، أو المساهمات العينية، أو الخبرة الفنية، أو تعاون المسؤولية الاجتماعية للشركات، أو تنفيذ البرامج المشترك. تواصل معنا عبر صفحة التواصل أو شارك.' },
         { id: 'tax-deductible', donationRelated: true, question: 'هل التبرعات معفاة من الضرائب؟', answer: 'يعتمد الإعفاء الضريبي على بلدك واللوائح المحلية. يُرجى التواصل معنا لمعرفة حالة تسجيلنا والوثائق المتاحة. نعمل على تحقيق حالة الإعفاء الضريبي الرسمية حيثما ينطبق.' },

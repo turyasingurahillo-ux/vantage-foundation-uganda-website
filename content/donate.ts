@@ -7,7 +7,7 @@ export const suggestedAmounts = [
 ];
 
 export const whyDonate = [
-  "Your donation goes directly to programmes — we are 100% volunteer-run.",
+  "Your donation is recorded and verified against our official bank statement before it is confirmed.",
   "You can support a specific project, such as the Kasaale Deep Borehole, SaveGirl Uganda or the Advantage Book Club.",
   "You will receive a confirmation and, where possible, an update on how your gift was used.",
   "Every contribution, large or small, is one more advantage for a young person, family or community.",
