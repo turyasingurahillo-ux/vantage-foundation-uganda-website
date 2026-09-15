@@ -23,7 +23,7 @@ export const aboutContent: Record<Locale, AboutContent> = {
     beneficiaries: ["Young people in rural areas", "Women and girls", "Children and orphans", "People in remote districts and urban informal settlements"],
     approach: "We identify districts and communities that larger international NGOs often overlook and strengthen the reach of existing social safety nets. We recognise that development is sequential: without health and nutrition, education cannot be absorbed; without education, poverty cannot be escaped.",
     governance: [
-      "Vantage Foundation Uganda operates entirely through volunteers, with no salary overhead. As we grow, we are formalising governance structures, safeguarding policies and financial reporting so that every donor, partner and community can trust how resources are used.",
+      "Vantage Foundation Uganda is a youth-led organisation formalising its governance structures, safeguarding policies and financial reporting so that every donor, partner and community can trust how resources are used.",
       "Annual reports, financial statements and project reports will be published on our Reports and Accountability page.",
     ],
     imageAlt: "Vantage Foundation Uganda working with a community",
@@ -39,7 +39,7 @@ export const aboutContent: Record<Locale, AboutContent> = {
     beneficiaries: ["Junge Menschen in ländlichen Gebieten", "Frauen und Mädchen", "Kinder und Waisen", "Menschen in abgelegenen Distrikten und informellen städtischen Siedlungen"],
     approach: "Wir arbeiten in Distrikten und Gemeinschaften, die von größeren internationalen NGOs häufig übersehen werden, und stärken die Reichweite bestehender sozialer Sicherungssysteme. Entwicklung baut aufeinander auf: Ohne Gesundheit und Ernährung kann Bildung nicht greifen; ohne Bildung lässt sich Armut nur schwer überwinden.",
     governance: [
-      "Vantage Foundation Uganda arbeitet vollständig ehrenamtlich und ohne Gehaltskosten. Mit unserem Wachstum bauen wir Leitungsstrukturen, Schutzrichtlinien und die Finanzberichterstattung weiter aus, damit Spendende, Partner und Gemeinschaften nachvollziehen können, wie Mittel eingesetzt werden.",
+      "Vantage Foundation Uganda ist eine von jungen Menschen geführte Organisation, die ihre Leitungsstrukturen, Schutzrichtlinien und die Finanzberichterstattung weiter formalisiert, damit Spendende, Partner und Gemeinschaften nachvollziehen können, wie Mittel eingesetzt werden.",
       "Jahresberichte, Finanzabschlüsse und Projektberichte veröffentlichen wir auf der Seite Berichte und Rechenschaft.",
     ],
     imageAlt: "Vantage Foundation Uganda bei der Zusammenarbeit mit einer Gemeinschaft",
@@ -55,7 +55,7 @@ export const aboutContent: Record<Locale, AboutContent> = {
     beneficiaries: ["Jeunes des zones rurales", "Femmes et filles", "Enfants et orphelins", "Personnes vivant dans des districts isolés et des quartiers urbains informels"],
     approach: "Nous intervenons dans des districts et des communautés souvent délaissés par les grandes ONG internationales et renforçons la portée des dispositifs de protection sociale existants. Le développement se construit par étapes : sans santé ni nutrition, l’éducation ne peut porter ses fruits ; sans éducation, il est difficile d’échapper à la pauvreté.",
     governance: [
-      "Vantage Foundation Uganda fonctionne entièrement grâce à des bénévoles, sans charges salariales. À mesure que nous grandissons, nous renforçons nos structures de gouvernance, nos politiques de protection et nos rapports financiers afin que chaque donateur, partenaire et communauté puisse suivre l’utilisation des ressources.",
+      "Vantage Foundation Uganda est une organisation dirigée par des jeunes qui formalise ses structures de gouvernance, ses politiques de protection et ses rapports financiers afin que chaque donateur, partenaire et communauté puisse suivre l’utilisation des ressources.",
       "Les rapports annuels, états financiers et rapports de projet seront publiés sur notre page Rapports et redevabilité.",
     ],
     imageAlt: "Vantage Foundation Uganda travaillant avec une communauté",
@@ -71,7 +71,7 @@ export const aboutContent: Record<Locale, AboutContent> = {
     beneficiaries: ["Jóvenes en zonas rurales", "Mujeres y niñas", "Niños y huérfanos", "Personas en distritos remotos y asentamientos urbanos informales"],
     approach: "Identificamos distritos y comunidades que las ONG internacionales más grandes suelen pasar por alto y fortalecemos el alcance de las redes de seguridad social existentes. Reconocemos que el desarrollo es secuencial: sin salud y nutrición, la educación no puede ser asimilada; sin educación, no se puede escapar de la pobreza.",
     governance: [
-      "Vantage Foundation Uganda opera completamente a través de voluntarios, sin gastos en salarios. A medida que crecemos, estamos formalizando estructuras de gobernanza, políticas de protección e informes financieros para que cada donante, socio y comunidad pueda confiar en cómo se utilizan los recursos.",
+      "Vantage Foundation Uganda es una organización dirigida por jóvenes que está formalizando sus estructuras de gobernanza, políticas de protección e informes financieros para que cada donante, socio y comunidad pueda confiar en cómo se utilizan los recursos.",
       "Los informes anuales, estados financieros e informes de proyectos se publicarán en nuestra página de Informes y Rendición de Cuentas.",
     ],
     imageAlt: "Vantage Foundation Uganda trabajando con una comunidad",
@@ -87,7 +87,7 @@ export const aboutContent: Record<Locale, AboutContent> = {
     beneficiaries: ["الشباب في المناطق الريفية", "النساء والفتيات", "الأطفال والأيتام", "الأشخاص في المناطق النائية والتجمعات الحضرية العشوائية"],
     approach: "نحدد المناطق والمجتمعات التي تغفلها المنظمات غير الحكومية الدولية الكبرى غالبًا، ونعزز وصول شبكات الأمان الاجتماعي القائمة. ندرك أن التنمية متسلسلة: بلا صحة وتغذية، لا يمكن استيعاب التعليم؛ وبلا تعليم، لا يمكن الفرار من الفقر.",
     governance: [
-      "تعمل Vantage Foundation Uganda بالكامل من خلال المتطوعين، دون أي رواتب. ومع نمونا، نعمل على إضفاء الطابع الرسمي على هياكل الحوكمة وسياسات الحماية والإبلاغ المالي، بحيث يمكن لكل متبرع وشريك ومجتمع الوثوق بكيفية استخدام الموارد.",
+      "Vantage Foundation Uganda منظمة يقودها الشباب تعمل على إضفاء الطابع الرسمي على هياكل الحوكمة وسياسات الحماية والإبلاغ المالي، بحيث يمكن لكل متبرع وشريك ومجتمع الوثوق بكيفية استخدام الموارد.",
       "سيتم نشر التقارير السنوية والبيانات المالية وتقارير المشاريع في صفحة التقارير والمساءلة الخاصة بنا.",
     ],
     imageAlt: "Vantage Foundation Uganda تعمل مع مجتمع",
