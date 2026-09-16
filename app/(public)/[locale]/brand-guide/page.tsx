@@ -513,7 +513,8 @@ export default async function BrandGuidePage({
               <p className="mt-2 text-4xl font-bold text-primary">5,000+</p>
               <p className="mt-1 text-sm text-muted-foreground">people reached</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Source: Vantage Foundation field records, 2024.
+                Illustrative figure for this design-system example — not a
+                real statistic.
               </p>
             </Card>
             <Card className="p-6">
