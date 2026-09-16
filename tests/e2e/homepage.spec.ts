@@ -53,24 +53,66 @@ test.describe("Homepage", () => {
     await page.goto("/");
     // Verify key section headings appear in the expected order.
     const heroH1 = page.locator("h1").first();
-    await expect(heroH1).toContainText("Changing the world");
+    await expect(heroH1).toContainText("connected");
+
+    // Hero CTAs: Explore our work (primary) + Partner with us (secondary)
+    const hero = page.locator("section").first();
+    await expect(hero.getByRole("link", { name: /explore our work/i })).toBeVisible();
+    await expect(hero.getByRole("link", { name: /partner with us/i })).toBeVisible();
 
     // Trust strip items
     await expect(page.getByText("Youth-led since")).toBeVisible();
     await expect(page.getByText("Offices in Jinja & Ishaka")).toBeVisible();
 
-    // Impact section
+    // Proof: evidence-status labels visible on impact figures
     await expect(
       page.locator("main").getByRole("heading", { name: /evidence with context/i })
     ).toBeVisible();
+    await expect(page.getByText("Estimated catchment").first()).toBeVisible();
 
-    // Programmes section
+    // Problem statement
     await expect(
-      page.locator("main").getByRole("heading", { name: /our areas of work/i })
+      page.locator("main").getByRole("heading", { name: /barriers do not arrive one at a time/i })
     ).toBeVisible();
 
-    // Final CTA
-    await expect(page.getByRole("heading", { name: /help us create one more advantage/i })).toBeVisible();
+    // Portfolio preview
+    await expect(
+      page.locator("main").getByRole("heading", { name: /connected areas of work/i })
+    ).toBeVisible();
+
+    // How change happens
+    await expect(
+      page.locator("main").getByRole("heading", { name: /from listening to lasting advantage/i })
+    ).toBeVisible();
+
+    // Flagship work
+    await expect(
+      page.locator("main").getByRole("heading", { name: /where the model is furthest along/i })
+    ).toBeVisible();
+    await expect(
+      page.locator("main").getByRole("heading", { name: /Kasaale Deep Borehole/i })
+    ).toBeVisible();
+
+    // Vantage Point intro — introduced as planned, never as delivered
+    await expect(
+      page.locator("main").getByRole("heading", { name: /where learning connects the work/i })
+    ).toBeVisible();
+    await expect(page.getByText(/planned \/ target/i).first()).toBeVisible();
+
+    // One human story — the curated youth voice, not a news feed
+    await expect(
+      page.locator("main").getByRole("heading", { name: /what are we without our dreams/i })
+    ).toBeVisible();
+
+    // Accountability
+    await expect(
+      page.locator("main").getByRole("heading", { name: /trust is built in the open/i })
+    ).toBeVisible();
+
+    // Conversion: Partner + Donate
+    await expect(
+      page.getByRole("heading", { name: /help fund the next advantage/i })
+    ).toBeVisible();
   });
 
   test("no placeholder text is visible", async ({ page }) => {
@@ -93,19 +135,5 @@ test.describe("Homepage", () => {
     await page.goto("/");
     const header = page.locator("header");
     await expect(header).toHaveClass(/sticky/);
-  });
-
-  test("Instagram section is visible", async ({ page }) => {
-    await page.goto("/");
-    const igSection = page.getByRole("heading", { name: /Popular on Instagram/i });
-    await expect(igSection).toBeVisible();
-  });
-
-  test("Instagram follow button is present", async ({ page }) => {
-    await page.goto("/");
-    const followLink = page.getByRole("link", { name: /@vantagefoundationuganda/i });
-    await expect(followLink).toBeVisible();
-    const href = await followLink.getAttribute("href");
-    expect(href).toContain("instagram.com");
   });
 });

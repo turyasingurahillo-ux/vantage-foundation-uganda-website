@@ -7,6 +7,7 @@ import {
   getProjectsByProgramme,
   getProjectsByTheme,
   getFlagshipProject,
+  getFlagshipProjects,
   getAllThemes,
 } from "@/content/projects";
 import { getPublishedStories, getStorySlugs } from "@/content/stories";
@@ -140,6 +141,30 @@ describe("getFlagshipProject", () => {
     const flagship = getFlagshipProject();
     expect(flagship).toBeDefined();
     expect(flagship?.flagship).toBe(true);
+  });
+});
+
+describe("getFlagshipProjects", () => {
+  it("returns two or more flagship projects for the homepage feature", () => {
+    const flagships = getFlagshipProjects();
+    expect(flagships.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("returns only projects flagged as flagship, in manifest order", () => {
+    const flagships = getFlagshipProjects();
+    for (const p of flagships) {
+      expect(p.flagship).toBe(true);
+    }
+    const manifestFlagships = getPublishedProjects()
+      .filter((p) => p.flagship)
+      .map((p) => p.slug);
+    expect(flagships.map((p) => p.slug)).toEqual(manifestFlagships);
+  });
+
+  it("every flagship has a real status — never implied delivered results", () => {
+    for (const p of getFlagshipProjects()) {
+      expect(["Active", "Completed", "Planned"]).toContain(p.status);
+    }
   });
 });
 

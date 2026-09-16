@@ -12,7 +12,7 @@ export function AreasOfWork({ locale, dictionary }: { locale: Locale; dictionary
     <section className="bg-surface py-16 md:py-24 lg:py-32">
       <Container>
         <SectionHeader
-          eyebrow={dictionary.home.areasTitle}
+          eyebrow={dictionary.home.areasEyebrow}
           title={dictionary.home.areasTitle}
           description={dictionary.home.areasDescription}
         />

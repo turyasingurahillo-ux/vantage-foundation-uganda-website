@@ -351,6 +351,7 @@ By combining mental wellness, financial skills and reproductive health, we help 
     themes: ["Humanitarian Relief", "Food Security", "Disability Inclusion", "Community Development"],
     beneficiaryGroups: ["Orphans", "Vulnerable children", "Young women", "Isolated communities"],
     sdgs: [2, 10, 17],
+    flagship: true,
     gallery: [
       "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-02.webp",
       "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-03.webp",
@@ -438,6 +439,15 @@ export function getProjectsByTheme(theme: string): Project[] {
 /** Returns the flagship project (or the first one flagged as flagship). */
 export function getFlagshipProject(): Project | undefined {
   return getPublishedProjects().find((p) => p.flagship) ?? getPublishedProjects()[0];
+}
+
+/**
+ * Returns every published project flagged as flagship, in manifest order.
+ * The homepage flagship block presents the first entry as the editorial
+ * feature and the rest as secondary cards.
+ */
+export function getFlagshipProjects(): Project[] {
+  return getPublishedProjects().filter((p) => p.flagship);
 }
 
 /** All themes used by at least one published project, sorted alphabetically. */
