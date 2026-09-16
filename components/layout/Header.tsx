@@ -351,6 +351,7 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
       { label: n.projects, href: localize("/projects") },
       { label: n.whereWeWork, href: localize("/impact#where-we-work") },
       { label: n.impactResults, href: localize("/impact") },
+      { label: n.theoryOfChange, href: localize("/theory-of-change") },
       { label: n.reports, href: localize("/reports-and-accountability") },
     ] },
     { label: n.stories, href: localize("/stories") },

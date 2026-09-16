@@ -4,8 +4,15 @@ import {
   getPublishedProgrammes,
   getProgrammeBySlug,
   getProgrammeProjects,
+  getAllProgrammeLearning,
   legacyProgrammeSlugs,
 } from "@/content/programmes";
+import { theoryOfChange } from "@/content/theory-of-change";
+import {
+  getEvidenceItems,
+  getEvidenceItemsByProgramme,
+  getEvidenceItemsByProject,
+} from "@/content/evidence";
 import { vantagePoint } from "@/content/vantage-point";
 import {
   getPublishedProjects,
@@ -347,5 +354,82 @@ describe("getPublishedImpactStats", () => {
     expect(kasaale?.evidenceStatus).toBe("estimated-catchment");
     expect(kasaale?.label.toLowerCase()).toContain("catchment");
     expect(kasaale?.value).not.toContain("+");
+  });
+});
+
+describe("theoryOfChange (PR-4)", () => {
+  it("has exactly four causal layers in the correct order", () => {
+    expect(theoryOfChange.layers).toHaveLength(4);
+    expect(theoryOfChange.layers.map((l) => l.kind)).toEqual([
+      "context",
+      "interventions",
+      "intermediate",
+      "longTerm",
+    ]);
+  });
+
+  it("exposes assumptions, external actors, measurement and a learning loop", () => {
+    expect(theoryOfChange.assumptions.length).toBeGreaterThan(0);
+    expect(theoryOfChange.externalActors.length).toBeGreaterThan(0);
+    expect(theoryOfChange.learningLoop.length).toBeGreaterThanOrEqual(4);
+    expect(theoryOfChange.statement.length).toBeGreaterThan(0);
+  });
+
+  it("distinguishes all five measurement concepts", () => {
+    expect(theoryOfChange.measurement.map((c) => c.kind)).toEqual([
+      "output",
+      "reach",
+      "outcome",
+      "catchment",
+      "target",
+    ]);
+  });
+
+  it("treats catchment as context, never as reach", () => {
+    const catchment = theoryOfChange.measurement.find(
+      (c) => c.kind === "catchment"
+    );
+    expect(catchment?.body.toLowerCase()).toContain("never");
+  });
+
+  it("uses positioning language, not proven-causality claims", () => {
+    const all = [
+      ...theoryOfChange.statement,
+      ...theoryOfChange.layers.flatMap((l) => [
+        l.title,
+        l.description,
+        ...l.items,
+      ]),
+    ].join(" ");
+    expect(all).not.toMatch(/we have proven|guarantee|this causes/i);
+  });
+
+  it("marks only documented relationships as partners", () => {
+    const partners = theoryOfChange.externalActors.filter(
+      (a) => a.kind === "partner"
+    );
+    // One aggregate entry, naming only partners documented in the repo.
+    expect(partners).toHaveLength(1);
+    expect(partners[0].note).toContain("KikumiKyo");
+  });
+});
+
+describe("evidence library (PR-4)", () => {
+  it("is a valid empty collection — no fabricated publications", () => {
+    expect(getEvidenceItems()).toEqual([]);
+    expect(getEvidenceItemsByProgramme("health-wellbeing")).toEqual([]);
+    expect(getEvidenceItemsByProject("savegirl-uganda")).toEqual([]);
+  });
+});
+
+describe("getAllProgrammeLearning (PR-4)", () => {
+  it("aggregates programme learnings with portfolio attribution", () => {
+    const all = getAllProgrammeLearning();
+    expect(all.length).toBeGreaterThan(0);
+    for (const { programme, learning } of all) {
+      expect(programmes.map((p) => p.slug)).toContain(programme.slug);
+      expect(learning.title).toBeTruthy();
+      expect(learning.body).toBeTruthy();
+    }
   });
 });

@@ -1,4 +1,9 @@
-import type { Programme, ProgrammeId, Project } from "@/types";
+import type {
+  Programme,
+  ProgrammeId,
+  ProgrammeLearning,
+  Project,
+} from "@/types";
 import { getPublishedProjects } from "@/content/projects";
 
 /**
@@ -420,6 +425,20 @@ export function getProgrammeProjects(slug: ProgrammeId): Project[] {
   return getPublishedProjects().filter(
     (p) =>
       p.primaryProgramme === slug || (p.relatedProgrammes ?? []).includes(slug),
+  );
+}
+
+/**
+ * All published programme learnings, flattened with their source
+ * portfolio for attribution — the org-level "what we are learning" view
+ * consumed by the Impact & Learning hub.
+ */
+export function getAllProgrammeLearning(): {
+  programme: Programme;
+  learning: ProgrammeLearning;
+}[] {
+  return getPublishedProgrammes().flatMap((programme) =>
+    (programme.learning ?? []).map((learning) => ({ programme, learning })),
   );
 }
 

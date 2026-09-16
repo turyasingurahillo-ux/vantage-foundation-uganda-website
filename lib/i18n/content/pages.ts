@@ -204,6 +204,7 @@ export interface PageContent {
     statusPilot: string;
     statusPlanned: string;
     asOf: string;
+    readEvidenceCta: string;
   };
   vantagePoint: {
     platformEyebrow: string;
@@ -257,6 +258,50 @@ export interface PageContent {
     outcomeDescription: string;
     longTermBadge: string;
     longTermDescription: string;
+    // Impact & Learning hub (PR-4)
+    frameworkTitle: string;
+    frameworkDescription: string;
+    readEvidenceTitle: string;
+    readEvidenceDescription: string;
+    evidenceDefinitions: Record<EvidenceStatus, string>;
+    tocFeatureTitle: string;
+    tocFeatureDescription: string;
+    tocFeatureCta: string;
+    learningTitle: string;
+    learningDescription: string;
+    learningFrom: string;
+    evidenceLibraryTitle: string;
+    evidenceLibraryDescription: string;
+    evidenceLibraryEmpty: string;
+    reportsTitle: string;
+    reportsDescription: string;
+    reportsCta: string;
+    policiesTitle: string;
+    policiesDescription: string;
+    vantagePointTitle: string;
+    vantagePointDescription: string;
+    vantagePointCta: string;
+    ctaTitle: string;
+    ctaDescription: string;
+  };
+  toc: {
+    title: string;
+    description: string;
+    statementHeading: string;
+    assumptionsTitle: string;
+    assumptionsDescription: string;
+    actorsTitle: string;
+    actorsDescription: string;
+    measurementTitle: string;
+    measurementDescription: string;
+    learningLoopTitle: string;
+    learningLoopDescription: string;
+    limitationsTitle: string;
+    limitationsBody: string;
+    inPracticeTitle: string;
+    viewProgrammes: string;
+    viewImpact: string;
+    viewVantagePoint: string;
   };
   stories: {
     title: string;
@@ -383,7 +428,15 @@ function mergeWithEnglish(
     programme: { ...english.programme, ...partial.programme },
     vantagePoint: { ...english.vantagePoint, ...partial.vantagePoint },
     project: { ...english.project, ...partial.project },
-    impact: { ...english.impact, ...partial.impact },
+    impact: {
+      ...english.impact,
+      ...partial.impact,
+      evidenceDefinitions: {
+        ...english.impact.evidenceDefinitions,
+        ...partial.impact?.evidenceDefinitions,
+      },
+    },
+    toc: { ...english.toc, ...partial.toc },
     stories: { ...english.stories, ...partial.stories },
     story: { ...english.story, ...partial.story },
     team: { ...english.team, ...partial.team },
@@ -515,6 +568,7 @@ const englishPageContent: PageContent = {
     statusPilot: "Pilot",
     statusPlanned: "Planned",
     asOf: "As of {date}",
+    readEvidenceCta: "How to read this evidence →",
   },
   vantagePoint: {
     platformEyebrow: "Cross-programme platform",
@@ -549,8 +603,9 @@ const englishPageContent: PageContent = {
     statusPlanned: "Planned",
   },
   impact: {
-    title: "Impact",
-    description: "Evidence of change, measured with honesty and hope.",
+    title: "Impact & Learning",
+    description:
+      "What we have measured, what evidence supports it, what we are learning — and what remains uncertain.",
     fromOutputs: "From outputs to long-term change",
     outputsToLongTerm:
       "Our work is measured across three levels: what we deliver (outputs), the changes we see (outcomes), and the future we are building (long-term impact).",
@@ -572,6 +627,78 @@ const englishPageContent: PageContent = {
     outcomeDescription: "The change we saw",
     longTermBadge: "Long-term impact",
     longTermDescription: "The future we are building",
+    frameworkTitle: "How Vantage thinks about impact",
+    frameworkDescription:
+      "We separate what was delivered from who was reached, what changed, who could potentially benefit, and what we intend — so a target is never mistaken for a result.",
+    readEvidenceTitle: "How to read our evidence",
+    readEvidenceDescription:
+      "Every published figure carries a label describing what kind of claim it is. These labels are deliberate: they make the strength — and the limits — of each claim visible rather than hiding them.",
+    evidenceDefinitions: {
+      "verified":
+        "A figure checked against an underlying record or source available to Vantage. Verified does not mean independently audited.",
+      "programme-team-figure":
+        "A figure supplied through programme implementation records — real internal records, not represented as independently audited.",
+      "estimated-catchment":
+        "An estimate of the population within an intervention's potential service area — not a count of unique people directly served.",
+      "pilot":
+        "Evidence or learning from an early-stage or test implementation — directionally useful, not yet conclusive.",
+      "planned":
+        "A target, intended activity or future state — not an achieved result.",
+      "external-evidence":
+        "Evidence originating outside Vantage, cited to explain context or programme rationale — not a Vantage result.",
+    },
+    tocFeatureTitle: "Our theory of change",
+    tocFeatureDescription:
+      "The logic connecting what Vantage does to the change it seeks — including the assumptions and external actors that logic depends on.",
+    tocFeatureCta: "Read the theory of change",
+    learningTitle: "What Vantage is learning",
+    learningDescription:
+      "Observations recorded from implementation — what worked, what did not, and what we are changing next. Learning is attributed to the programme it came from.",
+    learningFrom: "From",
+    evidenceLibraryTitle: "Evidence library",
+    evidenceLibraryDescription:
+      "Where approved evidence and learning outputs — results briefs, learning notes, research and evaluations — will be published for inspection.",
+    evidenceLibraryEmpty:
+      "No approved evidence publications yet. When evidence and learning outputs are approved, they will appear here with their status, methodology and source — not before.",
+    reportsTitle: "Reports & accountability",
+    reportsDescription:
+      "Formal organizational reporting — annual, financial, programme and governance publications — is published only once approved. No approved reports are public yet.",
+    reportsCta: "See reports & accountability",
+    policiesTitle: "Policies & institutional accountability",
+    policiesDescription:
+      "The policies and mechanisms that govern how Vantage works — safeguarding, privacy, accessibility and terms — each on its own canonical page.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "The cross-programme platform where learning, dialogue, evidence and community voice connect across all six portfolios. Currently planned — its status is stated honestly, not inflated.",
+    vantagePointCta: "About Vantage Point",
+    ctaTitle: "Ask us about our evidence",
+    ctaDescription:
+      "Questions about a figure, a method or what we have not yet measured are welcome — that scrutiny is the point of publishing this.",
+  },
+  toc: {
+    title: "Theory of Change",
+    description:
+      "The logic Vantage believes leads to change — with the assumptions it rests on and the actors it depends on made visible.",
+    statementHeading: "What we believe leads to change",
+    assumptionsTitle: "Assumptions we depend on",
+    assumptionsDescription:
+      "Every theory of change rests on things its authors do not control. These are ours — exposed so you can see where our logic could break.",
+    actorsTitle: "External actors we depend on",
+    actorsDescription:
+      "Vantage cannot produce these outcomes alone. These are the people and systems the change pathway depends on — most are ecosystem actors, not contracted partners.",
+    measurementTitle: "How we measure",
+    measurementDescription:
+      "Five distinct things Vantage talks about when it reports — kept separate so a delivery figure is never mistaken for change.",
+    learningLoopTitle: "How learning feeds back",
+    learningLoopDescription:
+      "The discipline we are building: implement, observe, learn, adapt — so evidence and experience change what programmes do next.",
+    limitationsTitle: "Where our evidence is limited",
+    limitationsBody:
+      "Our evidence base varies across programmes. Some figures are directly recorded, some are programme-team reports, some are estimates, and some work is still planned rather than delivered. We would rather show you the seams than paper over them — where a claim is uncertain, its label says so.",
+    inPracticeTitle: "See it in practice",
+    viewProgrammes: "Explore the six portfolios",
+    viewImpact: "See results & evidence",
+    viewVantagePoint: "How Vantage Point connects it",
   },
   stories: {
     title: "Stories & Insights",
@@ -916,6 +1043,7 @@ const germanPageContent: DeepPartial<PageContent> = {
     statusPilot: "Pilot",
     statusPlanned: "Geplant",
     asOf: "Stand {date}",
+    readEvidenceCta: "Wie man diese Evidenz liest →",
   },
   vantagePoint: {
     platformEyebrow: "Programmübergreifende Plattform",
@@ -950,8 +1078,9 @@ const germanPageContent: DeepPartial<PageContent> = {
     statusPlanned: "Geplant",
   },
   impact: {
-    title: "Wirkung",
-    description: "Beweise für Veränderung, ehrlich und hoffnungsvoll gemessen.",
+    title: "Wirkung & Lernen",
+    description:
+      "Was wir gemessen haben, welche Evidenz es stützt, was wir lernen — und was unsicher bleibt.",
     fromOutputs: "Von Outputs zu langfristigem Wandel",
     outputsToLongTerm:
       "Unsere Arbeit wird auf drei Ebenen gemessen: was wir liefern (Outputs), die Veränderungen, die wir sehen (Outcomes), und die Zukunft, die wir aufbauen (langfristige Wirkung).",
@@ -974,6 +1103,78 @@ const germanPageContent: DeepPartial<PageContent> = {
     outcomeDescription: "Die Veränderung, die wir sahen",
     longTermBadge: "Langfristige Wirkung",
     longTermDescription: "Die Zukunft, die wir aufbauen",
+    frameworkTitle: "Wie Vantage über Wirkung denkt",
+    frameworkDescription:
+      "Wir trennen, was geliefert wurde, davon, wen wir erreicht haben, was sich verändert hat, wer potenziell profitieren könnte und was wir beabsichtigen — damit ein Ziel nie mit einem Ergebnis verwechselt wird.",
+    readEvidenceTitle: "Wie man unsere Evidenz liest",
+    readEvidenceDescription:
+      "Jede veröffentlichte Zahl trägt ein Label, das beschreibt, welche Art von Aussage sie ist. Diese Labels sind Absicht: Sie machen die Stärke — und die Grenzen — jeder Aussage sichtbar, statt sie zu verstecken.",
+    evidenceDefinitions: {
+      "verified":
+        "Eine Zahl, die gegen einen zugrundeliegenden Datensatz oder eine Quelle geprüft wurde, die Vantage vorliegt. Verifiziert bedeutet nicht unabhängig geprüft.",
+      "programme-team-figure":
+        "Eine Zahl aus Programm-Implementierungsaufzeichnungen — echte interne Aufzeichnungen, nicht als unabhängig auditiert dargestellt.",
+      "estimated-catchment":
+        "Eine Schätzung der Bevölkerung im potenziellen Einzugsgebiet einer Intervention — keine Zählung direkt bedienter Personen.",
+      "pilot":
+        "Evidenz oder Erkenntnisse aus einer frühen oder Testimplementierung — richtungsweisend, noch nicht abschließend.",
+      "planned":
+        "Ein Ziel, eine beabsichtigte Aktivität oder ein Zukunftszustand — kein erreichtes Ergebnis.",
+      "external-evidence":
+        "Evidenz von außerhalb Vantage, zitiert zur Erläuterung von Kontext oder Programmbegründung — kein Vantage-Ergebnis.",
+    },
+    tocFeatureTitle: "Unsere Theory of Change",
+    tocFeatureDescription:
+      "Die Logik, die verbindet, was Vantage tut, mit der Veränderung, die es anstrebt — einschließlich der Annahmen und externen Akteure, von denen diese Logik abhängt.",
+    tocFeatureCta: "Theory of Change lesen",
+    learningTitle: "Was Vantage lernt",
+    learningDescription:
+      "Beobachtungen aus der Implementierung — was funktioniert hat, was nicht und was wir als Nächstes ändern. Erkenntnisse werden dem Programm zugeordnet, aus dem sie stammen.",
+    learningFrom: "Aus",
+    evidenceLibraryTitle: "Evidenzbibliothek",
+    evidenceLibraryDescription:
+      "Hier werden freigegebene Evidenz- und Lernergebnisse — Ergebnisberichte, Lernnotizen, Forschung und Evaluationen — zur Einsicht veröffentlicht.",
+    evidenceLibraryEmpty:
+      "Noch keine freigegebenen Evidenzpublikationen. Wenn Evidenz- und Lernergebnisse freigegeben werden, erscheinen sie hier mit Status, Methodik und Quelle — nicht früher.",
+    reportsTitle: "Berichte & Rechenschaft",
+    reportsDescription:
+      "Formale Organisationsberichte — jährliche, finanzielle, Programm- und Governance-Publikationen — werden nur nach Freigabe veröffentlicht. Derzeit sind keine freigegebenen Berichte öffentlich.",
+    reportsCta: "Berichte & Rechenschaft ansehen",
+    policiesTitle: "Richtlinien & institutionelle Rechenschaft",
+    policiesDescription:
+      "Die Richtlinien und Mechanismen, die die Arbeit von Vantage regeln — Schutz, Datenschutz, Barrierefreiheit und Bedingungen — jeweils auf ihrer eigenen kanonischen Seite.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "Die programmübergreifende Plattform, auf der Lernen, Dialog, Evidenz und Community-Stimmen über alle sechs Portfolios verbunden werden. Derzeit geplant — ihr Status wird ehrlich angegeben, nicht aufgebläht.",
+    vantagePointCta: "Über Vantage Point",
+    ctaTitle: "Fragen Sie uns nach unserer Evidenz",
+    ctaDescription:
+      "Fragen zu einer Zahl, einer Methode oder dazu, was wir noch nicht gemessen haben, sind willkommen — diese Prüfung ist der Sinn der Veröffentlichung.",
+  },
+  toc: {
+    title: "Theory of Change",
+    description:
+      "Die Logik, von der Vantage glaubt, dass sie zu Veränderung führt — mit den Annahmen, auf denen sie ruht, und den Akteuren, von denen sie abhängt, sichtbar gemacht.",
+    statementHeading: "Was unserer Überzeugung nach zu Veränderung führt",
+    assumptionsTitle: "Annahmen, von denen wir abhängen",
+    assumptionsDescription:
+      "Jede Theory of Change ruht auf Dingen, die ihre Autoren nicht kontrollieren. Das sind unsere — offengelegt, damit Sie sehen können, wo unsere Logik brechen könnte.",
+    actorsTitle: "Externe Akteure, von denen wir abhängen",
+    actorsDescription:
+      "Vantage kann diese Ergebnisse nicht allein erzielen. Das sind die Menschen und Systeme, von denen der Veränderungspfad abhängt — die meisten sind Ökosystem-Akteure, keine Vertragspartner.",
+    measurementTitle: "Wie wir messen",
+    measurementDescription:
+      "Fünf verschiedene Dinge, über die Vantage berichtet — getrennt gehalten, damit eine Lieferziffer nie mit Veränderung verwechselt wird.",
+    learningLoopTitle: "Wie Lernen zurückfließt",
+    learningLoopDescription:
+      "Die Disziplin, die wir aufbauen: implementieren, beobachten, lernen, anpassen — damit Evidenz und Erfahrung verändern, was Programme als Nächstes tun.",
+    limitationsTitle: "Wo unsere Evidenz begrenzt ist",
+    limitationsBody:
+      "Unsere Evidenzbasis variiert zwischen den Programmen. Manche Zahlen sind direkt erfasst, manche sind Programmteam-Berichte, manche sind Schätzungen, und manche Arbeit ist eher geplant als umgesetzt. Wir zeigen Ihnen lieber die Nähte, als sie zu übertünchen — wo eine Aussage unsicher ist, sagt es ihr Label.",
+    inPracticeTitle: "In der Praxis sehen",
+    viewProgrammes: "Die sechs Portfolios erkunden",
+    viewImpact: "Ergebnisse & Evidenz ansehen",
+    viewVantagePoint: "Wie Vantage Point es verbindet",
   },
   stories: {
     title: "Geschichten & Einblicke",
@@ -1318,6 +1519,7 @@ const frenchPageContent: DeepPartial<PageContent> = {
     statusPilot: "Pilote",
     statusPlanned: "Planifié",
     asOf: "Au {date}",
+    readEvidenceCta: "Comment lire ces preuves →",
   },
   vantagePoint: {
     platformEyebrow: "Plateforme transprogrammes",
@@ -1352,8 +1554,9 @@ const frenchPageContent: DeepPartial<PageContent> = {
     statusPlanned: "Planifié",
   },
   impact: {
-    title: "Impact",
-    description: "Preuves du changement, mesurées avec honnêteté et espoir.",
+    title: "Impact & apprentissage",
+    description:
+      "Ce que nous avons mesuré, quelles preuves l'appuient, ce que nous apprenons — et ce qui reste incertain.",
     fromOutputs: "Des résultats au changement durable",
     outputsToLongTerm:
       "Notre travail est mesuré sur trois niveaux : ce que nous délivrons (résultats), les changements observés (effets), et l'avenir que nous construisons (impact à long terme).",
@@ -1376,6 +1579,78 @@ const frenchPageContent: DeepPartial<PageContent> = {
     outcomeDescription: "Le changement observé",
     longTermBadge: "Impact à long terme",
     longTermDescription: "L'avenir que nous construisons",
+    frameworkTitle: "Comment Vantage conçoit l'impact",
+    frameworkDescription:
+      "Nous distinguons ce qui a été livré de qui a été atteint, de ce qui a changé, de qui pourrait potentiellement en bénéficier et de ce que nous visons — pour qu'un objectif ne soit jamais confondu avec un résultat.",
+    readEvidenceTitle: "Comment lire nos preuves",
+    readEvidenceDescription:
+      "Chaque chiffre publié porte un label décrivant le type d'affirmation qu'il constitue. Ces labels sont délibérés : ils rendent visible la force — et les limites — de chaque affirmation au lieu de les cacher.",
+    evidenceDefinitions: {
+      "verified":
+        "Un chiffre vérifié contre un registre ou une source sous-jacente dont dispose Vantage. Vérifié ne signifie pas audité de manière indépendante.",
+      "programme-team-figure":
+        "Un chiffre issu des registres de mise en œuvre du programme — de vrais registres internes, non présentés comme audités de manière indépendante.",
+      "estimated-catchment":
+        "Une estimation de la population dans la zone de service potentielle d'une intervention — pas un décompte des personnes uniques directement servies.",
+      "pilot":
+        "Preuves ou enseignements issus d'une mise en œuvre précoce ou pilote — indicatifs, pas encore concluants.",
+      "planned":
+        "Un objectif, une activité prévue ou un état futur — pas un résultat obtenu.",
+      "external-evidence":
+        "Preuves provenant de l'extérieur de Vantage, citées pour expliquer le contexte ou la justification du programme — pas un résultat de Vantage.",
+    },
+    tocFeatureTitle: "Notre théorie du changement",
+    tocFeatureDescription:
+      "La logique reliant ce que Vantage fait au changement qu'elle recherche — y compris les hypothèses et les acteurs externes dont cette logique dépend.",
+    tocFeatureCta: "Lire la théorie du changement",
+    learningTitle: "Ce que Vantage apprend",
+    learningDescription:
+      "Observations issues de la mise en œuvre — ce qui a fonctionné, ce qui n'a pas fonctionné et ce que nous changeons ensuite. Les apprentissages sont attribués au programme dont ils proviennent.",
+    learningFrom: "Depuis",
+    evidenceLibraryTitle: "Bibliothèque de preuves",
+    evidenceLibraryDescription:
+      "Là où les résultats de preuves et d'apprentissage approuvés — notes de résultats, notes d'apprentissage, recherches et évaluations — seront publiés pour examen.",
+    evidenceLibraryEmpty:
+      "Aucune publication de preuves approuvée pour l'instant. Lorsque des résultats de preuves et d'apprentissage seront approuvés, ils apparaîtront ici avec leur statut, leur méthodologie et leur source — pas avant.",
+    reportsTitle: "Rapports & redevabilité",
+    reportsDescription:
+      "Les rapports organisationnels formels — publications annuelles, financières, de programmes et de gouvernance — ne sont publiés qu'après approbation. Aucun rapport approuvé n'est encore public.",
+    reportsCta: "Voir rapports & redevabilité",
+    policiesTitle: "Politiques & redevabilité institutionnelle",
+    policiesDescription:
+      "Les politiques et mécanismes qui encadrent le travail de Vantage — sauvegarde, confidentialité, accessibilité et conditions — chacun sur sa propre page canonique.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "La plateforme transversale où apprentissage, dialogue, preuves et voix communautaires se connectent à travers les six portefeuilles. Actuellement planifiée — son statut est indiqué honnêtement, sans exagération.",
+    vantagePointCta: "À propos de Vantage Point",
+    ctaTitle: "Interrogez-nous sur nos preuves",
+    ctaDescription:
+      "Les questions sur un chiffre, une méthode ou ce que nous n'avons pas encore mesuré sont les bienvenues — cet examen est précisément le but de cette publication.",
+  },
+  toc: {
+    title: "Théorie du changement",
+    description:
+      "La logique que Vantage croit mener au changement — avec les hypothèses sur lesquelles elle repose et les acteurs dont elle dépend rendus visibles.",
+    statementHeading: "Ce que nous croyons mener au changement",
+    assumptionsTitle: "Hypothèses dont nous dépendons",
+    assumptionsDescription:
+      "Toute théorie du changement repose sur des choses que ses auteurs ne contrôlent pas. Voici les nôtres — exposées pour que vous puissiez voir où notre logique pourrait se briser.",
+    actorsTitle: "Acteurs externes dont nous dépendons",
+    actorsDescription:
+      "Vantage ne peut produire ces résultats seule. Voici les personnes et systèmes dont dépend le chemin du changement — la plupart sont des acteurs de l'écosystème, pas des partenaires contractuels.",
+    measurementTitle: "Comment nous mesurons",
+    measurementDescription:
+      "Cinq choses distinctes dont Vantage parle dans ses rapports — tenues séparées pour qu'un chiffre de livraison ne soit jamais confondu avec un changement.",
+    learningLoopTitle: "Comment l'apprentissage se réinjecte",
+    learningLoopDescription:
+      "La discipline que nous construisons : mettre en œuvre, observer, apprendre, adapter — pour que preuves et expérience changent ce que les programmes font ensuite.",
+    limitationsTitle: "Là où nos preuves sont limitées",
+    limitationsBody:
+      "Notre base de preuves varie selon les programmes. Certains chiffres sont directement enregistrés, d'autres sont des rapports d'équipes de programme, d'autres des estimations, et certaines activités sont encore planifiées plutôt que réalisées. Nous préférons vous montrer les coutures plutôt que les masquer — quand une affirmation est incertaine, son label le dit.",
+    inPracticeTitle: "Voir en pratique",
+    viewProgrammes: "Explorer les six portefeuilles",
+    viewImpact: "Voir résultats & preuves",
+    viewVantagePoint: "Comment Vantage Point relie le tout",
   },
   stories: {
     title: "Récits et analyses",
@@ -1720,6 +1995,7 @@ const spanishPageContent: DeepPartial<PageContent> = {
     statusPilot: "Piloto",
     statusPlanned: "Planificado",
     asOf: "A fecha de {date}",
+    readEvidenceCta: "Cómo leer esta evidencia →",
   },
   vantagePoint: {
     platformEyebrow: "Plataforma interprogramas",
@@ -1754,8 +2030,9 @@ const spanishPageContent: DeepPartial<PageContent> = {
     statusPlanned: "Planificado",
   },
   impact: {
-    title: "Impacto",
-    description: "Evidencia del cambio, medida con honestidad y esperanza.",
+    title: "Impacto y aprendizaje",
+    description:
+      "Lo que hemos medido, qué evidencia lo respalda, lo que estamos aprendiendo — y lo que sigue incierto.",
     fromOutputs: "De los resultados al cambio a largo plazo",
     outputsToLongTerm:
       "Nuestro trabajo se mide en tres niveles: lo que entregamos (resultados), los cambios que vemos (efectos) y el futuro que estamos construyendo (impacto a largo plazo).",
@@ -1777,6 +2054,78 @@ const spanishPageContent: DeepPartial<PageContent> = {
     outcomeDescription: "El cambio que vimos",
     longTermBadge: "Impacto a largo plazo",
     longTermDescription: "El futuro que estamos construyendo",
+    frameworkTitle: "Cómo concibe Vantage el impacto",
+    frameworkDescription:
+      "Separamos lo que se entregó de a quién se alcanzó, qué cambió, quién podría beneficiarse potencialmente y qué pretendemos — para que una meta nunca se confunda con un resultado.",
+    readEvidenceTitle: "Cómo leer nuestra evidencia",
+    readEvidenceDescription:
+      "Cada cifra publicada lleva una etiqueta que describe qué tipo de afirmación es. Estas etiquetas son deliberadas: hacen visible la fuerza — y los límites — de cada afirmación en lugar de ocultarlos.",
+    evidenceDefinitions: {
+      "verified":
+        "Una cifra comprobada contra un registro o fuente subyacente disponible para Vantage. Verificada no significa auditada de forma independiente.",
+      "programme-team-figure":
+        "Una cifra procedente de los registros de implementación del programa — registros internos reales, no presentados como auditados independientemente.",
+      "estimated-catchment":
+        "Una estimación de la población dentro del área de servicio potencial de una intervención — no un recuento de personas únicas atendidas directamente.",
+      "pilot":
+        "Evidencia o aprendizaje de una implementación temprana o piloto — indicativa, aún no concluyente.",
+      "planned":
+        "Una meta, una actividad prevista o un estado futuro — no un resultado logrado.",
+      "external-evidence":
+        "Evidencia originada fuera de Vantage, citada para explicar el contexto o la justificación del programa — no un resultado de Vantage.",
+    },
+    tocFeatureTitle: "Nuestra teoría del cambio",
+    tocFeatureDescription:
+      "La lógica que conecta lo que Vantage hace con el cambio que busca — incluidos los supuestos y actores externos de los que depende esa lógica.",
+    tocFeatureCta: "Leer la teoría del cambio",
+    learningTitle: "Lo que Vantage está aprendiendo",
+    learningDescription:
+      "Observaciones registradas de la implementación — qué funcionó, qué no y qué cambiamos a continuación. El aprendizaje se atribuye al programa del que procede.",
+    learningFrom: "De",
+    evidenceLibraryTitle: "Biblioteca de evidencia",
+    evidenceLibraryDescription:
+      "Donde se publicarán para inspección los resultados de evidencia y aprendizaje aprobados — informes de resultados, notas de aprendizaje, investigación y evaluaciones.",
+    evidenceLibraryEmpty:
+      "Aún no hay publicaciones de evidencia aprobadas. Cuando se aprueben resultados de evidencia y aprendizaje, aparecerán aquí con su estado, metodología y fuente — no antes.",
+    reportsTitle: "Informes y rendición de cuentas",
+    reportsDescription:
+      "Los informes organizativos formales — publicaciones anuales, financieras, de programas y de gobernanza — solo se publican una vez aprobados. Aún no hay informes aprobados públicos.",
+    reportsCta: "Ver informes y rendición de cuentas",
+    policiesTitle: "Políticas y rendición de cuentas institucional",
+    policiesDescription:
+      "Las políticas y mecanismos que rigen el trabajo de Vantage — salvaguarda, privacidad, accesibilidad y términos — cada uno en su propia página canónica.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "La plataforma transversal donde el aprendizaje, el diálogo, la evidencia y las voces de la comunidad conectan los seis portafolios. Actualmente planificada — su estado se indica honestamente, sin inflarse.",
+    vantagePointCta: "Sobre Vantage Point",
+    ctaTitle: "Pregúntenos sobre nuestra evidencia",
+    ctaDescription:
+      "Las preguntas sobre una cifra, un método o lo que aún no hemos medido son bienvenidas — ese escrutinio es precisamente el objetivo de publicar esto.",
+  },
+  toc: {
+    title: "Teoría del cambio",
+    description:
+      "La lógica que Vantage cree que conduce al cambio — con los supuestos sobre los que se apoya y los actores de los que depende hechos visibles.",
+    statementHeading: "Lo que creemos que conduce al cambio",
+    assumptionsTitle: "Supuestos de los que dependemos",
+    assumptionsDescription:
+      "Toda teoría del cambio se apoya en cosas que sus autores no controlan. Estos son los nuestros — expuestos para que pueda ver dónde podría romperse nuestra lógica.",
+    actorsTitle: "Actores externos de los que dependemos",
+    actorsDescription:
+      "Vantage no puede producir estos resultados por sí sola. Estas son las personas y los sistemas de los que depende el camino del cambio — la mayoría son actores del ecosistema, no socios contractuales.",
+    measurementTitle: "Cómo medimos",
+    measurementDescription:
+      "Cinco cosas distintas de las que habla Vantage al informar — mantenidas separadas para que una cifra de entrega nunca se confunda con un cambio.",
+    learningLoopTitle: "Cómo el aprendizaje se realimenta",
+    learningLoopDescription:
+      "La disciplina que estamos construyendo: implementar, observar, aprender, adaptar — para que la evidencia y la experiencia cambien lo que los programas hacen después.",
+    limitationsTitle: "Dónde es limitada nuestra evidencia",
+    limitationsBody:
+      "Nuestra base de evidencia varía entre programas. Algunas cifras se registran directamente, otras son informes de equipos de programa, otras son estimaciones, y parte del trabajo está aún planificado en lugar de realizado. Preferimos mostrarle las costuras antes que taparlas — cuando una afirmación es incierta, su etiqueta lo dice.",
+    inPracticeTitle: "Verlo en la práctica",
+    viewProgrammes: "Explorar los seis portafolios",
+    viewImpact: "Ver resultados y evidencia",
+    viewVantagePoint: "Cómo Vantage Point lo conecta",
   },
   stories: {
     title: "Historias y reflexiones",
@@ -2121,6 +2470,7 @@ const arabicPageContent: DeepPartial<PageContent> = {
     statusPilot: "تجريبي",
     statusPlanned: "مخطط",
     asOf: "حتى {date}",
+    readEvidenceCta: "كيف تقرأ هذه الأدلة ←",
     viewAllProgrammes: "عرض جميع البرامج",
   },
   vantagePoint: {
@@ -2156,7 +2506,7 @@ const arabicPageContent: DeepPartial<PageContent> = {
     statusPlanned: "مخطط",
   },
   impact: {
-    title: "الأثر",
+    title: "الأثر والتعلم",
     description: "أدلة على التغيير، تقاس بالصدق والأمل.",
     fromOutputs: "من المخرجات إلى التغيير طويل المدى",
     outputsToLongTerm:
@@ -2179,6 +2529,78 @@ const arabicPageContent: DeepPartial<PageContent> = {
     outcomeDescription: "التغيير الذي رأيناه",
     longTermBadge: "الأثر طويل المدى",
     longTermDescription: "المستقبل الذي نبنيه",
+    frameworkTitle: "كيف تفهم Vantage الأثر",
+    frameworkDescription:
+      "نفصل ما تم تقديمه عمّن تم الوصول إليهم، وعمّا تغيّر، وعمّن قد يستفيدون محتملاً، وعمّا نعتزم تحقيقه — حتى لا يُخلَط هدف بنتيجة أبداً.",
+    readEvidenceTitle: "كيف تقرأ أدلتنا",
+    readEvidenceDescription:
+      "كل رقم منشور يحمل تصنيفاً يصف نوع الادعاء الذي يمثله. هذه التصنيفات مقصودة: فهي تجعل قوة — وحدود — كل ادعاء مرئية بدلاً من إخفائها.",
+    evidenceDefinitions: {
+      "verified":
+        "رقم تم التحقق منه مقابل سجل أو مصدر أساسي متوفر لدى Vantage. التحقق لا يعني تدقيقاً مستقلاً.",
+      "programme-team-figure":
+        "رقم مأخوذ من سجلات تنفيذ البرنامج — سجلات داخلية حقيقية، لا تُقدَّم على أنها مدققة بشكل مستقل.",
+      "estimated-catchment":
+        "تقدير لعدد السكان ضمن منطقة الخدمة المحتملة لتدخل ما — وليس إحصاءً لأشخاص محددين تمت خدمتهم مباشرة.",
+      "pilot":
+        "دليل أو تعلم من تطبيق مبكر أو تجريبي — مؤشر اتجاهي، وليس قاطعاً بعد.",
+      "planned":
+        "هدف أو نشاط مقصود أو حالة مستقبلية — وليس نتيجة محققة.",
+      "external-evidence":
+        "دليل صادر من خارج Vantage، يُستشهد به لشرح السياق أو مبرر البرنامج — وليس نتيجة لـVantage.",
+    },
+    tocFeatureTitle: "نظرية التغيير لدينا",
+    tocFeatureDescription:
+      "المنطق الذي يربط ما تفعله Vantage بالتغيير الذي تسعى إليه — بما في ذلك الافتراضات والجهات الخارجية التي يعتمد عليها هذا المنطق.",
+    tocFeatureCta: "اقرأ نظرية التغيير",
+    learningTitle: "ما تتعلمه Vantage",
+    learningDescription:
+      "ملاحظات مسجلة من التنفيذ — ما نجح، وما لم ينجح، وما سنغيره تالياً. يُنسب التعلم إلى البرنامج الذي صدر عنه.",
+    learningFrom: "من",
+    evidenceLibraryTitle: "مكتبة الأدلة",
+    evidenceLibraryDescription:
+      "حيث ستُنشر مخرجات الأدلة والتعلم المعتمدة — ملخصات النتائج وملاحظات التعلم والبحوث والتقييمات — للاطلاع عليها.",
+    evidenceLibraryEmpty:
+      "لا توجد منشورات أدلة معتمدة بعد. عندما تُعتمد مخرجات الأدلة والتعلم، ستظهر هنا مع حالتها ومنهجيتها ومصدرها — وليس قبل ذلك.",
+    reportsTitle: "التقارير والمساءلة",
+    reportsDescription:
+      "التقارير التنظيمية الرسمية — المنشورات السنوية والمالية والبرامجية والحوكمة — لا تُنشر إلا بعد اعتمادها. لا توجد تقارير معتمدة منشورة حالياً.",
+    reportsCta: "عرض التقارير والمساءلة",
+    policiesTitle: "السياسات والمساءلة المؤسسية",
+    policiesDescription:
+      "السياسات والآليات التي تحكم عمل Vantage — الحماية والخصوصية وإمكانية الوصول والشروط — كل منها في صفحته القانونية الخاصة.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "المنصة المشتركة بين البرامج التي تربط التعلم والحوار والأدلة وأصوات المجتمع عبر المحافظ الست. مخططة حالياً — تُذكر حالتها بصدق دون مبالغة.",
+    vantagePointCta: "عن Vantage Point",
+    ctaTitle: "اسألنا عن أدلتنا",
+    ctaDescription:
+      "الأسئلة حول رقم أو منهجية أو ما لم نقيسه بعد مرحب بها — فهذا التدقيق هو بالضبط الغرض من نشر هذا.",
+  },
+  toc: {
+    title: "نظرية التغيير",
+    description:
+      "المنطق الذي تعتقد Vantage أنه يؤدي إلى التغيير — مع إظهار الافتراضات التي يقوم عليها والجهات التي يعتمد عليها.",
+    statementHeading: "ما نعتقد أنه يؤدي إلى التغيير",
+    assumptionsTitle: "افتراضات نعتمد عليها",
+    assumptionsDescription:
+      "كل نظرية تغيير تقوم على أشياء لا يتحكم فيها واضعوها. هذه افتراضاتنا — معروضة لكي ترى أين يمكن أن ينكسر منطقنا.",
+    actorsTitle: "جهات خارجية نعتمد عليها",
+    actorsDescription:
+      "لا تستطيع Vantage تحقيق هذه النتائج بمفردها. هؤلاء هم الأشخاص والأنظمة التي يعتمد عليها مسار التغيير — معظمهم جهات في المنظومة، وليسوا شركاء متعاقدين.",
+    measurementTitle: "كيف نقيس",
+    measurementDescription:
+      "خمسة أشياء مختلفة تتحدث عنها Vantage عند إعداد التقارير — تُبقى منفصلة حتى لا يُخلَط رقم التسليم بالتغيير أبداً.",
+    learningLoopTitle: "كيف يعود التعلم",
+    learningLoopDescription:
+      "الانضباط الذي نبنيه: ننفذ، نلاحظ، نتعلم، نكيّف — حتى تغيّر الأدلة والخبرة ما تفعله البرامج تالياً.",
+    limitationsTitle: "أين تكون أدلتنا محدودة",
+    limitationsBody:
+      "قاعدة أدلتنا تختلف بين البرامج. بعض الأرقام مسجلة مباشرة، وبعضها تقارير فرق البرامج، وبعضها تقديرات، وبعض الأعمال لا تزال مخططة لا منفذة. نفضل أن نريك الخيوط بدلاً من تغطيتها — فحين يكون ادعاء غير مؤكد، يقول تصنيفه ذلك.",
+    inPracticeTitle: "شاهد ذلك عملياً",
+    viewProgrammes: "استكشف المحافظ الست",
+    viewImpact: "عرض النتائج والأدلة",
+    viewVantagePoint: "كيف يربطها Vantage Point",
   },
   stories: {
     title: "قصص ورؤى",

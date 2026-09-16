@@ -29,6 +29,8 @@ import { team } from "../content/team";
 import { partners } from "../content/partners";
 import { impactStats } from "../content/impact";
 import { reports } from "../content/reports";
+import { theoryOfChange } from "../content/theory-of-change";
+import { evidenceItems } from "../content/evidence";
 import { faq } from "../content/faq";
 import { mediaAssets } from "../content/media";
 import { reachDistricts } from "../content/reach";
@@ -403,6 +405,65 @@ const vantagePointSchema = z.object({
   imageAlt: z.string().optional(),
 });
 
+const tocLayerSchema = z.object({
+  kind: z.enum(["context", "interventions", "intermediate", "longTerm"]),
+  title: nonEmpty,
+  description: nonEmpty,
+  items: z.array(nonEmpty).min(1),
+});
+
+const theoryOfChangeSchema = z.object({
+  statement: z.array(nonEmpty).min(1),
+  // Exactly the four primary causal layers — order checked in
+  // checkCrossReferences so it cannot silently drift.
+  layers: z.array(tocLayerSchema).length(4),
+  assumptions: z
+    .array(z.object({ title: nonEmpty, body: nonEmpty }))
+    .min(1),
+  externalActors: z
+    .array(
+      z.object({
+        name: nonEmpty,
+        kind: z.enum(["partner", "ecosystem"]),
+        note: z.string().optional(),
+      })
+    )
+    .min(1),
+  measurement: z
+    .array(
+      z.object({
+        kind: z.enum(["output", "reach", "outcome", "catchment", "target"]),
+        title: nonEmpty,
+        body: nonEmpty,
+        example: z.string().optional(),
+      })
+    )
+    .min(1),
+  learningLoop: z.array(nonEmpty).min(1),
+});
+
+const evidenceItemSchema = z.object({
+  id: nonEmpty,
+  title: nonEmpty,
+  type: z.enum([
+    "results-brief",
+    "learning-note",
+    "research",
+    "evaluation",
+    "evidence-summary",
+    "external-evidence",
+  ]),
+  summary: nonEmpty,
+  programmeIds: z.array(programmeSlugSchema).optional(),
+  projectSlugs: z.array(slug).optional(),
+  evidenceStatus: evidenceStatusSchema.optional(),
+  date: dateish.optional(),
+  sourceLabel: z.string().optional(),
+  href: urlOrPath.optional(),
+  methodology: z.string().optional(),
+  reviewedAt: z.string().optional(),
+});
+
 const mediaAssetSchema = z.object({
   id: nonEmpty,
   src: nonEmpty,
@@ -543,6 +604,64 @@ function checkCrossReferences(errors: ValidationError[]) {
     }
   }
 
+  // Theory of Change: exactly the four causal layers in causal order.
+  const EXPECTED_TOC_ORDER = [
+    "context",
+    "interventions",
+    "intermediate",
+    "longTerm",
+  ] as const;
+  theoryOfChange.layers.forEach((layer, i) => {
+    if (layer.kind !== EXPECTED_TOC_ORDER[i]) {
+      errors.push({
+        file: "content/theory-of-change.ts",
+        path: `layers[${i}].kind`,
+        message: `expected layer "${EXPECTED_TOC_ORDER[i]}", found "${layer.kind}" — causal order must not drift`,
+      });
+    }
+  });
+
+  // Evidence library: unique ids, valid programme/project references.
+  const evidenceIds = evidenceItems.map((e) => e.id);
+  const dupEvidence = evidenceIds.filter(
+    (s, i) => evidenceIds.indexOf(s) !== i,
+  );
+  for (const d of [...new Set(dupEvidence)]) {
+    errors.push({
+      file: "content/evidence.ts",
+      path: "id",
+      message: `duplicate evidence item id "${d}"`,
+    });
+  }
+  for (const item of evidenceItems) {
+    for (const pid of item.programmeIds ?? []) {
+      if (!PROGRAMME_SLUG_VALUES.includes(pid)) {
+        errors.push({
+          file: "content/evidence.ts",
+          path: `${item.id}.programmeIds`,
+          message: `references unknown programme "${pid}"`,
+        });
+      }
+    }
+    for (const pslug of item.projectSlugs ?? []) {
+      if (!projectSlugs.has(pslug)) {
+        errors.push({
+          file: "content/evidence.ts",
+          path: `${item.id}.projectSlugs`,
+          message: `references unknown project slug "${pslug}"`,
+        });
+      }
+    }
+    // A results-brief presents a finding — it must carry an evidence status.
+    if (item.type === "results-brief" && !item.evidenceStatus) {
+      errors.push({
+        file: "content/evidence.ts",
+        path: `${item.id}.evidenceStatus`,
+        message: `results-brief must declare an evidenceStatus`,
+      });
+    }
+  }
+
   // Reach districts: projectSlugs must reference existing projects.
   for (const district of reachDistricts) {
     if (district.projectSlugs) {
@@ -639,6 +758,20 @@ export function validateAllContent(): ValidationError[] {
   );
   errors.push(
     ...validateModule("content/reports.ts", reports, z.array(reportSchema))
+  );
+  errors.push(
+    ...validateModule(
+      "content/theory-of-change.ts",
+      theoryOfChange,
+      theoryOfChangeSchema
+    )
+  );
+  errors.push(
+    ...validateModule(
+      "content/evidence.ts",
+      evidenceItems,
+      z.array(evidenceItemSchema)
+    )
   );
   errors.push(...validateModule("content/faq.ts", faq, z.array(faqItemSchema)));
   errors.push(

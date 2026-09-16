@@ -247,6 +247,115 @@ export interface VantagePoint {
 }
 
 /**
+ * One layer of the public Theory of Change. `kind` is fixed — the
+ * organizational ToC has exactly these four causal layers, in order:
+ * context/problems → interventions → intermediate outcomes →
+ * longer-term outcomes. Positioning language only ("we expect",
+ * "we seek") — a layer is never a measured result.
+ */
+export interface TocLayer {
+  kind: "context" | "interventions" | "intermediate" | "longTerm";
+  title: string;
+  /** Positioning description of this layer. */
+  description: string;
+  /** The items that populate the layer (problems, approaches, outcomes). */
+  items: string[];
+}
+
+/**
+ * A named assumption underpinning the Theory of Change. Assumptions are
+ * things Vantage depends on but does not control — they are exposed so
+ * readers can see where the logic could break. Never presented as
+ * evidence.
+ */
+export interface TocAssumption {
+  title: string;
+  body: string;
+}
+
+/**
+ * An external actor category the ToC depends on. `kind` distinguishes
+ * documented Vantage partners from ecosystem actors (public systems,
+ * referral services, community structures) — same distinction as
+ * ProgrammeActor in PR-3.
+ */
+export interface TocExternalActor {
+  name: string;
+  kind: "partner" | "ecosystem";
+  note?: string;
+}
+
+/**
+ * One concept in the public measurement framework — how Vantage talks
+ * about what it counts. `kind` distinguishes outputs (delivered),
+ * reach (who was reached), outcomes (what changed), context/catchment
+ * (potential beneficiaries — not reach), and targets (intended, not
+ * achieved).
+ */
+export interface MeasurementConcept {
+  kind: "output" | "reach" | "outcome" | "catchment" | "target";
+  title: string;
+  body: string;
+  /** A concrete in-repo example, where one exists. */
+  example?: string;
+}
+
+/**
+ * The organization's public Theory of Change — the causal logic Vantage
+ * believes leads to change, with its assumptions, dependencies and
+ * learning loop made visible. Blueprint-derived organizational logic;
+ * NOT measured evidence.
+ */
+export interface TheoryOfChange {
+  /** The concise public ToC statement. */
+  statement: string[];
+  /** Exactly four layers, ordered context → interventions → intermediate → longTerm. */
+  layers: TocLayer[];
+  assumptions: TocAssumption[];
+  externalActors: TocExternalActor[];
+  measurement: MeasurementConcept[];
+  /**
+   * The learning/adaptation loop: implement → observe/measure → learn →
+   * adapt. Describes the intended discipline, not a claim that a formal
+   * evaluation system already exists.
+   */
+  learningLoop: string[];
+}
+
+/**
+ * An item in the public evidence library — an inspectable evidence or
+ * learning output. Distinct from Report (formal organizational reporting
+ * documents): the library is where results briefs, learning notes,
+ * research outputs, evaluations and evidence summaries surface.
+ */
+export type EvidenceItemType =
+  | "results-brief"
+  | "learning-note"
+  | "research"
+  | "evaluation"
+  | "evidence-summary"
+  | "external-evidence";
+
+export interface EvidenceItem {
+  id: string;
+  title: string;
+  type: EvidenceItemType;
+  summary: string;
+  /** Portfolios the item relates to — resolved by slug, not by title. */
+  programmeIds?: ProgrammeId[];
+  projectSlugs?: string[];
+  evidenceStatus?: EvidenceStatus;
+  date?: string;
+  /** Provenance label — who produced or holds this item. */
+  sourceLabel?: string;
+  /** Public destination — internal route or external URL. */
+  href?: string;
+  methodology?: string;
+  /** When the item was last reviewed/approved for publication. */
+  reviewedAt?: string;
+}
+
+/**
  * Cross-cutting themes a project can address. A project selects one or more
  * themes so it can surface on every relevant programme/theme page without
  * duplicating its source data. Themes are intentionally distinct from

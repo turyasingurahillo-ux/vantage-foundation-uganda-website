@@ -86,6 +86,7 @@ export const site: SiteConfig = {
         { label: "Projects", href: "/projects" },
         { label: "Where We Work", href: "/impact#where-we-work" },
         { label: "Impact Results", href: "/impact" },
+        { label: "Theory of Change", href: "/theory-of-change" },
         { label: "Reports", href: "/reports-and-accountability" },
       ],
     },
