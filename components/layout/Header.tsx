@@ -339,10 +339,13 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
       { label: n.contact, href: localize("/contact") },
     ] },
     { label: n.programmes, href: localize("/our-work"), children: [
-      { label: "Vantage Care", href: localize("/programmes/health") },
-      { label: "KikumiKyo Academy", href: localize("/programmes/education") },
-      { label: n.humanitarian, href: localize("/programmes/humanitarian") },
-      { label: n.wash, href: localize("/programmes/water") },
+      { label: "Health & Wellbeing", href: localize("/programmes/health-wellbeing") },
+      { label: "Education & Learning", href: localize("/programmes/education-learning") },
+      { label: "Financial Capability", href: localize("/programmes/financial-capability-economic-opportunity") },
+      { label: "Food & Basic Needs", href: localize("/programmes/food-basic-needs") },
+      { label: "Vulnerability & Protection", href: localize("/programmes/humanitarian-vulnerability-protection") },
+      { label: "Youth Leadership", href: localize("/programmes/youth-leadership-participation") },
+      { label: "Vantage Point", href: localize("/programmes/vantage-point") },
     ] },
     { label: n.impact, href: localize("/impact"), children: [
       { label: n.projects, href: localize("/projects") },

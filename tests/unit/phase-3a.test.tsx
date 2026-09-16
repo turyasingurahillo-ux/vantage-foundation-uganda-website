@@ -1,41 +1,46 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import {
-  areasOfWork,
-  getPublishedAreas,
-  getAllAreas,
-  projectCategoriesByAreaId,
-} from "@/content/areas";
+  programmes,
+  getPublishedProgrammes,
+  getAllProgrammes,
+  getProgrammeBySlug,
+} from "@/content/programmes";
 
-describe("Phase 3A: 5th programme pillar — Youth Leadership & Community Empowerment", () => {
-  it("areasOfWork includes 5 areas (4 published + 1 draft)", () => {
-    expect(areasOfWork).toHaveLength(5);
+describe("Six-portfolio architecture: Youth Leadership & Participation", () => {
+  it("programmes includes exactly six portfolios", () => {
+    expect(programmes).toHaveLength(6);
   });
 
-  it("includes youth-leadership area with published: false", () => {
-    const area = areasOfWork.find((a) => a.id === "youth-leadership");
-    expect(area).toBeDefined();
-    expect(area?.published).toBe(false);
-    expect(area?.title).toBe("Youth Leadership & Community Empowerment");
-    expect(area?.programmeName).toBe("Youth Leadership and Community Empowerment");
-    expect(area?.summary).toBeTruthy();
-    expect(area?.description).toBeTruthy();
-    expect(area?.items.length).toBeGreaterThan(0);
-    expect(area?.icon).toBeTruthy();
+  it("includes youth-leadership-participation as a developing portfolio", () => {
+    const programme = getProgrammeBySlug("youth-leadership-participation");
+    expect(programme).toBeDefined();
+    expect(programme?.title).toBe("Youth Leadership & Participation");
+    expect(programme?.status).toBe("developing");
+    expect(programme?.published).not.toBe(false);
+    expect(programme?.summary).toBeTruthy();
+    expect(programme?.whyThisMatters.body.length).toBeGreaterThan(0);
+    expect(programme?.approach.body).toBeTruthy();
   });
 
-  it("has a category mapping for youth-leadership", () => {
-    expect(projectCategoriesByAreaId["youth-leadership"]).toBeDefined();
-    expect(projectCategoriesByAreaId["youth-leadership"].length).toBeGreaterThan(0);
+  it("youth-leadership legacy slug maps to the new portfolio", () => {
+    const programme = getProgrammeBySlug("youth-leadership-participation");
+    expect(programme?.legacySlugs).toContain("youth-leadership");
   });
 
-  it("youth-leadership does not have an image (no consent-cleared photo yet)", () => {
-    const area = areasOfWork.find((a) => a.id === "youth-leadership");
-    expect(area?.image).toBeUndefined();
+  it("does not publish a photo without consent clearance", () => {
+    const programme = getProgrammeBySlug("youth-leadership-participation");
+    expect(programme?.image).toBeUndefined();
+  });
+
+  it("does not claim fabricated results or learning", () => {
+    const programme = getProgrammeBySlug("youth-leadership-participation");
+    expect(programme?.results ?? []).toHaveLength(0);
+    expect(programme?.learning ?? []).toHaveLength(0);
   });
 });
 
-describe("Phase 3A: getPublishedAreas filtering", () => {
+describe("getPublishedProgrammes filtering", () => {
   const originalEnv = process.env.NODE_ENV;
   const env = process.env as Record<string, string | undefined>;
 
@@ -43,40 +48,35 @@ describe("Phase 3A: getPublishedAreas filtering", () => {
     env.NODE_ENV = originalEnv;
   });
 
-  it("excludes unpublished areas in production", () => {
+  it("returns all six portfolios in production (all published)", () => {
     env.NODE_ENV = "production";
-    const published = getPublishedAreas();
-    expect(published).toHaveLength(4);
-    expect(published.find((a) => a.id === "youth-leadership")).toBeUndefined();
+    const published = getPublishedProgrammes();
+    expect(published).toHaveLength(6);
+    expect(
+      published.find((p) => p.slug === "youth-leadership-participation")
+    ).toBeDefined();
   });
 
-  it("includes all areas in development", () => {
+  it("returns all six in development", () => {
     env.NODE_ENV = "development";
-    const published = getPublishedAreas();
-    expect(published).toHaveLength(5);
-    expect(published.find((a) => a.id === "youth-leadership")).toBeDefined();
+    expect(getPublishedProgrammes()).toHaveLength(6);
   });
 
-  it("includes all areas when NODE_ENV is not production", () => {
-    env.NODE_ENV = "test";
-    const published = getPublishedAreas();
-    expect(published).toHaveLength(5);
-  });
-
-  it("published areas all have published !== false", () => {
+  it("published portfolios all have published !== false", () => {
     env.NODE_ENV = "production";
-    const published = getPublishedAreas();
-    for (const area of published) {
-      expect(area.published).not.toBe(false);
+    for (const programme of getPublishedProgrammes()) {
+      expect(programme.published).not.toBe(false);
     }
   });
 });
 
-describe("Phase 3A: getAllAreas", () => {
-  it("returns all areas regardless of published flag", () => {
-    const all = getAllAreas();
-    expect(all).toHaveLength(5);
-    expect(all.find((a) => a.id === "youth-leadership")).toBeDefined();
+describe("getAllProgrammes", () => {
+  it("returns all portfolios regardless of published flag", () => {
+    const all = getAllProgrammes();
+    expect(all).toHaveLength(6);
+    expect(
+      all.find((p) => p.slug === "youth-leadership-participation")
+    ).toBeDefined();
   });
 });
 

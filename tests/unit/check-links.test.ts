@@ -190,12 +190,14 @@ describe("matchRoute — dynamic slugs", () => {
     ).toBe(true);
   });
 
-  it("matches /programmes/health (dynamic programme slug)", () => {
-    expect(matchRoute("/programmes/health", ROUTE_PATTERNS)).toBe(true);
+  it("matches /programmes/health-wellbeing (dynamic programme slug)", () => {
+    expect(matchRoute("/programmes/health-wellbeing", ROUTE_PATTERNS)).toBe(true);
   });
 
-  it("matches /de/programmes/health (localized programme)", () => {
-    expect(matchRoute("/de/programmes/health", ROUTE_PATTERNS)).toBe(true);
+  it("matches /de/programmes/health-wellbeing (localized programme)", () => {
+    expect(matchRoute("/de/programmes/health-wellbeing", ROUTE_PATTERNS)).toBe(
+      true,
+    );
   });
 });
 
@@ -308,7 +310,13 @@ describe("matchRoute — finite dynamic slug validation", () => {
   });
 
   it("accepts a known programme slug", () => {
-    expect(matchRoute("/programmes/health", ROUTE_PATTERNS)).toBe(true);
+    expect(matchRoute("/programmes/health-wellbeing", ROUTE_PATTERNS)).toBe(
+      true,
+    );
+  });
+
+  it("accepts the vantage-point platform slug", () => {
+    expect(matchRoute("/programmes/vantage-point", ROUTE_PATTERNS)).toBe(true);
   });
 
   it("rejects an unknown programme slug", () => {
@@ -318,7 +326,9 @@ describe("matchRoute — finite dynamic slug validation", () => {
   });
 
   it("accepts a known localized programme slug", () => {
-    expect(matchRoute("/fr/programmes/health", ROUTE_PATTERNS)).toBe(true);
+    expect(matchRoute("/fr/programmes/health-wellbeing", ROUTE_PATTERNS)).toBe(
+      true,
+    );
   });
 
   it("rejects an unknown localized programme slug", () => {

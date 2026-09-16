@@ -32,7 +32,7 @@ export const projects: Project[] = [
     heroImage: "/images/projects/kasaale-borehole-project-01.webp",
     heroImageAlt:
       "A newly drilled borehole with a hand pump stands in a rural clearing, surrounded by community members and onlookers.",
-    primaryProgramme: "water",
+    primaryProgramme: "food-basic-needs",
     themes: ["Water", "Sanitation", "Youth Empowerment", "Community Development"],
     beneficiaryGroups: ["Community members in Kasaale", "Women and girls", "Youth"],
     sdgs: [3, 6, 10],
@@ -106,8 +106,8 @@ Once this phase is delivered, the expected impact is:
     heroImage: "/images/projects/savegirl-uganda-menstrual-hygiene-campaign-01.webp",
     heroImageAlt:
       "Young women in matching \"SaveGirl Uganda\" t-shirts and white headscarves gather during a mentorship and menstrual health education session.",
-    primaryProgramme: "education",
-    secondaryProgrammes: ["health"],
+    primaryProgramme: "health-wellbeing",
+    relatedProgrammes: ["education-learning"],
     themes: ["Menstrual Health", "Youth Empowerment", "Financial Literacy", "Mentorship", "Sexual & Reproductive Health"],
     beneficiaryGroups: ["Young women", "Young men", "Rural youth"],
     sdgs: [3, 4, 5, 10],
@@ -153,8 +153,8 @@ Since 2021, SaveGirl Uganda has been supported by [Girl Power USA](https://girlp
     heroImage: "/images/projects/menstrual-cup-project-01.webp",
     heroImageAlt:
       "A facilitator demonstrates a Lunette menstrual cup to a group of young women during a hands-on training session.",
-    primaryProgramme: "health",
-    secondaryProgrammes: ["education"],
+    primaryProgramme: "health-wellbeing",
+    relatedProgrammes: ["education-learning"],
     themes: ["Menstrual Health", "Sexual & Reproductive Health", "Youth Empowerment"],
     beneficiaryGroups: ["Women and girls"],
     sdgs: [3, 5, 10],
@@ -197,7 +197,8 @@ The menstrual cup is a relatively uncommon product despite its profound benefits
     heroImage: "/images/projects/advantage-book-club-mentorship-01.webp",
     heroImageAlt:
       "Young people sit together with books and notebooks during an Advantage Book Club reading and discussion session.",
-    primaryProgramme: "education",
+    primaryProgramme: "education-learning",
+    relatedProgrammes: ["youth-leadership-participation"],
     themes: ["Education", "Youth Empowerment", "Leadership", "Mentorship"],
     beneficiaryGroups: ["Youth", "Students"],
     sdgs: [4, 10],
@@ -241,7 +242,7 @@ This opens doors for young people who would otherwise not have access to this ge
     heroImage: "/images/projects/medical-camp-01.webp",
     heroImageAlt:
       "Volunteer clinicians and community members gather at a rural medical camp providing basic health screenings and consultations.",
-    primaryProgramme: "health",
+    primaryProgramme: "health-wellbeing",
     themes: ["Preventive Healthcare", "Maternal & Child Health", "Community Development"],
     beneficiaryGroups: ["Rural communities", "Women and children"],
     sdgs: [3, 10],
@@ -283,8 +284,11 @@ The camps are run with volunteer clinicians and local health workers, ensuring t
     heroImage: "/images/projects/bushenyi-youth-conference-01.webp",
     heroImageAlt:
       "Young people in matching branded t-shirts attend a financial literacy and career education conference in Bushenyi.",
-    primaryProgramme: "health",
-    secondaryProgrammes: ["education"],
+    primaryProgramme: "health-wellbeing",
+    relatedProgrammes: [
+      "financial-capability-economic-opportunity",
+      "education-learning",
+    ],
     themes: ["Mental Health", "Financial Literacy", "Sexual & Reproductive Health", "Youth Empowerment", "Mentorship"],
     beneficiaryGroups: ["Students", "Youth"],
     sdgs: [3, 4, 10],
@@ -347,7 +351,8 @@ By combining mental wellness, financial skills and reproductive health, we help 
     heroImage: "/images/projects/home-of-hope-orphanage-humanitarian-aid-supply-01.webp",
     heroImageAlt:
       "Volunteers deliver donated food, clothing and essential supplies to children at an orphanage in Uganda.",
-    primaryProgramme: "humanitarian",
+    primaryProgramme: "humanitarian-vulnerability-protection",
+    relatedProgrammes: ["food-basic-needs"],
     themes: ["Humanitarian Relief", "Food Security", "Disability Inclusion", "Community Development"],
     beneficiaryGroups: ["Orphans", "Vulnerable children", "Young women", "Isolated communities"],
     sdgs: [2, 10, 17],
@@ -413,16 +418,17 @@ export function getPublishedProjects(): Project[] {
 }
 
 /**
- * Returns published projects that belong to a programme, considering both
- * the primary programme and any secondary programmes. This is the
- * taxonomy-aware replacement for getProjectsByCategory — a project surfaces
- * on every programme page whose id is in {primaryProgramme, ...secondaryProgrammes}.
- * Falls back to the legacy category mapping when primaryProgramme is unset.
+ * Returns published projects that belong to a portfolio, considering both
+ * the primary programme and any related programmes. A project surfaces on
+ * every programme page whose id is in
+ * {primaryProgramme, ...relatedProgrammes}. Falls back to the legacy
+ * category mapping when primaryProgramme is unset.
  */
 export function getProjectsByProgramme(programmeId: string): Project[] {
   return getPublishedProjects().filter((p) => {
-    const primary = p.primaryProgramme ?? legacyCategoryToProgrammeId(p.category);
-    const allProgrammes = [primary, ...(p.secondaryProgrammes ?? [])];
+    const primary =
+      p.primaryProgramme ?? legacyCategoryToProgrammeId(p.category);
+    const allProgrammes = [primary, ...(p.relatedProgrammes ?? [])];
     return allProgrammes.includes(programmeId as never);
   });
 }
@@ -459,13 +465,18 @@ export function getAllThemes(): string[] {
   return [...themes].sort();
 }
 
+/**
+ * Fallback for projects whose `primaryProgramme` is unset — maps the
+ * legacy display `category` to the closest new portfolio. Prefer setting
+ * `primaryProgramme` explicitly; this exists only for backward compat.
+ */
 function legacyCategoryToProgrammeId(category: string): string {
   const map: Record<string, string> = {
-    Health: "health",
-    Education: "education",
-    "Water & Sanitation": "water",
-    "Humanitarian Aid": "humanitarian",
-    "Youth Leadership": "education",
+    Health: "health-wellbeing",
+    Education: "education-learning",
+    "Water & Sanitation": "food-basic-needs",
+    "Humanitarian Aid": "humanitarian-vulnerability-protection",
+    "Youth Leadership": "youth-leadership-participation",
   };
-  return map[category] ?? "health";
+  return map[category] ?? "health-wellbeing";
 }

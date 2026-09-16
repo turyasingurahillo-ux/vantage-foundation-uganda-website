@@ -25,7 +25,7 @@
 
 ## Internal links
 
-- [ ] Confirm `/programmes/education` is the approved KikumiKyo Academy or Financial Literacy destination.
+- [ ] Confirm `/programmes/financial-capability-economic-opportunity` is the approved KikumiKyo Academy destination.
 - [ ] Confirm `/programmes/health` is the approved Vantage Care or Medical Camps destination.
 - [ ] Add a relevant link to the organisation’s youth empowerment work if available.
 - [ ] Add a relevant support, donate or partnership CTA only if the destination page is live.

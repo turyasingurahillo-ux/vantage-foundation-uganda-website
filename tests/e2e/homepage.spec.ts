@@ -20,9 +20,9 @@ test.describe("Homepage", () => {
     await page.getByRole("button", { name: /^Programmes$/i }).click();
     await page
       .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name: "Vantage Care" })
+      .getByRole("link", { name: "Health & Wellbeing" })
       .click();
-    await expect(page).toHaveURL(/\/programmes\/health/);
+    await expect(page).toHaveURL(/\/programmes\/health-wellbeing/);
     await expect(page.locator("h1")).toBeVisible();
   });
 
@@ -75,10 +75,22 @@ test.describe("Homepage", () => {
       page.locator("main").getByRole("heading", { name: /barriers do not arrive one at a time/i })
     ).toBeVisible();
 
-    // Portfolio preview
+    // Portfolio preview — six canonical portfolios
     await expect(
       page.locator("main").getByRole("heading", { name: /connected areas of work/i })
     ).toBeVisible();
+    for (const portfolio of [
+      "Health & Wellbeing",
+      "Education & Learning",
+      "Financial Capability & Economic Opportunity",
+      "Food & Basic Needs",
+      "Humanitarian Vulnerability & Protection",
+      "Youth Leadership & Participation",
+    ]) {
+      await expect(
+        page.locator("main").getByRole("heading", { name: portfolio, exact: true })
+      ).toBeVisible();
+    }
 
     // How change happens
     await expect(
@@ -98,6 +110,10 @@ test.describe("Homepage", () => {
       page.locator("main").getByRole("heading", { name: /where learning connects the work/i })
     ).toBeVisible();
     await expect(page.getByText(/planned \/ target/i).first()).toBeVisible();
+    // PR-3: the CTA now resolves to the real platform route
+    await expect(
+      page.locator("main").getByRole("link", { name: /explore vantage point/i })
+    ).toHaveAttribute("href", /\/programmes\/vantage-point/);
 
     // One human story — the curated youth voice, not a news feed
     await expect(

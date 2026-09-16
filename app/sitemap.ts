@@ -3,7 +3,8 @@ import { site } from "@/content/site";
 import { getProjectSlugs } from "@/content/projects";
 import { getStorySlugs } from "@/content/stories";
 import { getDbStorySlugs } from "@/lib/stories-public";
-import { getPublishedAreas } from "@/content/areas";
+import { getPublishedProgrammes } from "@/content/programmes";
+import { vantagePoint } from "@/content/vantage-point";
 import { getTeamSlugs } from "@/content/team";
 import { localePath, locales, type Locale } from "@/lib/i18n/config";
 
@@ -90,7 +91,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...routes,
     ...englishOnlyEntries(
       baseUrl,
-      getPublishedAreas().map((area) => `/programmes/${area.id}`),
+      [
+        ...getPublishedProgrammes().map((p) => `/programmes/${p.slug}`),
+        `/programmes/${vantagePoint.slug}`,
+      ],
       0.7,
     ),
     ...englishOnlyEntries(

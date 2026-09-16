@@ -192,7 +192,7 @@ The employment challenge facing Uganda cannot be solved through job advertisemen
 
 This transforms the space from a community centre into an **opportunity hub**.
 
-Financial knowledge is also an important part of youth development. Through financial-literacy initiatives connected to [KikumiKyo Academy](/programmes/education), young people can develop practical knowledge about saving, financial planning, responsible borrowing, investment and entrepreneurship.
+Financial knowledge is also an important part of youth development. Through financial-literacy initiatives connected to [KikumiKyo Academy](/programmes/financial-capability-economic-opportunity), young people can develop practical knowledge about saving, financial planning, responsible borrowing, investment and entrepreneurship.
 
 ## Leadership requires somewhere to practise
 
@@ -222,7 +222,7 @@ Most importantly, young women must not simply be present. They must have **voice
 
 Youth spaces can become trusted entry points for health education and referrals, connecting young people to sexual and reproductive health services, mental-health support, HIV information, counselling and gender-based violence services.
 
-At **Vantage Foundation Uganda**, this approach complements the work of [Vantage Care](/programmes/health), which focuses on improving access to health services and information through community-centred medical outreach.
+At **Vantage Foundation Uganda**, this approach complements the work of [Vantage Care](/programmes/health-wellbeing), which focuses on improving access to health services and information through community-centred medical outreach.
 
 ## Digital access is part of opportunity
 

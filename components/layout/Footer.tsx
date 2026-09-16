@@ -9,21 +9,30 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/shared/SocialIcons";
 import { localePath, type Locale } from "@/lib/i18n/config";
 import type { I18nDictionary } from "@/lib/i18n/dictionaries";
-import { getPageContent } from "@/lib/i18n/content/pages";
 import { WhatsAppButtonClient } from "@/components/shared/WhatsAppButtonClient";
 
 export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18nDictionary }) {
   const n = dictionary.navigation;
   const f = dictionary.footer;
   const c = dictionary.common;
-  const pageContent = getPageContent(locale);
-  const footer = pageContent.footer;
   const href = (path: string) => localePath(path, locale);
   const programmeLinks = [
-    { label: footer.vantageCare, href: href("/programmes/health") },
-    { label: footer.kikumiKyoAcademy, href: href("/programmes/education") },
-    { label: n.humanitarian, href: href("/programmes/humanitarian") },
-    { label: n.wash, href: href("/programmes/water") },
+    { label: "Health & Wellbeing", href: href("/programmes/health-wellbeing") },
+    { label: "Education & Learning", href: href("/programmes/education-learning") },
+    {
+      label: "Financial Capability",
+      href: href("/programmes/financial-capability-economic-opportunity"),
+    },
+    { label: "Food & Basic Needs", href: href("/programmes/food-basic-needs") },
+    {
+      label: "Vulnerability & Protection",
+      href: href("/programmes/humanitarian-vulnerability-protection"),
+    },
+    {
+      label: "Youth Leadership",
+      href: href("/programmes/youth-leadership-participation"),
+    },
+    { label: "Vantage Point", href: href("/programmes/vantage-point") },
   ];
 
   const impactLinks = [

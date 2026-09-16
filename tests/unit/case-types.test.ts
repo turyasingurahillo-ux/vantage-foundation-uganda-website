@@ -82,10 +82,16 @@ describe("case-types enum values", () => {
   });
 
   it("exports programme values", () => {
-    expect(CASE_PROGRAMME_VALUES).toContain("health");
-    expect(CASE_PROGRAMME_VALUES).toContain("education");
-    expect(CASE_PROGRAMME_VALUES).toContain("humanitarian");
-    expect(CASE_PROGRAMME_VALUES).toContain("water");
+    expect(CASE_PROGRAMME_VALUES).toContain("health-wellbeing");
+    expect(CASE_PROGRAMME_VALUES).toContain("education-learning");
+    expect(CASE_PROGRAMME_VALUES).toContain(
+      "financial-capability-economic-opportunity",
+    );
+    expect(CASE_PROGRAMME_VALUES).toContain("food-basic-needs");
+    expect(CASE_PROGRAMME_VALUES).toContain(
+      "humanitarian-vulnerability-protection",
+    );
+    expect(CASE_PROGRAMME_VALUES).toContain("youth-leadership-participation");
   });
 });
 
@@ -136,8 +142,21 @@ describe("case-types labels", () => {
   });
 
   it("getCaseProgrammeLabel returns the correct label", () => {
-    expect(getCaseProgrammeLabel("health")).toBe("Vantage Care (Health)");
-    expect(getCaseProgrammeLabel("education")).toBe("KikumiKyo Academy (Education)");
+    expect(getCaseProgrammeLabel("health-wellbeing")).toBe("Health & Wellbeing");
+    expect(getCaseProgrammeLabel("financial-capability-economic-opportunity")).toBe(
+      "Financial Capability & Economic Opportunity",
+    );
+  });
+
+  it("getCaseProgrammeLabel resolves legacy programme ids for historical rows", () => {
+    expect(getCaseProgrammeLabel("health")).toBe("Health & Wellbeing");
+    expect(getCaseProgrammeLabel("education")).toBe(
+      "Financial Capability & Economic Opportunity",
+    );
+    expect(getCaseProgrammeLabel("water")).toBe("Food & Basic Needs");
+    expect(getCaseProgrammeLabel("humanitarian")).toBe(
+      "Humanitarian Vulnerability & Protection",
+    );
   });
 });
 

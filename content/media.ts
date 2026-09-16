@@ -1007,7 +1007,7 @@ export const mediaAssets: MediaAsset[] = [
       "Hillary Turyasingura reflects on advantage as a vantage point: a position from which to see farther and serve others.",
     credit: "Image supplied by Vantage Foundation Uganda",
     date: "2026-07-29",
-    programme: "education",
+    programme: "youth-leadership-participation",
     consent: "verified",
     consentNotes: "Cleared for publication by Vantage Foundation Uganda management, 2026-07-29.",
     published: true,

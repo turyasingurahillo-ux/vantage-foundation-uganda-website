@@ -78,7 +78,7 @@ export default async function ProjectPage({
   const prog = programmeTokenForCategory(project.category);
   const allProgrammes = [
     primaryProgramme,
-    ...(project.secondaryProgrammes ?? []),
+    ...(project.relatedProgrammes ?? []),
   ];
 
   return (

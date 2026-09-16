@@ -10,7 +10,8 @@
  *
  * Finite dynamic-route validation:
  * - /projects/[slug] validated against content/projects.ts slugs.
- * - /programmes/[slug] validated against content/areas.ts ids.
+ * - /programmes/[slug] validated against content/programmes.ts slugs
+ *   (six portfolios) plus the Vantage Point platform route.
  * - /stories/[slug] validated against published static content/stories.ts
  *   slugs (DB-backed stories are out of scope for a static source checker).
  * - /about-us/team/[slug] validated against published content/team.ts slugs.
@@ -22,7 +23,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { getProjectSlugs } from "../content/projects";
-import { areasOfWork } from "../content/areas";
+import { getAllProgrammes } from "../content/programmes";
 import { getStorySlugs } from "../content/stories";
 import { getTeamSlugs } from "../content/team";
 
@@ -54,7 +55,10 @@ const DEFAULT_LOCALE = "en";
 // checker and are documented as a known limitation.
 const FINITE_SLUGS: Record<string, Set<string>> = {
   projects: new Set(getProjectSlugs()),
-  programmes: new Set(areasOfWork.map((a) => a.id)),
+  programmes: new Set([
+    ...getAllProgrammes().map((p) => p.slug),
+    "vantage-point",
+  ]),
   stories: new Set(getStorySlugs()),
   team: new Set(getTeamSlugs()),
 };

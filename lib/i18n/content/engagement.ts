@@ -413,7 +413,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           id: "what-we-do",
           question: "What does Vantage Foundation Uganda do?",
           answer:
-            "Vantage Foundation Uganda is a youth-led nonprofit that improves livelihoods in Ugandan communities through health, education, humanitarian aid and water, sanitation and hygiene (WASH) projects. We focus on underserved rural districts and urban informal settlements.",
+            "Vantage Foundation Uganda is a youth-led nonprofit that improves livelihoods in Ugandan communities through six connected programme portfolios — health and wellbeing, education and learning, financial capability, food and basic needs, humanitarian protection, and youth leadership. We focus on underserved rural districts and urban informal settlements.",
         },
         {
           id: "where-we-work",
@@ -708,7 +708,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           id: "what-we-do",
           question: "Was macht Vantage Foundation Uganda?",
           answer:
-            "Vantage Foundation Uganda ist eine von jungen Menschen geführte gemeinnützige Organisation, die die Lebensbedingungen in ugandischen Gemeinschaften verbessert – durch Projekte in den Bereichen Gesundheit, Bildung, humanitäre Hilfe sowie Wasser, Sanitärversorgung und Hygiene (WASH). Unser Schwerpunkt liegt auf benachteiligten ländlichen Distrikten und informellen städtischen Siedlungen.",
+            "Vantage Foundation Uganda ist eine von jungen Menschen geführte gemeinnützige Organisation, die die Lebensbedingungen in ugandischen Gemeinschaften verbessert – durch sechs verbundene Programmportfolios: Gesundheit und Wohlbefinden, Bildung und Lernen, finanzielle Handlungsfähigkeit, Ernährung und Grundbedürfnisse, humanitärer Schutz sowie Jugendführung. Unser Schwerpunkt liegt auf benachteiligten ländlichen Distrikten und informellen städtischen Siedlungen.",
         },
         {
           id: "where-we-work",
@@ -1008,7 +1008,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           id: "what-we-do",
           question: "Que fait Vantage Foundation Uganda ?",
           answer:
-            "Vantage Foundation Uganda est une organisation à but non lucratif dirigée par des jeunes qui améliore les conditions de vie des communautés ougandaises à travers des projets de santé, d’éducation, d’aide humanitaire et d’eau, assainissement et hygiène (WASH). Nous intervenons en priorité dans les districts ruraux mal desservis et les quartiers urbains informels.",
+            "Vantage Foundation Uganda est une organisation à but non lucratif dirigée par des jeunes qui améliore les conditions de vie des communautés ougandaises à travers six portefeuilles de programmes interconnectés — santé et bien-être, éducation et apprentissage, capacité financière, alimentation et besoins essentiels, protection humanitaire et leadership des jeunes. Nous intervenons en priorité dans les districts ruraux mal desservis et les quartiers urbains informels.",
         },
         {
           id: "where-we-work",
@@ -1198,7 +1198,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       heroTitle: 'Preguntas frecuentes',
       heroDescription: 'Respuestas a preguntas comunes sobre nuestra labor y cómo participar.',
       items: [
-        { id: 'what-we-do', question: '¿Qué hace Vantage Foundation Uganda?', answer: 'Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que mejora los medios de vida de las comunidades ugandesas a través de proyectos de salud, educación, ayuda humanitaria y agua, saneamiento e higiene (WASH). Nos enfocamos en distritos rurales desatendidos y asentamientos urbanos informales.' },
+        { id: 'what-we-do', question: '¿Qué hace Vantage Foundation Uganda?', answer: 'Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que mejora los medios de vida de las comunidades ugandesas a través de seis carteras de programas interconectadas — salud y bienestar, educación y aprendizaje, capacidad financiera, alimentación y necesidades básicas, protección humanitaria y liderazgo juvenil. Nos enfocamos en distritos rurales desatendidos y asentamientos urbanos informales.' },
         { id: 'where-we-work', question: '¿Dónde trabaja Vantage Foundation Uganda?', answer: 'Nuestro trabajo actual llega a comunidades en el distrito de Bushenyi, Kampala, Kalangala Island, Jinja y otros distritos rurales de Uganda. Identificamos áreas frecuentemente pasadas por alto por las grandes ONG internacionales.' },
         { id: 'project-selection', question: '¿Cómo se seleccionan los proyectos?', answer: 'Trabajamos con líderes locales y miembros de la comunidad para identificar necesidades, esfuerzos existentes y soluciones realistas. Los proyectos se eligen según su potencial de impacto, la disposición de la comunidad y los recursos disponibles.' },
         { id: 'donations-used', donationRelated: true, question: '¿Cómo se usan las donaciones?', answer: 'Las donaciones apoyan costos de programas como medicamentos, libros, construcción de pozos, logística, productos menstruales y apoyo directo a orfanatos. Cada donación se registra y se verifica con nuestro estado de cuenta bancario oficial. Se publicarán informes anuales y financieros detallados cuando estén disponibles.' },
@@ -1345,7 +1345,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       heroTitle: 'الأسئلة الشائعة',
       heroDescription: 'إجابات على أسئلة شائعة حول عملنا وكيفية المشاركة.',
       items: [
-        { id: 'what-we-do', question: 'ماذا تفعل Vantage Foundation Uganda؟', answer: 'Vantage Foundation Uganda منظمة غير ربحية يقودها الشباب، تعمل على تحسين سبل العيش في المجتمعات الأوغندية من خلال مشاريع الصحة والتعليم والإغاثة الإنسانية والمياه والصرف الصحي والنظافة (WASH). نركز على المناطق الريفية المحرومة والمستوطنات الحضرية العشوائية.' },
+        { id: 'what-we-do', question: 'ماذا تفعل Vantage Foundation Uganda؟', answer: 'Vantage Foundation Uganda منظمة غير ربحية يقودها الشباب، تعمل على تحسين سبل العيش في المجتمعات الأوغندية من خلال ست محافظ برامج مترابطة — الصحة والرفاه، التعليم والتعلم، القدرة المالية، الغذاء والاحتياجات الأساسية، الحماية الإنسانية، وقيادة الشباب. نركز على المناطق الريفية المحرومة والمستوطنات الحضرية العشوائية.' },
         { id: 'where-we-work', question: 'أين تعمل Vantage Foundation Uganda؟', answer: 'يصل عملنا الحالي إلى مجتمعات في مقاطعة Bushenyi، وKampala، وKalangala Island، وJinja، ومقاطعات ريفية أخرى في أوغندا. نستهدف المناطق التي غالبًا ما تغفلها المنظمات غير الحكومية الدولية الكبرى.' },
         { id: 'project-selection', question: 'كيف تُختار المشاريع؟', answer: 'نعمل مع القادة المحليين وأعضاء المجتمع لتحديد الاحتياجات، والجهود القائمة، والحلول الواقعية. تُختار المشاريع بناءً على إمكانية التأثير، وجاهزية المجتمع، والموارد المتاحة.' },
         { id: 'donations-used', donationRelated: true, question: 'كيف تُستخدم التبرعات؟', answer: 'تدعم التبرعات تكاليف البرامج مثل الأدوية والكتب وبناء الآبار والخدمات اللوجستية والمنتجات الصحية الحيضية والدعم المباشر لدور الأيتام. يُسجَّل كل تبرع ويُتحقق منه مقابل كشف حسابنا البنكي الرسمي. ستُنشر تقارير سنوية ومالية مفصلة عند توفرها.' },

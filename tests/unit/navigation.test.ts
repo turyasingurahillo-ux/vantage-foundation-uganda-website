@@ -27,15 +27,23 @@ describe("Navigation structure", () => {
     expect(childLabels).toContain("Contact");
   });
 
-  it("Programmes dropdown includes 4 core programmes", () => {
+  it("Programmes dropdown includes the six portfolios plus Vantage Point", () => {
     const programmes = site.nav.find((n) => n.label === "Programmes");
     expect(programmes?.children).toBeDefined();
-    expect(programmes!.children).toHaveLength(4);
+    expect(programmes!.children).toHaveLength(7);
     const childLabels = programmes!.children!.map((c) => c.label);
-    expect(childLabels).toContain("Vantage Care");
-    expect(childLabels).toContain("KikumiKyo Academy");
-    expect(childLabels).toContain("Humanitarian Assistance");
-    expect(childLabels).toContain("Water, Sanitation and Hygiene");
+    expect(childLabels).toContain("Health & Wellbeing");
+    expect(childLabels).toContain("Education & Learning");
+    expect(childLabels).toContain("Financial Capability");
+    expect(childLabels).toContain("Food & Basic Needs");
+    expect(childLabels).toContain("Vulnerability & Protection");
+    expect(childLabels).toContain("Youth Leadership");
+    expect(childLabels).toContain("Vantage Point");
+    const childHrefs = programmes!.children!.map((c) => c.href);
+    expect(childHrefs).toContain(
+      "/programmes/financial-capability-economic-opportunity",
+    );
+    expect(childHrefs).toContain("/programmes/vantage-point");
   });
 
   it("Get Involved dropdown includes Donate, Volunteer, Partner, Sponsor, CSR", () => {

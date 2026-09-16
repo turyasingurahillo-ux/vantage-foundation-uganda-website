@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
-import { areasOfWork, getPublishedAreas, projectCategoriesByAreaId } from "@/content/areas";
+import {
+  programmes,
+  getPublishedProgrammes,
+  getProgrammeBySlug,
+  getProgrammeProjects,
+  legacyProgrammeSlugs,
+} from "@/content/programmes";
+import { vantagePoint } from "@/content/vantage-point";
 import {
   getPublishedProjects,
   getProjectSlugs,
@@ -16,54 +23,86 @@ import { getPublishedPartners } from "@/content/partners";
 import { getPublishedReports } from "@/content/reports";
 import { getPublishedImpactStats } from "@/content/impact";
 
-describe("areasOfWork", () => {
-  it("has 5 programme areas (4 published + 1 draft)", () => {
-    expect(areasOfWork).toHaveLength(5);
+describe("programmes (six-portfolio architecture)", () => {
+  it("has exactly six public portfolios", () => {
+    expect(programmes).toHaveLength(6);
   });
 
-  it("includes youth-leadership as a draft area (published: false)", () => {
-    const area = areasOfWork.find((a) => a.id === "youth-leadership");
-    expect(area).toBeDefined();
-    expect(area?.published).toBe(false);
+  it("has unique slugs", () => {
+    const slugs = programmes.map((p) => p.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
   });
 
-  it("getPublishedAreas excludes unpublished areas in production", () => {
-    const originalEnv = process.env.NODE_ENV;
-    const env = process.env as Record<string, string | undefined>;
-    env.NODE_ENV = "production";
-    const published = getPublishedAreas();
-    expect(published).toHaveLength(4);
-    expect(published.find((a) => a.id === "youth-leadership")).toBeUndefined();
-    env.NODE_ENV = originalEnv;
+  it("includes the six canonical portfolio slugs", () => {
+    const slugs = programmes.map((p) => p.slug);
+    expect(slugs).toContain("health-wellbeing");
+    expect(slugs).toContain("education-learning");
+    expect(slugs).toContain("financial-capability-economic-opportunity");
+    expect(slugs).toContain("food-basic-needs");
+    expect(slugs).toContain("humanitarian-vulnerability-protection");
+    expect(slugs).toContain("youth-leadership-participation");
   });
 
-  it("getPublishedAreas includes all areas in development", () => {
-    const originalEnv = process.env.NODE_ENV;
-    const env = process.env as Record<string, string | undefined>;
-    env.NODE_ENV = "development";
-    const published = getPublishedAreas();
-    expect(published).toHaveLength(5);
-    expect(published.find((a) => a.id === "youth-leadership")).toBeDefined();
-    env.NODE_ENV = originalEnv;
+  it("KikumiKyo Academy sits under Financial Capability & Economic Opportunity, not Education", () => {
+    const fc = getProgrammeBySlug("financial-capability-economic-opportunity");
+    expect(fc).toBeDefined();
+    expect(fc?.programmeName).toBe("KikumiKyo Academy");
+    expect(fc?.legacySlugs).toContain("education");
+    // No portfolio may present KikumiKyo under an education id.
+    const ed = getProgrammeBySlug("education-learning");
+    expect(ed?.programmeName).not.toBe("KikumiKyo Academy");
   });
 
-  it("each area has id, title, programmeName, summary, description, items, and icon", () => {
-    for (const area of areasOfWork) {
-      expect(area.id).toBeTruthy();
-      expect(area.title).toBeTruthy();
-      expect(area.programmeName).toBeTruthy();
-      expect(area.summary).toBeTruthy();
-      expect(area.description).toBeTruthy();
-      expect(area.items.length).toBeGreaterThan(0);
-      expect(area.icon).toBeTruthy();
+  it("Vantage Point is not counted as a seventh portfolio", () => {
+    expect(programmes.map((p) => p.slug)).not.toContain("vantage-point");
+    expect(vantagePoint.slug).toBe("vantage-point");
+    expect(programmes).toHaveLength(6);
+  });
+
+  it("every portfolio has required public framing", () => {
+    for (const programme of programmes) {
+      expect(programme.title).toBeTruthy();
+      expect(programme.summary).toBeTruthy();
+      expect(programme.outcomeHeadline).toBeTruthy();
+      expect(programme.status).toBeTruthy();
+      expect(programme.whyThisMatters.body.length).toBeGreaterThan(0);
+      expect(programme.approach.body).toBeTruthy();
     }
   });
 
-  it("has a category mapping for every area", () => {
-    for (const area of areasOfWork) {
-      expect(projectCategoriesByAreaId[area.id]).toBeDefined();
-      expect(projectCategoriesByAreaId[area.id].length).toBeGreaterThan(0);
+  it("published results always carry an evidence status", () => {
+    for (const programme of programmes) {
+      for (const result of programme.results ?? []) {
+        expect(result.evidenceStatus).toBeTruthy();
+        expect(result.value).toBeTruthy();
+        expect(result.label).toBeTruthy();
+      }
     }
+  });
+
+  it("youth-leadership-participation is published as a developing portfolio", () => {
+    const ylp = getProgrammeBySlug("youth-leadership-participation");
+    expect(ylp).toBeDefined();
+    expect(ylp?.status).toBe("developing");
+    expect(ylp?.published).not.toBe(false);
+  });
+
+  it("getPublishedProgrammes returns all six (all published)", () => {
+    expect(getPublishedProgrammes()).toHaveLength(6);
+  });
+
+  it("legacy slugs map to the correct new portfolios", () => {
+    expect(legacyProgrammeSlugs["health"]).toBe("health-wellbeing");
+    expect(legacyProgrammeSlugs["education"]).toBe(
+      "financial-capability-economic-opportunity",
+    );
+    expect(legacyProgrammeSlugs["humanitarian"]).toBe(
+      "humanitarian-vulnerability-protection",
+    );
+    expect(legacyProgrammeSlugs["water"]).toBe("food-basic-needs");
+    expect(legacyProgrammeSlugs["youth-leadership"]).toBe(
+      "youth-leadership-participation",
+    );
   });
 });
 
@@ -105,24 +144,41 @@ describe("getProjectsByCategory", () => {
 
 describe("getProjectsByProgramme (taxonomy-aware)", () => {
   it("returns projects for a primary programme", () => {
-    const waterProjects = getProjectsByProgramme("water");
+    const waterProjects = getProjectsByProgramme("food-basic-needs");
     expect(waterProjects.length).toBeGreaterThan(0);
     for (const p of waterProjects) {
-      const primary = p.primaryProgramme ?? "health";
-      const all = [primary, ...(p.secondaryProgrammes ?? [])];
-      expect(all).toContain("water");
+      const primary = p.primaryProgramme ?? "health-wellbeing";
+      const all = [primary, ...(p.relatedProgrammes ?? [])];
+      expect(all).toContain("food-basic-needs");
     }
   });
 
-  it("includes projects via secondaryProgrammes, not just primaryProgramme", () => {
-    // SaveGirl Uganda is primaryProgramme=education, secondaryProgrammes=[health],
-    // so it must surface under BOTH education and health.
-    const healthProjects = getProjectsByProgramme("health");
-    const educationProjects = getProjectsByProgramme("education");
+  it("includes projects via relatedProgrammes, not just primaryProgramme", () => {
+    // SaveGirl Uganda is primaryProgramme=health-wellbeing with
+    // relatedProgrammes=[education-learning], so it surfaces under BOTH.
+    const healthProjects = getProjectsByProgramme("health-wellbeing");
+    const educationProjects = getProjectsByProgramme("education-learning");
     const savegirl = getPublishedProjects().find((p) => p.slug === "savegirl-uganda");
     expect(savegirl).toBeDefined();
     expect(healthProjects.map((p) => p.slug)).toContain("savegirl-uganda");
     expect(educationProjects.map((p) => p.slug)).toContain("savegirl-uganda");
+  });
+
+  it("KikumiKyo's financial-literacy project surfaces under financial-capability", () => {
+    const fcProjects = getProjectsByProgramme(
+      "financial-capability-economic-opportunity",
+    );
+    expect(fcProjects.map((p) => p.slug)).toContain(
+      "mental-health-financial-literacy-workshops",
+    );
+  });
+
+  it("getProgrammeProjects matches getProjectsByProgramme", () => {
+    for (const programme of programmes) {
+      const viaHelper = getProgrammeProjects(programme.slug).map((p) => p.slug);
+      const viaProjects = getProjectsByProgramme(programme.slug).map((p) => p.slug);
+      expect(viaHelper.sort()).toEqual(viaProjects.sort());
+    }
   });
 });
 

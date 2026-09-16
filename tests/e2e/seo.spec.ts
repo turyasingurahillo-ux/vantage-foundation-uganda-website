@@ -85,7 +85,7 @@ test.describe("SEO — page metadata", () => {
     const routes = [
       "/projects/kasaale-deep-borehole",
       "/stories/what-are-we-without-our-dreams",
-      "/programmes/health",
+      "/programmes/health-wellbeing",
       "/stories/the-meaning-of-advantage",
       "/about-us/team/nassazi-kauthar-wangi",
     ];
@@ -169,7 +169,7 @@ test.describe("SEO — page metadata", () => {
     const routes = [
       "/projects/kasaale-deep-borehole",
       "/stories/what-are-we-without-our-dreams",
-      "/programmes/health",
+      "/programmes/health-wellbeing",
       "/about-us/team/nassazi-kauthar-wangi",
     ];
 
@@ -260,7 +260,7 @@ test.describe("SEO — discovery files and social image", () => {
     const content = await response.text();
     expect(content).toContain(`<loc>${canonicalOrigin}/</loc>`);
     expect(content).toContain(
-      `<loc>${canonicalOrigin}/programmes/health</loc>`,
+      `<loc>${canonicalOrigin}/programmes/health-wellbeing</loc>`,
     );
     expect(content).not.toContain("https://http/");
     expect(content).not.toContain("vantage-foundation-uganda-website.vercel.app");
