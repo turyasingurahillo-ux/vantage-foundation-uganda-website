@@ -1,13 +1,14 @@
 import { Container } from "@/components/shared/Container";
 import { EvidenceBadge } from "@/components/shared/EvidenceBadge";
-import type { Locale } from "@/lib/i18n/config";
+import { Button } from "@/components/ui/Button";
+import { localePath, type Locale } from "@/lib/i18n/config";
 import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
 /**
  * Homepage block 07 — controlled introduction to Vantage Point, the
  * cross-programme learning platform. The "Planned / target" evidence badge
- * keeps the maturity of the platform honest; no outputs, counts or routes
- * are claimed. The dedicated route lands in PR-3.
+ * keeps the maturity of the platform honest; the CTA points to the real
+ * platform page created in PR-3 (/programmes/vantage-point).
  */
 export function VantagePointSection({
   locale,
@@ -35,6 +36,16 @@ export function VantagePointSection({
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             {copy.paragraphs[1]}
           </p>
+          {copy.learnMore && (
+            <div className="mt-8">
+              <Button
+                href={localePath("/programmes/vantage-point", locale)}
+                variant="outline"
+              >
+                {copy.learnMore}
+              </Button>
+            </div>
+          )}
         </div>
       </Container>
     </section>

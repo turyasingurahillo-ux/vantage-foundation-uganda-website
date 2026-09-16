@@ -99,7 +99,7 @@ export type HomepageSectionContent = {
   impact: { eyebrow: string; title: string; description: string; note: string; cta: string };
   problem: { eyebrow: string; title: string; lead: string; chain: string[]; closing: string };
   pathway: { eyebrow: string; title: string; steps: Array<{ title: string; description: string }>; cta: string };
-  vantagePoint: { eyebrow: string; title: string; paragraphs: [string, string] };
+  vantagePoint: { eyebrow: string; title: string; paragraphs: [string, string]; learnMore?: string };
   about: { eyebrow: string; title: string; paragraphs: [string, string]; cta: string; imageAlt: string };
   stories: { eyebrow: string; title: string; description: string; cta: string; read: string; support: string; featuredEyebrow: string; moreStories: string };
   instagram: { title: string; description: string; follow: string; postsLabel: string };
@@ -144,6 +144,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
         "Vantage Point is the platform we are building to carry insight across programmes — community voice, field experience and evidence — so that progress in one area strengthens the others.",
         "It is early, deliberately: a commitment to learning in the open, developed with the communities it serves rather than announced as a finished product.",
       ],
+      learnMore: "Explore Vantage Point",
     },
     about: { eyebrow: "About Vantage", title: "Local leadership. Practical advantages. Lasting change.", paragraphs: ["Founded in December 2020, Vantage Foundation Uganda is a youth-led nonprofit responding to barriers that keep people from essential healthcare, practical financial knowledge, clean water and dignified household support.", "We work with young people, families and vulnerable communities in rural districts and urban informal settlements. Community participation and youth leadership shape how every programme is designed and delivered."], cta: "Read our story", imageAlt: "Young Ugandans taking part in a Vantage Foundation community learning activity" },
     stories: { eyebrow: "Stories & Insights", title: "Voices and ideas from our community", description: "Reflections, research and programme updates from the young people, volunteers and leaders shaping our work.", cta: "Read Stories & Insights", read: "Read the story", support: "Support this work", featuredEyebrow: "A voice from our community", moreStories: "More stories & insights" },
@@ -202,6 +203,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
         "Vantage Point ist die Plattform, die wir aufbauen, um Erkenntnisse zwischen den Programmen zu tragen — Stimmen der Gemeinschaft, Erfahrungen aus der Praxis und Belege — damit Fortschritt in einem Bereich die anderen stärkt.",
         "Sie ist bewusst früh: ein Versprechen, offen zu lernen, entwickelt mit den Gemeinschaften, denen sie dient — nicht als fertiges Produkt angekündigt.",
       ],
+      learnMore: "Vantage Point entdecken",
     },
     about: { eyebrow: "Über Vantage", title: "Lokale Führung. Praktische Chancen. Dauerhafte Veränderung.", paragraphs: ["Vantage Foundation Uganda wurde im Dezember 2020 gegründet. Die von jungen Menschen geführte Organisation geht Hürden an, die Menschen den Zugang zu grundlegender Gesundheitsversorgung, praktischem Finanzwissen, sauberem Wasser und würdevoller Unterstützung im Alltag erschweren.", "Wir arbeiten mit jungen Menschen, Familien und besonders gefährdeten Gemeinschaften in ländlichen Distrikten und informellen städtischen Siedlungen. Beteiligung der Gemeinschaft und Führung durch junge Menschen prägen jedes Programm."], cta: "Unsere Geschichte lesen", imageAlt: "Junge Menschen in Uganda bei einer Lernaktivität von Vantage Foundation" },
     stories: { eyebrow: "Geschichten & Einblicke", title: "Stimmen und Ideen aus unserer Gemeinschaft", description: "Reflexionen, Forschung und Programmneuigkeiten von jungen Menschen, Freiwilligen und Führungskräften, die unsere Arbeit gestalten.", cta: "Geschichten & Einblicke lesen", read: "Geschichte lesen", support: "Diese Arbeit unterstützen", featuredEyebrow: "Eine Stimme aus unserer Gemeinschaft", moreStories: "Weitere Geschichten & Einblicke" },
@@ -260,6 +262,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
         "Vantage Point est la plateforme que nous construisons pour faire circuler les enseignements entre les programmes — voix des communautés, expérience de terrain et preuves — afin que les progrès dans un domaine renforcent les autres.",
         "Elle en est à ses débuts, volontairement : un engagement à apprendre ouvertement, développée avec les communautés qu'elle sert plutôt qu'annoncée comme un produit fini.",
       ],
+      learnMore: "Découvrir Vantage Point",
     },
     about: { eyebrow: "À propos de Vantage", title: "Leadership local. Possibilités concrètes. Changement durable.", paragraphs: ["Fondée en décembre 2020, Vantage Foundation Uganda est une organisation dirigée par des jeunes qui s’attaque aux obstacles limitant l’accès aux soins essentiels, aux connaissances financières pratiques, à l’eau potable et à un soutien digne des ménages.", "Nous travaillons avec des jeunes, des familles et des communautés vulnérables dans les districts ruraux et les quartiers urbains informels. La participation communautaire et le leadership des jeunes orientent chaque programme."], cta: "Lire notre histoire", imageAlt: "De jeunes Ougandais participant à une activité d’apprentissage communautaire de Vantage Foundation" },
     stories: { eyebrow: "Récits et perspectives", title: "Voix et idées de notre communauté", description: "Réflexions, recherches et nouvelles des programmes portées par les jeunes, bénévoles et responsables qui façonnent notre action.", cta: "Lire nos récits et perspectives", read: "Lire le récit", support: "Soutenir cette action", featuredEyebrow: "Une voix de notre communauté", moreStories: "Plus de récits et perspectives" },
@@ -318,6 +321,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
         "Vantage Point es la plataforma que estamos construyendo para llevar el conocimiento entre programas — voz comunitaria, experiencia de campo y evidencia — para que el progreso en un área fortalezca a las demás.",
         "Está en una fase temprana, deliberadamente: un compromiso de aprender en abierto, desarrollada con las comunidades a las que sirve en lugar de anunciarse como un producto terminado.",
       ],
+      learnMore: "Explorar Vantage Point",
     },
     about: { eyebrow: "Sobre Vantage", title: "Liderazgo local. Ventajas prácticas. Cambio duradero.", paragraphs: ["Fundada en diciembre de 2020, Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que responde a las barreras que impiden el acceso a la atención médica esencial, conocimientos financieros prácticos, agua limpia y apoyo digno para los hogares.", "Trabajamos con jóvenes, familias y comunidades vulnerables en distritos rurales y asentamientos urbanos informales. La participación comunitaria y el liderazgo juvenil dan forma a cómo se diseña y se entrega cada programa."], cta: "Lee nuestra historia", imageAlt: "Jóvenes ugandeses participando en una actividad de aprendizaje comunitario de Vantage Foundation" },
     stories: { eyebrow: "Historias y perspectivas", title: "Voces e ideas de nuestra comunidad", description: "Reflexiones, investigaciones y actualizaciones de programas de los jóvenes, voluntarios y líderes que dan forma a nuestro trabajo.", cta: "Leer Historias y perspectivas", read: "Leer la historia", support: "Apoyar este trabajo", featuredEyebrow: "Una voz de nuestra comunidad", moreStories: "Más historias y perspectivas" },
@@ -376,6 +380,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
         "Vantage Point هي المنصة التي نبنيها لنقل المعرفة بين البرامج — صوت المجتمع وخبرة الميدان والأدلة — بحيث يعزز التقدم في مجال ما المجالات الأخرى.",
         "وهي في بدايتها عن قصد: التزام بالتعلم بشفافية، تُطوَّر مع المجتمعات التي تخدمها بدل أن تُعلن كمنتج مكتمل.",
       ],
+      learnMore: "استكشف Vantage Point",
     },
     about: { eyebrow: "حول Vantage", title: "قيادة محلية. مزايا عملية. تغيير دائم.", paragraphs: ["تأسست Vantage Foundation Uganda في ديسمبر 2020، وهي منظمة غير ربحية يقودها الشباب تستجيب للحواجز التي تحول دون حصول الناس على الرعاية الصحية الأساسية، والمعرفة المالية العملية، والمياه النظيفة، والدعم الكريم للأسر.", "نعمل مع الشباب والعائلات والمجتمعات الضعيفة في المناطق الريفية والتجمعات الحضرية العشوائية. تؤدي مشاركة المجتمع وقيادة الشباب إلى تحديد كيفية تصميم كل برنامج وتنفيذه."], cta: "اقرأ قصتنا", imageAlt: "شباب أوغندا يشاركون في نشاط تعلم مجتمعي من Vantage Foundation" },
     stories: { eyebrow: "القصص والرؤى", title: "أصوات وأفكار من مجتمعنا", description: "تأملات وأبحاث وتحديثات برامج من الشباب والمتطوعين والقادة الذين يشكلون عملنا.", cta: "اقرأ القصص والرؤى", read: "اقرأ القصة", support: "ادعم هذا العمل", featuredEyebrow: "صوت من مجتمعنا", moreStories: "المزيد من القصص والرؤى" },

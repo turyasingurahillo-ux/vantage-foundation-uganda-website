@@ -86,11 +86,165 @@ export type ProjectCategory =
   | "Youth Leadership";
 
 /**
- * The four primary programmes. A project's `category` (above) maps 1:1 to one
- * of these for backward compatibility, but `primaryProgramme` / `secondaryProgrammes`
- * are the canonical, multi-programme-aware taxonomy going forward.
+ * The six public programme portfolios from the 2026 blueprint architecture.
+ * These replace the legacy four/five-area structure (`content/areas.ts`,
+ * now `content/programmes.ts`). A project's `category` (above) remains a
+ * display label; `primaryProgramme` / `relatedProgrammes` are the canonical
+ * taxonomy. Vantage Point is deliberately NOT a member — it is a
+ * cross-programme platform, modelled separately in content/vantage-point.ts.
  */
-export type ProgrammeId = "health" | "education" | "humanitarian" | "water";
+export type ProgrammeId =
+  | "health-wellbeing"
+  | "education-learning"
+  | "financial-capability-economic-opportunity"
+  | "food-basic-needs"
+  | "humanitarian-vulnerability-protection"
+  | "youth-leadership-participation";
+
+/**
+ * Maturity/state of a portfolio — distinct from `ProjectStatus` (a specific
+ * intervention) and `EvidenceStatus` (the epistemic status of a claim).
+ * A portfolio may be "active" while containing planned projects, and a
+ * "developing" portfolio communicates direction without claiming results.
+ */
+export type ProgrammeStatus =
+  | "active"
+  | "developing"
+  | "pilot"
+  | "planned";
+
+/**
+ * An external evidence source cited by a portfolio's context section.
+ * Only cite sources that are actually present in repository content —
+ * never add a citation merely to fill the model.
+ */
+export interface ProgrammeEvidenceReference {
+  label: string;
+  href?: string;
+  evidenceStatus?: EvidenceStatus;
+}
+
+/**
+ * A single programme-level result figure. `evidenceStatus` is REQUIRED —
+ * a result is never published without declaring what kind of claim it is.
+ * Distinguish results (measured) from targets (planned) and estimates
+ * (e.g. Kasaale's estimated catchment, which is not a beneficiary count).
+ */
+export interface ProgrammeResult {
+  value: string;
+  label: string;
+  evidenceStatus: EvidenceStatus;
+  /** How the figure was derived — preserve methodology where it exists. */
+  methodology?: string;
+  /** Provenance — e.g. the project page or impact stat this comes from. */
+  sourceHref?: string;
+  /** As-of date where the figure is time-bound. */
+  asOf?: string;
+}
+
+/** Honest institutional learning/reflection tied to a portfolio. */
+export interface ProgrammeLearning {
+  title: string;
+  body: string;
+  /** Optional link to a fuller reflection (e.g. a story). */
+  href?: string;
+}
+
+/**
+ * An organisation relevant to the change pathway. `kind` distinguishes an
+ * actual Vantage partner (a documented relationship) from a broader
+ * ecosystem actor (public systems, referral destinations, community
+ * actors) — never label an ecosystem actor a "partner".
+ */
+export interface ProgrammeActor {
+  name: string;
+  kind: "partner" | "ecosystem";
+  note?: string;
+}
+
+/**
+ * A public programme portfolio — what outcome area Vantage works in and
+ * why, what it does, which projects implement it, what evidence exists,
+ * what has been learned, who else matters, and what comes next.
+ * Optional sections are honest: absence of evidence is rendered as an
+ * absence of evidence, never as invented maturity.
+ */
+export interface Programme {
+  slug: ProgrammeId;
+  /** Portfolio display name, e.g. "Health & Wellbeing". */
+  title: string;
+  /** Branded programme name within the portfolio, e.g. "Vantage Care". */
+  programmeName?: string;
+  status: ProgrammeStatus;
+  /** Short public framing — who/what the portfolio is about. */
+  summary: string;
+  /** What Vantage is trying to change — positioning, not a measured result. */
+  outcomeHeadline: string;
+  whyThisMatters: {
+    heading?: string;
+    body: string[];
+    evidence?: ProgrammeEvidenceReference[];
+  };
+  approach: {
+    heading?: string;
+    body: string;
+    items?: string[];
+  };
+  results?: ProgrammeResult[];
+  learning?: ProgrammeLearning[];
+  actors?: ProgrammeActor[];
+  /** Forward-looking priorities — rendered as such, never as achievements. */
+  nextPriorities?: string[];
+  cta?: {
+    label: string;
+    href: string;
+  };
+  /** External platform callout (e.g. KikumiKyo Academy's learning hub). */
+  externalPlatformLink?: {
+    label: string;
+    href: string;
+    description: string;
+  };
+  /** Small card accent icon id (mapped in components/shared/AreaIcon). */
+  icon?: string;
+  image?: string;
+  imageAlt?: string;
+  /**
+   * Legacy `/programmes/{id}` slugs that redirect to this portfolio.
+   * Used for media-tag lookups and backward-compatible resolution —
+   * redirects themselves live in next.config.ts.
+   */
+  legacySlugs?: string[];
+  published?: boolean;
+}
+
+/**
+ * Vantage Point — the cross-programme learning and dialogue platform.
+ * Structurally separate from the six portfolios: the portfolios answer
+ * "where does Vantage seek outcomes?", Vantage Point answers "how does
+ * Vantage connect learning, dialogue, evidence and community/youth voice
+ * across them?".
+ */
+export interface VantagePoint {
+  slug: "vantage-point";
+  title: string;
+  status: ProgrammeStatus;
+  summary: string;
+  /** What the platform is for. */
+  purpose: string;
+  /** Functions the platform performs or is designed to perform. */
+  functions: string[];
+  /** How it relates to the six portfolios (rendered as text, not a diagram). */
+  relationship: string;
+  /** How future evidence/learning will be surfaced through it. */
+  surfacing: string;
+  cta?: {
+    label: string;
+    href: string;
+  };
+  image?: string;
+  imageAlt?: string;
+}
 
 /**
  * Cross-cutting themes a project can address. A project selects one or more
@@ -247,11 +401,12 @@ export interface Project {
    */
   primaryProgramme?: ProgrammeId;
   /**
-   * Secondary programmes this project also contributes to. A project
-   * surfaces on every programme page whose id is in
-   * {primaryProgramme, ...secondaryProgrammes}.
+   * Other portfolios this project also contributes to. A project surfaces
+   * on every programme page whose id is in
+   * {primaryProgramme, ...relatedProgrammes}. One primary portfolio per
+   * project — related portfolios are relevance links, not duplicates.
    */
-  secondaryProgrammes?: ProgrammeId[];
+  relatedProgrammes?: ProgrammeId[];
   /**
    * Cross-cutting themes addressed by this project (e.g. "Menstrual Health",
    * "Financial Literacy"). Used for theme-based filtering and surfacing
@@ -412,34 +567,6 @@ export interface Report {
 export interface FaqItem {
   question: string;
   answer: string;
-}
-
-export interface AreaOfWork {
-  id: string;
-  title: string;
-  /** Branded flagship programme name for this area, e.g. "Vantage Care". Falls back to `title` when unset. */
-  programmeName?: string;
-  summary: string;
-  description: string;
-  items: string[];
-  icon: string;
-  image?: string;
-  imageAlt?: string;
-  /** Optional external platform link shown as a callout on the programme page
-   *  (e.g. KikumiKyo Academy's online learning hub). */
-  externalPlatformLink?: {
-    label: string;
-    href: string;
-    description: string;
-  };
-  /**
-   * Whether the programme area is published. Defaults to true when omitted.
-   * Unpublished areas are filtered out of production routes (our-work listing,
-   * sitemap, generateStaticParams) but remain visible in development for
-   * previewing. Use this when a programme pillar's content is drafted but not
-   * yet approved by management.
-   */
-  published?: boolean;
 }
 
 /**

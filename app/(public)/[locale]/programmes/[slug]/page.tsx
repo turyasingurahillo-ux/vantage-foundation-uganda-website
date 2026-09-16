@@ -1,34 +1,45 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { areasOfWork, projectCategoriesByAreaId } from "@/content/areas";
-import { getPublishedProjects } from "@/content/projects";
+import {
+  getAllProgrammes,
+  getProgrammeBySlug,
+  getProgrammeProjects,
+} from "@/content/programmes";
+import { vantagePoint } from "@/content/vantage-point";
 import { getPublishedStoriesWithDb } from "@/lib/stories-public";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import { AreaIcon } from "@/components/shared/AreaIcon";
+import { EvidenceBadge } from "@/components/shared/EvidenceBadge";
+import { ImageOrPlaceholder } from "@/components/shared/ImageOrPlaceholder";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { StoryCard } from "@/components/shared/StoryCard";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { programmeTokenForArea } from "@/lib/design-tokens";
+import { programmeTokenForProgramme } from "@/lib/design-tokens";
 import { getProgrammeAdditionalPhotos } from "@/lib/media-public";
 import { createPublicMetadata } from "@/lib/metadata";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/shared/JsonLd";
 import { site } from "@/content/site";
 import { resolveLocale } from "@/lib/i18n/params";
-import { localePath } from "@/lib/i18n/config";
+import { localePath, type Locale } from "@/lib/i18n/config";
 import { getPageContent } from "@/lib/i18n/content/pages";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import type { ProgrammeStatus } from "@/types";
 
 export const revalidate = 3600;
 
 export function generateStaticParams() {
-  // Generate routes for all areas (including unpublished) so that the route
-  // exists. Unpublished areas return notFound() in production via the page
-  // body check below. In development, unpublished areas are previewable.
-  return areasOfWork.map((area) => ({ slug: area.id }));
+  // Generate routes for all portfolios (including unpublished) plus the
+  // Vantage Point platform route — a platform destination, not a seventh
+  // portfolio. Unpublished portfolios return notFound() in production.
+  return [
+    ...getAllProgrammes().map((p) => ({ slug: p.slug })),
+    { slug: vantagePoint.slug },
+  ];
 }
 
 export async function generateMetadata({
@@ -38,21 +49,47 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolved = await params;
   const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
-  const area = areasOfWork.find((a) => a.id === resolved.slug);
-  if (!area || (area.published === false && process.env.NODE_ENV === "production")) {
+
+  if (resolved.slug === vantagePoint.slug) {
+    return createPublicMetadata({
+      title: vantagePoint.title,
+      description: vantagePoint.summary,
+      path: `/programmes/${vantagePoint.slug}`,
+      locale,
+      contentLocalized: false,
+    });
+  }
+
+  const programme = getProgrammeBySlug(resolved.slug);
+  if (
+    !programme ||
+    (programme.published === false && process.env.NODE_ENV === "production")
+  ) {
     return {
       title: getPageContent(locale).ui.programmeNotFound.title,
       robots: { index: false, follow: true },
     };
   }
-  const name = area.programmeName ?? area.title;
   return createPublicMetadata({
-    title: name,
-    description: area.summary,
+    title: programme.title,
+    description: programme.summary,
     path: `/programmes/${resolved.slug}`,
     locale,
     contentLocalized: false,
   });
+}
+
+function statusLabel(
+  status: ProgrammeStatus,
+  p: ReturnType<typeof getPageContent>,
+): string {
+  const map: Record<ProgrammeStatus, string> = {
+    active: p.programme.statusActive,
+    developing: p.programme.statusDeveloping,
+    pilot: p.programme.statusPilot,
+    planned: p.programme.statusPlanned,
+  };
+  return map[status];
 }
 
 export default async function ProgrammePage({
@@ -62,27 +99,39 @@ export default async function ProgrammePage({
 }) {
   const resolved = await params;
   const locale = await resolveLocale(Promise.resolve({ locale: resolved.locale }));
-  const area = areasOfWork.find((a) => a.id === resolved.slug);
-  if (!area) notFound();
-  // In production, unpublished areas are not accessible. In development,
+  const p = getPageContent(locale);
+  const d = await getDictionary(locale);
+
+  if (resolved.slug === vantagePoint.slug) {
+    return <VantagePointPage locale={locale} />;
+  }
+
+  const programme = getProgrammeBySlug(resolved.slug);
+  if (!programme) notFound();
+  // In production, unpublished portfolios are not accessible. In development,
   // they are previewable for content editing.
-  if (area.published === false && process.env.NODE_ENV === "production") {
+  if (programme.published === false && process.env.NODE_ENV === "production") {
     notFound();
   }
 
-  const p = getPageContent(locale);
-  const d = await getDictionary(locale);
-  const prog = programmeTokenForArea(area.id);
-  const categories = projectCategoriesByAreaId[area.id] ?? [];
-  const relatedProjects = getPublishedProjects().filter((p) =>
-    categories.includes(p.category)
-  );
+  const prog = programmeTokenForProgramme(programme.slug);
+  const relatedProjects = getProgrammeProjects(programme.slug);
   const relatedStories = (await getPublishedStoriesWithDb()).filter((s) =>
     (s.relatedProjectSlugs ?? []).some((projectSlug) =>
-      relatedProjects.some((p) => p.slug === projectSlug)
+      relatedProjects.some((pr) => pr.slug === projectSlug)
     )
   );
-  const additionalPhotos = await getProgrammeAdditionalPhotos(area.id);
+  const additionalPhotos = (
+    await Promise.all(
+      [programme.slug, ...(programme.legacySlugs ?? [])].map((id) =>
+        getProgrammeAdditionalPhotos(id)
+      )
+    )
+  ).flat();
+  const partners = (programme.actors ?? []).filter((a) => a.kind === "partner");
+  const ecosystem = (programme.actors ?? []).filter(
+    (a) => a.kind === "ecosystem"
+  );
 
   return (
     <>
@@ -91,20 +140,52 @@ export default async function ProgrammePage({
           [
             { label: d.common.home, url: localePath("/", locale) },
             { label: p.ourWork.title, url: localePath("/our-work", locale) },
-            { label: area.programmeName ?? area.title, url: localePath(`/programmes/${area.id}`, locale) },
+            { label: programme.title, url: localePath(`/programmes/${programme.slug}`, locale) },
           ],
           site.url,
         )}
       />
+
+      {/* 01 — Programme hero */}
       <section className="py-16 text-white md:py-24" style={{ backgroundColor: prog.safeHex }}>
         <Container>
-          <SectionHeader
-            level="h1"
-            eyebrow={area.programmeName ? `${area.title} ${p.ourWork.programmeSuffix}` : undefined}
-            title={area.programmeName ?? area.title}
-            description={area.summary}
-            light
-          />
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wider text-white/80">
+                {p.programme.portfolioEyebrow}
+              </p>
+              <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+                {programme.title}
+              </h1>
+              {programme.programmeName && (
+                <p className="mt-3 text-lg font-semibold text-white/90">
+                  {programme.programmeName}
+                </p>
+              )}
+              <p className="mt-4 text-xl font-medium leading-snug text-white/95">
+                {programme.outcomeHeadline}
+              </p>
+              <p className="mt-4 max-w-2xl leading-relaxed text-white/85">
+                {programme.summary}
+              </p>
+              <div className="mt-6">
+                <Badge variant="outline" className="border-white/60 text-white">
+                  {statusLabel(programme.status, p)}
+                </Badge>
+              </div>
+            </div>
+            {programme.image && (
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg">
+                <ImageOrPlaceholder
+                  src={programme.image}
+                  alt={programme.imageAlt ?? programme.title}
+                  fill
+                  sizes="(max-width: 1023px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
+          </div>
         </Container>
       </section>
 
@@ -115,100 +196,77 @@ export default async function ProgrammePage({
             items={[
               { label: d.common.home, href: localePath("/", locale) },
               { label: p.ourWork.title, href: localePath("/our-work", locale) },
-              { label: area.programmeName ?? area.title },
+              { label: programme.title },
             ]}
             locale={locale}
           />
 
-          <p className="mb-8 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+          <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
             {d.common.originalLanguageNotice}
           </p>
 
-          <div className="grid gap-12 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <div className="flex items-start gap-4">
-                <div
-                  className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: `${prog.hex}1a`, color: prog.hex }}
-                >
-                  <AreaIcon id={area.id} className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold">{p.programme.aboutTitle}</h2>
-                  <p className="mt-2 leading-relaxed text-muted-foreground">
-                    {area.description}
-                  </p>
-                </div>
-              </div>
+          {/* 02 — Why this matters */}
+          <div className="max-w-3xl">
+            <h2 className="text-2xl font-bold md:text-3xl">
+              {programme.whyThisMatters.heading ?? p.programme.whyThisMatters}
+            </h2>
+            {programme.whyThisMatters.body.map((paragraph) => (
+              <p
+                key={paragraph.slice(0, 48)}
+                className="mt-4 leading-relaxed text-muted-foreground"
+              >
+                {paragraph}
+              </p>
+            ))}
+            {programme.whyThisMatters.evidence?.length ? (
+              <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
+                {programme.whyThisMatters.evidence.map((ref) => (
+                  <li key={ref.label}>
+                    {ref.href ? (
+                      <Link href={ref.href} className="text-primary hover:underline">
+                        {ref.label}
+                      </Link>
+                    ) : (
+                      ref.label
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
 
-              <div className="mt-8">
-                <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: prog.safeHex }}>
-                  {p.programme.whatWeDo}
-                </h3>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {area.items.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm">
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: prog.hex }} aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div>
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold">{p.programme.getInvolved}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {p.ourWork.description}
-                </p>
-                <div className="mt-4 space-y-2">
-                  <Button
-                    href={localePath(`/donate?campaign=${area.id}`, locale)}
-                    className="w-full"
-                    size="sm"
-                  >
-                    {p.programme.donateToProgramme}
-                  </Button>
-                  <Button
-                    href={localePath("/get-involved", locale)}
-                    variant="outline"
-                    className="w-full"
-                    size="sm"
-                  >
-                    {p.programme.volunteerWithUs}
-                  </Button>
-                </div>
-              </Card>
-
-              {area.externalPlatformLink && (
-                <Card className="mt-6 p-6">
-                  <h2 className="text-lg font-semibold">
-                    {area.externalPlatformLink.label}
-                  </h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {area.externalPlatformLink.description}
-                  </p>
-                  <Button
-                    href={area.externalPlatformLink.href}
-                    variant="outline"
-                    className="mt-4 w-full"
-                    size="sm"
-                  >
-                    {p.programme.visitPlatform}
-                  </Button>
-                </Card>
-              )}
-            </div>
+          {/* 03 — Our approach */}
+          <div className="mt-14 max-w-3xl">
+            <h2 className="text-2xl font-bold md:text-3xl">
+              {programme.approach.heading ?? p.programme.ourApproach}
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              {programme.approach.body}
+            </p>
+            {programme.approach.items?.length ? (
+              <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+                {programme.approach.items.map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: prog.hex }}
+                      aria-hidden="true"
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </Container>
       </section>
 
+      {/* 04 — Projects */}
       {relatedProjects.length > 0 && (
         <section className="bg-surface py-16 md:py-24">
           <Container>
             <SectionHeader
-              title={p.programme.projectsIn.replace("{programme}", area.title)}
+              title={p.programme.projectsIn.replace("{programme}", programme.title)}
             />
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedProjects.map((project) => (
@@ -219,12 +277,183 @@ export default async function ProgrammePage({
         </section>
       )}
 
+      {/* 05 — Results & evidence */}
+      <section className="py-16 md:py-24">
+        <Container>
+          <SectionHeader title={p.programme.resultsTitle} />
+          {programme.results?.length ? (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {programme.results.map((result) => (
+                <Card key={result.label} className="flex flex-col p-6">
+                  <p className="text-3xl font-bold tracking-tight">
+                    {result.value}
+                  </p>
+                  <p className="mt-2 text-sm font-medium leading-snug">
+                    {result.label}
+                  </p>
+                  <div className="mt-3">
+                    <EvidenceBadge status={result.evidenceStatus} locale={locale} />
+                  </div>
+                  {result.methodology && (
+                    <p className="mt-3 flex-1 text-xs leading-relaxed text-muted-foreground">
+                      {result.methodology}
+                    </p>
+                  )}
+                  {result.asOf && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {p.programme.asOf.replace("{date}", result.asOf)}
+                    </p>
+                  )}
+                  {result.sourceHref && (
+                    <Link
+                      href={localePath(result.sourceHref, locale)}
+                      className="mt-4 inline-flex text-sm font-semibold text-primary hover:underline"
+                    >
+                      {p.common.viewProject}
+                    </Link>
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-8 max-w-2xl rounded-lg border border-dashed border-border p-6 text-sm leading-relaxed text-muted-foreground">
+              {p.programme.resultsEmpty}
+            </p>
+          )}
+        </Container>
+      </section>
+
+      {/* 06 — Learning (omitted when empty, never fabricated) */}
+      {programme.learning?.length ? (
+        <section className="bg-surface py-16 md:py-24">
+          <Container>
+            <SectionHeader title={p.programme.learningTitle} />
+            <div className="mt-10 grid gap-6 md:grid-cols-2">
+              {programme.learning.map((item) => (
+                <div
+                  key={item.title}
+                  className="border-l-2 pl-5"
+                  style={{ borderColor: prog.safeHex }}
+                >
+                  <h3 className="font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.body}
+                  </p>
+                  {item.href && (
+                    <Link
+                      href={localePath(item.href, locale)}
+                      className="mt-3 inline-flex text-sm font-semibold text-primary hover:underline"
+                    >
+                      {d.common.learnMore}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      ) : null}
+
+      {/* 07 — Partners & ecosystem */}
+      {(partners.length > 0 || ecosystem.length > 0) && (
+        <section className="py-16 md:py-24">
+          <Container>
+            <SectionHeader title={p.programme.partnersTitle} />
+            <div className="mt-10 grid gap-10 lg:grid-cols-2">
+              {partners.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    {p.programme.partnersLabel}
+                  </h3>
+                  <ul className="mt-4 space-y-4">
+                    {partners.map((actor) => (
+                      <li key={actor.name}>
+                        <p className="font-semibold">{actor.name}</p>
+                        {actor.note && (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {actor.note}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {ecosystem.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    {p.programme.ecosystemLabel}
+                  </h3>
+                  <ul className="mt-4 space-y-4">
+                    {ecosystem.map((actor) => (
+                      <li key={actor.name}>
+                        <p className="font-semibold">{actor.name}</p>
+                        {actor.note && (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {actor.note}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* 08 — Next priorities (forward-looking) */}
+      {programme.nextPriorities?.length ? (
+        <section className={partners.length || ecosystem.length ? "bg-surface py-16 md:py-24" : "py-16 md:py-24"}>
+          <Container>
+            <SectionHeader
+              title={p.programme.nextPrioritiesTitle}
+              description={p.programme.nextPrioritiesNote}
+            />
+            <ul className="mt-8 max-w-3xl space-y-3">
+              {programme.nextPriorities.map((priority) => (
+                <li key={priority} className="flex items-start gap-3">
+                  <span
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: prog.hex }}
+                    aria-hidden="true"
+                  />
+                  <span className="leading-relaxed">{priority}</span>
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </section>
+      ) : null}
+
+      {programme.externalPlatformLink && (
+        <section className="py-16 md:py-24">
+          <Container>
+            <Card className="mx-auto max-w-3xl p-8">
+              <h2 className="text-lg font-semibold">
+                {programme.externalPlatformLink.label}
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {programme.externalPlatformLink.description}
+              </p>
+              <Button
+                href={programme.externalPlatformLink.href}
+                variant="outline"
+                className="mt-4"
+                size="sm"
+              >
+                {p.programme.visitPlatform}
+              </Button>
+            </Card>
+          </Container>
+        </section>
+      )}
+
       {relatedStories.length > 0 && (
         <section className="py-16 md:py-24">
           <Container>
-            <SectionHeader
-              title={p.programme.storiesFrom}
-            />
+            <SectionHeader title={p.programme.storiesFrom} />
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {relatedStories.map((story) => (
                 <StoryCard key={story.slug} story={story} locale={locale} />
@@ -238,7 +467,7 @@ export default async function ProgrammePage({
         <section className="py-16 md:py-24">
           <Container>
             <SectionHeader
-              title={p.programme.photosFrom.replace("{programme}", area.title)}
+              title={p.programme.photosFrom.replace("{programme}", programme.title)}
             />
             <div className="mt-12">
               <GalleryGrid images={additionalPhotos} />
@@ -247,18 +476,167 @@ export default async function ProgrammePage({
         </section>
       )}
 
+      {/* 09 — CTA */}
       <section className="bg-surface py-16">
         <Container>
-          <div className="flex flex-col items-center justify-between gap-4 rounded-xl bg-primary p-8 text-white md:flex-row">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-xl bg-primary p-8 text-white md:flex-row">
             <div>
-              <h2 className="text-xl font-bold">{p.programme.exploreOther}</h2>
-              <p className="mt-1 text-white/90">
+              <h2 className="text-xl font-bold">{p.programme.getInvolved}</h2>
+              <p className="mt-1 max-w-xl text-white/90">
                 {p.programme.workAcross}
               </p>
             </div>
-            <Button href={localePath("/our-work", locale)} variant="outline" className="border-white text-white hover:bg-white/10">
-              {p.programme.viewAllProgrammes}
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                href={localePath(programme.cta?.href ?? "/get-involved#partner", locale)}
+                variant="outline"
+                className="border-white text-white hover:bg-white/10"
+              >
+                {programme.cta?.label ?? p.common.partnerWithUs}
+              </Button>
+              <Button
+                href={localePath("/our-work", locale)}
+                variant="outline"
+                className="border-white text-white hover:bg-white/10"
+              >
+                {p.programme.viewAllProgrammes}
+              </Button>
+            </div>
+          </div>
+        </Container>
+      </section>
+    </>
+  );
+}
+
+/**
+ * The Vantage Point platform page — rendered under /programmes/vantage-point
+ * for IA coherence but deliberately NOT presented as a seventh portfolio.
+ */
+async function VantagePointPage({ locale }: { locale: Locale }) {
+  const p = getPageContent(locale);
+  const d = await getDictionary(locale);
+  const prog = programmeTokenForProgramme(vantagePoint.slug);
+  const portfolios = getAllProgrammes().filter((pr) => pr.published !== false);
+
+  return (
+    <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd(
+          [
+            { label: d.common.home, url: localePath("/", locale) },
+            { label: p.ourWork.title, url: localePath("/our-work", locale) },
+            { label: vantagePoint.title, url: localePath(`/programmes/${vantagePoint.slug}`, locale) },
+          ],
+          site.url,
+        )}
+      />
+
+      <section className="py-16 text-white md:py-24" style={{ backgroundColor: prog.safeHex }}>
+        <Container>
+          <p className="text-sm font-semibold uppercase tracking-wider text-white/80">
+            {p.vantagePoint.platformEyebrow}
+          </p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
+            {vantagePoint.title}
+          </h1>
+          <p className="mt-4 max-w-2xl text-xl leading-relaxed text-white/90">
+            {vantagePoint.summary}
+          </p>
+          <div className="mt-6">
+            <Badge variant="outline" className="border-white/60 text-white">
+              {statusLabel(vantagePoint.status, p)}
+            </Badge>
+          </div>
+        </Container>
+      </section>
+
+      <section className="py-16 md:py-24">
+        <Container>
+          <Breadcrumbs
+            className="mb-8"
+            items={[
+              { label: d.common.home, href: localePath("/", locale) },
+              { label: p.ourWork.title, href: localePath("/our-work", locale) },
+              { label: vantagePoint.title },
+            ]}
+            locale={locale}
+          />
+
+          <p className="mb-12 rounded-lg border border-primary/20 bg-primary-light p-4 text-sm text-foreground">
+            {d.common.originalLanguageNotice}
+          </p>
+
+          <div className="max-w-3xl">
+            <h2 className="text-2xl font-bold md:text-3xl">
+              {p.vantagePoint.purposeTitle}
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              {vantagePoint.purpose}
+            </p>
+          </div>
+
+          <div className="mt-14 max-w-3xl">
+            <h2 className="text-2xl font-bold md:text-3xl">
+              {p.vantagePoint.functionsTitle}
+            </h2>
+            <ul className="mt-6 space-y-3">
+              {vantagePoint.functions.map((fn) => (
+                <li key={fn.slice(0, 40)} className="flex items-start gap-3">
+                  <span
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                    aria-hidden="true"
+                  />
+                  <span className="leading-relaxed">{fn}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Container>
+      </section>
+
+      <section className="bg-surface py-16 md:py-24">
+        <Container>
+          <SectionHeader
+            title={p.vantagePoint.relationshipTitle}
+            description={vantagePoint.relationship}
+          />
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {portfolios.map((portfolio) => (
+              <li key={portfolio.slug}>
+                <Link
+                  href={localePath(`/programmes/${portfolio.slug}`, locale)}
+                  className="block rounded-lg border border-border bg-white p-4 text-sm font-semibold transition-colors hover:border-primary hover:text-primary"
+                >
+                  {portfolio.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+            {vantagePoint.surfacing}
+          </p>
+        </Container>
+      </section>
+
+      <section className="py-16">
+        <Container>
+          <div className="flex flex-col items-center justify-between gap-6 rounded-xl bg-primary p-8 text-white md:flex-row">
+            <div>
+              <h2 className="text-xl font-bold">{p.programme.getInvolved}</h2>
+              <p className="mt-1 max-w-xl text-white/90">
+                {p.vantagePoint.ctaNote}
+              </p>
+            </div>
+            {vantagePoint.cta && (
+              <Button
+                href={localePath(vantagePoint.cta.href, locale)}
+                variant="outline"
+                className="border-white text-white hover:bg-white/10"
+              >
+                {vantagePoint.cta.label}
+              </Button>
+            )}
           </div>
         </Container>
       </section>

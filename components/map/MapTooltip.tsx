@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
-import { programmeLabel, type ProgrammeId } from "@/lib/design-tokens";
+import { programmeLabel } from "@/lib/design-tokens";
+import type { ProgrammeId } from "@/types";
 import type { ReachDistrict } from "@/content/reach";
 import { getPageContent } from "@/lib/i18n/content/pages";
 import { localePath, type Locale } from "@/lib/i18n/config";

@@ -159,6 +159,8 @@ export interface PageContent {
     description: string;
     programmeSuffix: string;
     relatedProjects: string;
+    projectCount: string;
+    developingNote: string;
   };
   projects: {
     eyebrow: string;
@@ -186,6 +188,30 @@ export interface PageContent {
     exploreOther: string;
     workAcross: string;
     viewAllProgrammes: string;
+    portfolioEyebrow: string;
+    whyThisMatters: string;
+    ourApproach: string;
+    resultsTitle: string;
+    resultsEmpty: string;
+    learningTitle: string;
+    partnersTitle: string;
+    partnersLabel: string;
+    ecosystemLabel: string;
+    nextPrioritiesTitle: string;
+    nextPrioritiesNote: string;
+    statusActive: string;
+    statusDeveloping: string;
+    statusPilot: string;
+    statusPlanned: string;
+    asOf: string;
+  };
+  vantagePoint: {
+    platformEyebrow: string;
+    purposeTitle: string;
+    functionsTitle: string;
+    relationshipTitle: string;
+    learnMore: string;
+    ctaNote: string;
   };
   project: {
     whyItMatters: string;
@@ -355,6 +381,7 @@ function mergeWithEnglish(
     ourWork: { ...english.ourWork, ...partial.ourWork },
     projects: { ...english.projects, ...partial.projects },
     programme: { ...english.programme, ...partial.programme },
+    vantagePoint: { ...english.vantagePoint, ...partial.vantagePoint },
     project: { ...english.project, ...partial.project },
     impact: { ...english.impact, ...partial.impact },
     stories: { ...english.stories, ...partial.stories },
@@ -435,11 +462,13 @@ const englishPageContent: PageContent = {
     shareOn: "Share on",
   },
   ourWork: {
-    title: "Our areas of work",
+    title: "Our work",
     description:
-      "Four connected programmes designed around the realities communities face.",
+      "Six connected programme portfolios, designed around the realities communities face — plus Vantage Point, the platform that connects learning across all of them.",
     programmeSuffix: "Programme",
     relatedProjects: "Related projects",
+    projectCount: "{count} projects",
+    developingNote: "Developing portfolio — direction published, work formalising",
   },
   projects: {
     eyebrow: "Projects",
@@ -467,8 +496,34 @@ const englishPageContent: PageContent = {
     photosFrom: "Photos from {programme}",
     exploreOther: "Explore our other programmes",
     workAcross:
-      "We work across four interconnected programmes, with youth leadership running through all of them.",
+      "We work across six connected programme portfolios, with youth leadership and participation running through all of them.",
     viewAllProgrammes: "View all programmes",
+    portfolioEyebrow: "Programme portfolio",
+    whyThisMatters: "Why this matters",
+    ourApproach: "Our approach",
+    resultsTitle: "Results & evidence",
+    resultsEmpty:
+      "No programme-level results are published yet for this portfolio. We publish results only when there is evidence behind them — planned work is presented as planned.",
+    learningTitle: "What we're learning",
+    partnersTitle: "Partners & ecosystem",
+    partnersLabel: "Partners",
+    ecosystemLabel: "The wider ecosystem",
+    nextPrioritiesTitle: "Next priorities",
+    nextPrioritiesNote: "Forward-looking priorities — not achieved outcomes.",
+    statusActive: "Active",
+    statusDeveloping: "Developing",
+    statusPilot: "Pilot",
+    statusPlanned: "Planned",
+    asOf: "As of {date}",
+  },
+  vantagePoint: {
+    platformEyebrow: "Cross-programme platform",
+    purposeTitle: "What it's for",
+    functionsTitle: "What it will do",
+    relationshipTitle: "How it relates to the portfolios",
+    learnMore: "Explore Vantage Point",
+    ctaNote:
+      "Interested in building the learning and dialogue layer of this work? Talk to us about Vantage Point.",
   },
   project: {
     whyItMatters: "Why it matters",
@@ -808,11 +863,13 @@ const germanPageContent: DeepPartial<PageContent> = {
     shareOn: "Teilen auf",
   },
   ourWork: {
-    title: "Unsere Arbeitsbereiche",
+    title: "Unsere Arbeit",
     description:
-      "Vier miteinander verbundene Programme, die auf die Realitäten vor Ort ausgerichtet sind.",
+      "Sechs miteinander verbundene Programmportfolios, ausgerichtet auf die Realitäten vor Ort — plus Vantage Point, die Plattform, die das Lernen zwischen ihnen verbindet.",
     programmeSuffix: "Programm",
     relatedProjects: "Verwandte Projekte",
+    projectCount: "{count} Projekte",
+    developingNote: "Portfolio im Aufbau — Ausrichtung veröffentlicht, Arbeit wird formalisiert",
   },
   projects: {
     eyebrow: "Projekte",
@@ -840,8 +897,34 @@ const germanPageContent: DeepPartial<PageContent> = {
     photosFrom: "Fotos aus {programme}",
     exploreOther: "Entdecken Sie unsere anderen Programme",
     workAcross:
-      "Wir arbeiten in vier miteinander verbundenen Programmen, mit Jugendführung in allen.",
+      "Wir arbeiten in sechs miteinander verbundenen Programmportfolios, mit Jugendführung und Partizipation in allen.",
     viewAllProgrammes: "Alle Programme ansehen",
+    portfolioEyebrow: "Programmportfolio",
+    whyThisMatters: "Warum es wichtig ist",
+    ourApproach: "Unser Ansatz",
+    resultsTitle: "Ergebnisse & Belege",
+    resultsEmpty:
+      "Für dieses Portfolio wurden noch keine Ergebnisse auf Programmebene veröffentlicht. Wir veröffentlichen Ergebnisse nur, wenn Belege dahinterstehen — geplante Arbeit wird als geplant dargestellt.",
+    learningTitle: "Was wir lernen",
+    partnersTitle: "Partner & Umfeld",
+    partnersLabel: "Partner",
+    ecosystemLabel: "Das breitere Umfeld",
+    nextPrioritiesTitle: "Nächste Prioritäten",
+    nextPrioritiesNote: "Zukunftsgerichtete Prioritäten — keine erreichten Ergebnisse.",
+    statusActive: "Aktiv",
+    statusDeveloping: "Im Aufbau",
+    statusPilot: "Pilot",
+    statusPlanned: "Geplant",
+    asOf: "Stand {date}",
+  },
+  vantagePoint: {
+    platformEyebrow: "Programmübergreifende Plattform",
+    purposeTitle: "Wofür sie da ist",
+    functionsTitle: "Was sie tun wird",
+    relationshipTitle: "Wie sie sich zu den Portfolios verhält",
+    learnMore: "Vantage Point entdecken",
+    ctaNote:
+      "Interesse daran, die Lern- und Dialogebene dieser Arbeit mitzugestalten? Sprechen Sie uns zu Vantage Point an.",
   },
   project: {
     whyItMatters: "Warum es wichtig ist",
@@ -1182,11 +1265,13 @@ const frenchPageContent: DeepPartial<PageContent> = {
     shareOn: "Partager sur",
   },
   ourWork: {
-    title: "Nos domaines d'action",
+    title: "Notre action",
     description:
-      "Quatre programmes interconnectés conçus en fonction des réalités locales.",
+      "Six portefeuilles de programmes interconnectés, conçus en fonction des réalités locales — plus Vantage Point, la plateforme qui relie l'apprentissage entre eux.",
     programmeSuffix: "Programme",
     relatedProjects: "Projets connexes",
+    projectCount: "{count} projets",
+    developingNote: "Portefeuille en développement — cap publié, travail en cours de formalisation",
   },
   projects: {
     eyebrow: "Projets",
@@ -1214,8 +1299,34 @@ const frenchPageContent: DeepPartial<PageContent> = {
     photosFrom: "Photos de {programme}",
     exploreOther: "Explorer nos autres programmes",
     workAcross:
-      "Nous travaillons à travers quatre programmes interconnectés, avec le leadership des jeunes au cœur de chacun.",
+      "Nous travaillons à travers six portefeuilles de programmes interconnectés, avec le leadership et la participation des jeunes au cœur de chacun.",
     viewAllProgrammes: "Voir tous les programmes",
+    portfolioEyebrow: "Portefeuille de programme",
+    whyThisMatters: "Pourquoi c'est important",
+    ourApproach: "Notre approche",
+    resultsTitle: "Résultats & preuves",
+    resultsEmpty:
+      "Aucun résultat au niveau du programme n'a encore été publié pour ce portefeuille. Nous ne publions des résultats que lorsqu'ils reposent sur des preuves — le travail planifié est présenté comme tel.",
+    learningTitle: "Ce que nous apprenons",
+    partnersTitle: "Partenaires & écosystème",
+    partnersLabel: "Partenaires",
+    ecosystemLabel: "L'écosystème au sens large",
+    nextPrioritiesTitle: "Prochaines priorités",
+    nextPrioritiesNote: "Priorités d'avenir — pas des résultats déjà obtenus.",
+    statusActive: "Actif",
+    statusDeveloping: "En développement",
+    statusPilot: "Pilote",
+    statusPlanned: "Planifié",
+    asOf: "Au {date}",
+  },
+  vantagePoint: {
+    platformEyebrow: "Plateforme transprogrammes",
+    purposeTitle: "À quoi elle sert",
+    functionsTitle: "Ce qu'elle fera",
+    relationshipTitle: "Son lien avec les portefeuilles",
+    learnMore: "Découvrir Vantage Point",
+    ctaNote:
+      "Envie de construire la couche d'apprentissage et de dialogue de ce travail ? Parlez-nous de Vantage Point.",
   },
   project: {
     whyItMatters: "Pourquoi c'est important",
@@ -1556,11 +1667,13 @@ const spanishPageContent: DeepPartial<PageContent> = {
     shareOn: "Compartir en",
   },
   ourWork: {
-    title: "Nuestros ámbitos de trabajo",
+    title: "Nuestro trabajo",
     description:
-      "Cuatro programas interconectados diseñados en torno a las realidades que enfrentan las comunidades.",
+      "Seis carteras de programas interconectadas, diseñadas en torno a las realidades que enfrentan las comunidades — más Vantage Point, la plataforma que conecta el aprendizaje entre todas.",
     programmeSuffix: "Programa",
     relatedProjects: "Proyectos relacionados",
+    projectCount: "{count} proyectos",
+    developingNote: "Cartera en desarrollo — dirección publicada, trabajo en formalización",
   },
   projects: {
     eyebrow: "Proyectos",
@@ -1588,8 +1701,34 @@ const spanishPageContent: DeepPartial<PageContent> = {
     photosFrom: "Fotos de {programme}",
     exploreOther: "Explora nuestros otros programas",
     workAcross:
-      "Trabajamos a través de cuatro programas interconectados, con el liderazgo juvenil atravesando todos ellos.",
+      "Trabajamos a través de seis carteras de programas interconectadas, con el liderazgo y la participación juvenil en todas ellas.",
     viewAllProgrammes: "Ver todos los programas",
+    portfolioEyebrow: "Cartera de programa",
+    whyThisMatters: "Por qué es importante",
+    ourApproach: "Nuestro enfoque",
+    resultsTitle: "Resultados y evidencia",
+    resultsEmpty:
+      "Aún no se han publicado resultados a nivel de programa para esta cartera. Solo publicamos resultados cuando hay evidencia que los respalde — el trabajo planificado se presenta como planificado.",
+    learningTitle: "Lo que estamos aprendiendo",
+    partnersTitle: "Socios y ecosistema",
+    partnersLabel: "Socios",
+    ecosystemLabel: "El ecosistema más amplio",
+    nextPrioritiesTitle: "Próximas prioridades",
+    nextPrioritiesNote: "Prioridades de futuro — no resultados ya logrados.",
+    statusActive: "Activo",
+    statusDeveloping: "En desarrollo",
+    statusPilot: "Piloto",
+    statusPlanned: "Planificado",
+    asOf: "A fecha de {date}",
+  },
+  vantagePoint: {
+    platformEyebrow: "Plataforma interprogramas",
+    purposeTitle: "Para qué sirve",
+    functionsTitle: "Qué hará",
+    relationshipTitle: "Cómo se relaciona con las carteras",
+    learnMore: "Explorar Vantage Point",
+    ctaNote:
+      "¿Te interesa construir la capa de aprendizaje y diálogo de este trabajo? Hablemos de Vantage Point.",
   },
   project: {
     whyItMatters: "Por qué importa",
@@ -1930,11 +2069,13 @@ const arabicPageContent: DeepPartial<PageContent> = {
     shareOn: "المشاركة على",
   },
   ourWork: {
-    title: "مجالات عملنا",
+    title: "عملنا",
     description:
-      "أربعة برامج مترابطة صُممت بناءً على واقع المجتمعات.",
+      "ست محافظ برامج مترابطة، صُممت بناءً على واقع المجتمعات — بالإضافة إلى Vantage Point، المنصة التي تربط التعلم بينها جميعًا.",
     programmeSuffix: "البرنامج",
     relatedProjects: "المشاريع ذات الصلة",
+    projectCount: "{count} مشاريع",
+    developingNote: "محفظة قيد التطوير — الاتجاه منشور والعمل قيد الترسيخ",
   },
   projects: {
     eyebrow: "المشاريع",
@@ -1962,8 +2103,34 @@ const arabicPageContent: DeepPartial<PageContent> = {
     photosFrom: "صور من {programme}",
     exploreOther: "استكشف برامجنا الأخرى",
     workAcross:
-      "نعمل عبر أربعة برامج مترابطة، مع قيادة الشباب تخترقها جميعًا.",
+      "نعمل عبر ست محافظ برامج مترابطة، مع قيادة الشباب ومشاركتهم تخترقها جميعًا.",
+    portfolioEyebrow: "محفظة برنامج",
+    whyThisMatters: "لماذا هذا مهم",
+    ourApproach: "نهجنا",
+    resultsTitle: "النتائج والأدلة",
+    resultsEmpty:
+      "لم تُنشر بعد نتائج على مستوى البرنامج لهذه المحفظة. ننشر النتائج فقط عندما تكون مدعومة بالأدلة — ويُعرض العمل المخطط بوصفه مخططًا.",
+    learningTitle: "ما نتعلمه",
+    partnersTitle: "الشركاء والمنظومة",
+    partnersLabel: "الشركاء",
+    ecosystemLabel: "المنظومة الأوسع",
+    nextPrioritiesTitle: "الأولويات القادمة",
+    nextPrioritiesNote: "أولويات مستقبلية — وليست نتائج محققة.",
+    statusActive: "نشط",
+    statusDeveloping: "قيد التطوير",
+    statusPilot: "تجريبي",
+    statusPlanned: "مخطط",
+    asOf: "حتى {date}",
     viewAllProgrammes: "عرض جميع البرامج",
+  },
+  vantagePoint: {
+    platformEyebrow: "منصة عبر البرامج",
+    purposeTitle: "ما الغاية منها",
+    functionsTitle: "ماذا ستفعل",
+    relationshipTitle: "علاقتها بالمحافظ",
+    learnMore: "استكشف Vantage Point",
+    ctaNote:
+      "مهتم ببناء طبقة التعلم والحوار في هذا العمل؟ تحدث معنا عن Vantage Point.",
   },
   project: {
     whyItMatters: "لماذا يهم",

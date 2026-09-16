@@ -317,10 +317,22 @@ export function getReferralOutcomeLabel(
 // ---------------------------------------------------------------------------
 
 export const CASE_PROGRAMMES = [
-  { value: "health", label: "Vantage Care (Health)" },
-  { value: "education", label: "KikumiKyo Academy (Education)" },
-  { value: "humanitarian", label: "Humanitarian Assistance" },
-  { value: "water", label: "Water, Sanitation and Hygiene" },
+  { value: "health-wellbeing", label: "Health & Wellbeing" },
+  { value: "education-learning", label: "Education & Learning" },
+  {
+    value: "financial-capability-economic-opportunity",
+    label: "Financial Capability & Economic Opportunity",
+  },
+  { value: "food-basic-needs", label: "Food & Basic Needs" },
+  {
+    value: "humanitarian-vulnerability-protection",
+    label: "Humanitarian Vulnerability & Protection",
+  },
+  {
+    value: "youth-leadership-participation",
+    label: "Youth Leadership & Participation",
+  },
+  { value: "vantage-point", label: "Vantage Point" },
   { value: "cross_cutting", label: "Cross-cutting" },
   { value: "none", label: "Not programme-specific" },
 ] as const;
@@ -331,11 +343,27 @@ export const CASE_PROGRAMME_VALUES = CASE_PROGRAMMES.map(
   (p) => p.value,
 ) as [CaseProgramme, ...CaseProgramme[]];
 
+/**
+ * Legacy programme ids stored on case rows created before the PR-3
+ * portfolio migration. Retained so historical rows still resolve a
+ * label — new cases only offer the current taxonomy above.
+ */
+const LEGACY_CASE_PROGRAMME_LABELS: Record<string, string> = {
+  health: "Health & Wellbeing",
+  education: "Financial Capability & Economic Opportunity",
+  humanitarian: "Humanitarian Vulnerability & Protection",
+  water: "Food & Basic Needs",
+};
+
 export function getCaseProgrammeLabel(
-  value: CaseProgramme | undefined | null,
+  value: CaseProgramme | string | undefined | null,
 ): string {
   if (!value) return "";
-  return CASE_PROGRAMMES.find((p) => p.value === value)?.label ?? "";
+  return (
+    CASE_PROGRAMMES.find((p) => p.value === value)?.label ??
+    LEGACY_CASE_PROGRAMME_LABELS[value] ??
+    ""
+  );
 }
 
 // ---------------------------------------------------------------------------

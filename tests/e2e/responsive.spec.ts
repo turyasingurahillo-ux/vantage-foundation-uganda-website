@@ -15,10 +15,13 @@ const routes = [
   "/get-involved",
   "/impact",
   "/our-work",
-  "/programmes/health",
-  "/programmes/education",
-  "/programmes/humanitarian",
-  "/programmes/water",
+  "/programmes/health-wellbeing",
+  "/programmes/education-learning",
+  "/programmes/financial-capability-economic-opportunity",
+  "/programmes/humanitarian-vulnerability-protection",
+  "/programmes/food-basic-needs",
+  "/programmes/youth-leadership-participation",
+  "/programmes/vantage-point",
   "/projects",
   "/projects/kasaale-deep-borehole",
   "/reports-and-accountability",
@@ -90,7 +93,8 @@ test("primary mobile controls meet a 44px touch target", async ({ page }) => {
 
 test("Uganda reach map is tappable and shows project details on a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  // The map lives on /impact#where-we-work since PR-2 moved it off the homepage.
+  await page.goto("/impact");
 
   const mapSection = page.getByTestId("uganda-reach-map-section");
   await mapSection.scrollIntoViewIfNeeded();

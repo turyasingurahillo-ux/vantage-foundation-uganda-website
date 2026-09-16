@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { StatCard } from "@/components/shared/StatCard";
 import { ProjectCard } from "@/components/shared/ProjectCard";
 import { ImpactMetricList, type ImpactTier } from "@/components/shared/ImpactMetric";
+import { LazyUgandaReachMap } from "@/components/sections/LazyUgandaReachMap";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { createPublicMetadata } from "@/lib/metadata";
@@ -154,6 +155,12 @@ export default async function ImpactPage({
           </div>
         </Container>
       </section>
+
+      {/* Where we work — the reach map's canonical home. The header and
+          footer both link to /impact#where-we-work. */}
+      <div id="where-we-work" className="scroll-mt-24" data-testid="uganda-reach-map-section">
+        <LazyUgandaReachMap locale={locale} />
+      </div>
     </>
   );
 }

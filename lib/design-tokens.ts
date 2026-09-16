@@ -45,7 +45,12 @@ export const statusColors = {
   info: { fg: "#006b70", bg: "#e0f2fe", text: "#0c4a6e" },
 } as const;
 
-export type ProgrammeId =
+/**
+ * Brand palette token ids — distinct from the public `ProgrammeId`
+ * portfolio taxonomy in types/index.ts. These keys name colour families,
+ * not programmes.
+ */
+export type ProgrammeColourId =
   | "health"
   | "education"
   | "water"
@@ -56,7 +61,7 @@ export type ProgrammeId =
   | "alert";
 
 export interface ProgrammeToken {
-  id: ProgrammeId;
+  id: ProgrammeColourId;
   label: string;
   hex: string;
   /** Tailwind utility class token (e.g. "programme-health" → bg-programme-health) */
@@ -78,7 +83,7 @@ export interface ProgrammeToken {
 // Kept within the teal/black brand system — no unrelated hues (orange,
 // purple, sky blue, cyan). "alert" stays red: a functional safety/status
 // colour, not a decorative brand accent.
-export const programmeColours: Record<ProgrammeId, ProgrammeToken> = {
+export const programmeColours: Record<ProgrammeColourId, ProgrammeToken> = {
   health: { id: "health", label: "Health", hex: "#008f95", safeHex: "#006b70", token: "programme-health", onColor: "#ffffff" },
   education: { id: "education", label: "Education", hex: "#006b70", safeHex: "#006b70", token: "programme-education", onColor: "#ffffff" },
   water: { id: "water", label: "Water & WASH", hex: "#0b1b22", safeHex: "#0b1b22", token: "programme-water", onColor: "#ffffff" },
@@ -90,19 +95,27 @@ export const programmeColours: Record<ProgrammeId, ProgrammeToken> = {
 };
 
 /**
- * Maps an area-of-work id from content/areas.ts to a programme accent token.
- * Falls back to primary teal for unmapped areas.
+ * Maps a public portfolio slug (types/index.ts ProgrammeId) to a colour
+ * accent token. The palette stays inside the teal/navy brand family —
+ * two portfolios sharing a colour family is deliberate restraint, not a
+ * missing mapping.
  */
-export function programmeTokenForArea(areaId: string): ProgrammeToken {
-  const map: Record<string, ProgrammeId> = {
-    health: "health",
-    education: "education",
-    water: "water",
-    humanitarian: "humanitarian",
-    "youth-leadership": "youth",
+export function programmeTokenForProgramme(
+  slug: string,
+): ProgrammeToken {
+  const map: Record<string, ProgrammeColourId> = {
+    "health-wellbeing": "health",
+    "education-learning": "education",
+    "financial-capability-economic-opportunity": "research",
+    "food-basic-needs": "water",
+    "humanitarian-vulnerability-protection": "humanitarian",
+    "youth-leadership-participation": "youth",
+    "vantage-point": "environment",
   };
-  const id = map[areaId];
-  return id ? programmeColours[id] : { ...programmeColours.health, hex: brandColors.deepTeal, token: "primary" };
+  const id = map[slug];
+  return id
+    ? programmeColours[id]
+    : { ...programmeColours.health, hex: brandColors.deepTeal, token: "primary" };
 }
 
 /**
@@ -110,7 +123,7 @@ export function programmeTokenForArea(areaId: string): ProgrammeToken {
  * accent token. Falls back to primary teal for unmapped categories.
  */
 export function programmeTokenForCategory(category: string): ProgrammeToken {
-  const map: Record<string, ProgrammeId> = {
+  const map: Record<string, ProgrammeColourId> = {
     Health: "health",
     Education: "education",
     "Water & Sanitation": "water",
@@ -122,29 +135,33 @@ export function programmeTokenForCategory(category: string): ProgrammeToken {
 }
 
 /**
- * Maps a ProjectCategory string to a canonical ProgrammeId (the four primary
- * programmes). "Youth Leadership" maps to "education" as the closest primary
- * programme since youth leadership is a cross-cutting approach, not a fifth
- * standalone programme. Falls back to "health" for unknown categories.
+ * Maps a legacy display ProjectCategory to the closest new portfolio id.
+ * Prefer explicit `primaryProgramme` on projects — this exists for
+ * backward compat only.
  */
-export function programmeIdForCategory(category: string): ProgrammeId {
-  const map: Record<string, ProgrammeId> = {
-    Health: "health",
-    Education: "education",
-    "Water & Sanitation": "water",
-    "Humanitarian Aid": "humanitarian",
-    "Youth Leadership": "education",
+export function programmeIdForCategory(category: string): string {
+  const map: Record<string, string> = {
+    Health: "health-wellbeing",
+    Education: "education-learning",
+    "Water & Sanitation": "food-basic-needs",
+    "Humanitarian Aid": "humanitarian-vulnerability-protection",
+    "Youth Leadership": "youth-leadership-participation",
   };
-  return map[category] ?? "health";
+  return map[category] ?? "health-wellbeing";
 }
 
-/** Human-readable label for a ProgrammeId, matching the programme page titles. */
-export function programmeLabel(id: ProgrammeId): string {
-  const map: Partial<Record<ProgrammeId, string>> = {
-    health: "Vantage Care",
-    education: "KikumiKyo Academy",
-    humanitarian: "Humanitarian Assistance",
-    water: "Water, Sanitation and Hygiene",
+/** Human-readable title for a public portfolio id. */
+export function programmeLabel(id: string): string {
+  const map: Record<string, string> = {
+    "health-wellbeing": "Health & Wellbeing",
+    "education-learning": "Education & Learning",
+    "financial-capability-economic-opportunity":
+      "Financial Capability & Economic Opportunity",
+    "food-basic-needs": "Food & Basic Needs",
+    "humanitarian-vulnerability-protection":
+      "Humanitarian Vulnerability & Protection",
+    "youth-leadership-participation": "Youth Leadership & Participation",
+    "vantage-point": "Vantage Point",
   };
   return map[id] ?? id;
 }

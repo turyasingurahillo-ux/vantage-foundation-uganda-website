@@ -23,7 +23,8 @@ import {
 import { site } from "../content/site";
 import { projects } from "../content/projects";
 import { stories } from "../content/stories";
-import { areasOfWork } from "../content/areas";
+import { programmes } from "../content/programmes";
+import { vantagePoint } from "../content/vantage-point";
 import { team } from "../content/team";
 import { partners } from "../content/partners";
 import { impactStats } from "../content/impact";
@@ -148,6 +149,21 @@ const projectDocument = z.object({
   description: z.string().optional(),
 });
 
+/**
+ * The six public portfolio slugs — the canonical ProgrammeId union.
+ * Vantage Point is deliberately absent: it is a platform, not a portfolio.
+ */
+const programmeSlugSchema = z.enum([
+  "health-wellbeing",
+  "education-learning",
+  "financial-capability-economic-opportunity",
+  "food-basic-needs",
+  "humanitarian-vulnerability-protection",
+  "youth-leadership-participation",
+]);
+
+const PROGRAMME_SLUG_VALUES = programmeSlugSchema.options;
+
 const projectSchema = z.object({
   id: nonEmpty,
   slug,
@@ -187,8 +203,8 @@ const projectSchema = z.object({
   published: z.boolean().optional(),
   consentClassification,
   // Taxonomy extensions (all optional for backward compatibility)
-  primaryProgramme: z.enum(["health", "education", "humanitarian", "water"]).optional(),
-  secondaryProgrammes: z.array(z.enum(["health", "education", "humanitarian", "water"])).optional(),
+  primaryProgramme: programmeSlugSchema.optional(),
+  relatedProgrammes: z.array(programmeSlugSchema).optional(),
   themes: z.array(nonEmpty).optional(),
   beneficiaryGroups: z.array(nonEmpty).optional(),
   sdgs: z.array(z.number().int().min(1).max(17)).optional(),
@@ -297,16 +313,68 @@ const faqItemSchema = z.object({
   answer: nonEmpty,
 });
 
-const areaOfWorkSchema = z.object({
-  id: nonEmpty,
+const programmeStatusSchema = z.enum([
+  "active",
+  "developing",
+  "pilot",
+  "planned",
+]);
+
+const programmeResultSchema = z.object({
+  value: nonEmpty,
+  label: nonEmpty,
+  evidenceStatus: evidenceStatusSchema,
+  methodology: z.string().optional(),
+  sourceHref: urlOrPath.optional(),
+  asOf: z.string().optional(),
+});
+
+const programmeSchema = z.object({
+  slug: programmeSlugSchema,
   title: nonEmpty,
   programmeName: z.string().optional(),
+  status: programmeStatusSchema,
   summary: nonEmpty,
-  description: nonEmpty,
-  items: z.array(nonEmpty).min(1),
-  icon: nonEmpty,
-  image: z.string().optional(),
-  imageAlt: z.string().optional(),
+  outcomeHeadline: nonEmpty,
+  whyThisMatters: z.object({
+    heading: z.string().optional(),
+    body: z.array(nonEmpty).min(1),
+    evidence: z
+      .array(
+        z.object({
+          label: nonEmpty,
+          href: urlOrPath.optional(),
+          evidenceStatus: evidenceStatusSchema.optional(),
+        })
+      )
+      .optional(),
+  }),
+  approach: z.object({
+    heading: z.string().optional(),
+    body: nonEmpty,
+    items: z.array(nonEmpty).optional(),
+  }),
+  results: z.array(programmeResultSchema).optional(),
+  learning: z
+    .array(
+      z.object({
+        title: nonEmpty,
+        body: nonEmpty,
+        href: urlOrPath.optional(),
+      })
+    )
+    .optional(),
+  actors: z
+    .array(
+      z.object({
+        name: nonEmpty,
+        kind: z.enum(["partner", "ecosystem"]),
+        note: z.string().optional(),
+      })
+    )
+    .optional(),
+  nextPriorities: z.array(nonEmpty).optional(),
+  cta: z.object({ label: nonEmpty, href: urlOrPath }).optional(),
   externalPlatformLink: z
     .object({
       label: nonEmpty,
@@ -314,7 +382,25 @@ const areaOfWorkSchema = z.object({
       description: nonEmpty,
     })
     .optional(),
+  icon: z.string().optional(),
+  image: z.string().optional(),
+  imageAlt: z.string().optional(),
+  legacySlugs: z.array(slug).optional(),
   published: z.boolean().optional(),
+});
+
+const vantagePointSchema = z.object({
+  slug: z.literal("vantage-point"),
+  title: nonEmpty,
+  status: programmeStatusSchema,
+  summary: nonEmpty,
+  purpose: nonEmpty,
+  functions: z.array(nonEmpty).min(1),
+  relationship: nonEmpty,
+  surfacing: nonEmpty,
+  cta: z.object({ label: nonEmpty, href: urlOrPath }).optional(),
+  image: z.string().optional(),
+  imageAlt: z.string().optional(),
 });
 
 const mediaAssetSchema = z.object({
@@ -383,6 +469,49 @@ function checkSocialCards(errors: ValidationError[]) {
 function checkCrossReferences(errors: ValidationError[]) {
   const projectSlugs = new Set(projects.map((p) => p.slug));
   const storySlugs = new Set(stories.map((s) => s.slug));
+
+  // Programmes: exactly the six public portfolios, unique slugs.
+  const programmeSlugs = programmes.map((p) => p.slug);
+  if (programmeSlugs.length !== PROGRAMME_SLUG_VALUES.length) {
+    errors.push({
+      file: "content/programmes.ts",
+      path: "(root)",
+      message: `expected exactly ${PROGRAMME_SLUG_VALUES.length} portfolios, found ${programmeSlugs.length}`,
+    });
+  }
+  const dupProgrammes = programmeSlugs.filter(
+    (s, i) => programmeSlugs.indexOf(s) !== i,
+  );
+  for (const d of [...new Set(dupProgrammes)]) {
+    errors.push({
+      file: "content/programmes.ts",
+      path: "slug",
+      message: `duplicate programme slug "${d}"`,
+    });
+  }
+  for (const s of programmeSlugs) {
+    if (!PROGRAMME_SLUG_VALUES.includes(s)) {
+      errors.push({
+        file: "content/programmes.ts",
+        path: "slug",
+        message: `unknown programme slug "${s}" — Vantage Point is a platform, not a seventh portfolio`,
+      });
+    }
+  }
+
+  // Projects: a project's related programmes must not repeat its primary.
+  for (const project of projects) {
+    if (
+      project.primaryProgramme &&
+      (project.relatedProgrammes ?? []).includes(project.primaryProgramme)
+    ) {
+      errors.push({
+        file: "content/projects.ts",
+        path: `${project.slug}.relatedProgrammes`,
+        message: `relatedProgrammes repeats primaryProgramme "${project.primaryProgramme}"`,
+      });
+    }
+  }
 
   // Projects: relatedStorySlugs must reference existing stories.
   for (const project of projects) {
@@ -485,9 +614,16 @@ export function validateAllContent(): ValidationError[] {
   );
   errors.push(
     ...validateModule(
-      "content/areas.ts",
-      areasOfWork,
-      z.array(areaOfWorkSchema)
+      "content/programmes.ts",
+      programmes,
+      z.array(programmeSchema)
+    )
+  );
+  errors.push(
+    ...validateModule(
+      "content/vantage-point.ts",
+      vantagePoint,
+      vantagePointSchema
     )
   );
   errors.push(...validateModule("content/team.ts", team, z.array(teamMemberSchema)));

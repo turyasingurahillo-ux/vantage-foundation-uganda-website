@@ -128,11 +128,33 @@ const nextConfig: NextConfig = {
     ],
   },
   // Keep legacy blog URLs discoverable after consolidating editorial content
-  // into the Stories & Insights hub.
+  // into the Stories & Insights hub. The programme entries preserve the
+  // pre-PR-3 programme-area URLs after the six-portfolio migration
+  // (content/programmes.ts) — hardcoded locale prefixes per the App Router
+  // i18n redirect convention.
   async redirects() {
+    const legacyProgrammes: Array<[string, string]> = [
+      ["health", "health-wellbeing"],
+      ["education", "financial-capability-economic-opportunity"],
+      ["humanitarian", "humanitarian-vulnerability-protection"],
+      ["water", "food-basic-needs"],
+      ["youth-leadership", "youth-leadership-participation"],
+    ];
     return [
       { source: "/blog", destination: "/stories", permanent: true },
       { source: "/blog/:path*", destination: "/stories/:path*", permanent: true },
+      ...legacyProgrammes.flatMap(([from, to]) => [
+        {
+          source: `/programmes/${from}`,
+          destination: `/programmes/${to}`,
+          permanent: true,
+        },
+        {
+          source: `/:locale(de|fr|es|ar)/programmes/${from}`,
+          destination: `/:locale/programmes/${to}`,
+          permanent: true,
+        },
+      ]),
     ];
   },
   // Disabling the X-Powered-By header avoids advertising the framework.

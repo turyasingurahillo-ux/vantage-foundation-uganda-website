@@ -5,7 +5,8 @@ import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { reachDistricts, type ReachDistrict } from "@/content/reach";
 import { getProjectBySlug, getPublishedProjects } from "@/content/projects";
-import { programmeIdForCategory } from "@/lib/design-tokens";
+import { getPublishedProgrammes } from "@/content/programmes";
+import { programmeIdForCategory, programmeLabel } from "@/lib/design-tokens";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
@@ -44,7 +45,7 @@ function districtStatus(district: ReachDistrict): DistrictStatus {
 
 /**
  * Returns the set of programme ids a district's projects belong to
- * (considering both primaryProgramme and secondaryProgrammes), so the
+ * (considering both primaryProgramme and relatedProgrammes), so the
  * filter can surface a district under every relevant programme.
  */
 function districtProgrammes(district: ReachDistrict): string[] {
@@ -56,7 +57,7 @@ function districtProgrammes(district: ReachDistrict): string[] {
   for (const p of projects) {
     const primary = p.primaryProgramme ?? programmeIdForCategory(p.category);
     programmes.add(primary);
-    for (const sec of p.secondaryProgrammes ?? []) programmes.add(sec);
+    for (const sec of p.relatedProgrammes ?? []) programmes.add(sec);
   }
   return [...programmes];
 }
@@ -71,10 +72,10 @@ export function UgandaReachMap({ locale = "en" }: { locale?: Locale }) {
   };
   const filters = [
     { id: "all", label: t.all },
-    { id: "health", label: t.health },
-    { id: "education", label: t.education },
-    { id: "humanitarian", label: t.humanitarian },
-    { id: "water", label: t.wash },
+    ...getPublishedProgrammes().map((p) => ({
+      id: p.slug,
+      label: programmeLabel(p.slug),
+    })),
   ];
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");

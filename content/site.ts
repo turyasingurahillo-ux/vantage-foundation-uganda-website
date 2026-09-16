@@ -61,10 +61,22 @@ export const site: SiteConfig = {
       label: "Programmes",
       href: "/our-work",
       children: [
-        { label: "Vantage Care", href: "/programmes/health" },
-        { label: "KikumiKyo Academy", href: "/programmes/education" },
-        { label: "Humanitarian Assistance", href: "/programmes/humanitarian" },
-        { label: "Water, Sanitation and Hygiene", href: "/programmes/water" },
+        { label: "Health & Wellbeing", href: "/programmes/health-wellbeing" },
+        { label: "Education & Learning", href: "/programmes/education-learning" },
+        {
+          label: "Financial Capability",
+          href: "/programmes/financial-capability-economic-opportunity",
+        },
+        { label: "Food & Basic Needs", href: "/programmes/food-basic-needs" },
+        {
+          label: "Vulnerability & Protection",
+          href: "/programmes/humanitarian-vulnerability-protection",
+        },
+        {
+          label: "Youth Leadership",
+          href: "/programmes/youth-leadership-participation",
+        },
+        { label: "Vantage Point", href: "/programmes/vantage-point" },
       ],
     },
     {
