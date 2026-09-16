@@ -93,7 +93,8 @@ test("primary mobile controls meet a 44px touch target", async ({ page }) => {
 
 test("Uganda reach map is tappable and shows project details on a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  // The map lives on /impact#where-we-work since PR-2 moved it off the homepage.
+  await page.goto("/impact");
 
   const mapSection = page.getByTestId("uganda-reach-map-section");
   await mapSection.scrollIntoViewIfNeeded();
