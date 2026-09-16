@@ -6,8 +6,8 @@ import type { HomepageSectionContent } from "@/lib/i18n/page-content";
 
 /**
  * Homepage block 05 — Theory of Change teaser. A semantic ordered list of the
- * pathway behind Vantage's work. The full Theory of Change page arrives in
- * PR-4; the CTA points at /impact until then.
+ * pathway behind Vantage's work. The CTA links to the full public Theory of
+ * Change at /theory-of-change (PR-4).
  */
 export function ChangePathway({
   locale,
@@ -37,7 +37,7 @@ export function ChangePathway({
           ))}
         </ol>
         <div className="mt-12 text-center">
-          <Button href={localePath("/impact", locale)} variant="outline">
+          <Button href={localePath("/theory-of-change", locale)} variant="outline">
             {copy.cta}
           </Button>
         </div>

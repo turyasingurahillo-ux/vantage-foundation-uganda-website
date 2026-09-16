@@ -25,6 +25,7 @@ const routes = [
   "/projects",
   "/projects/kasaale-deep-borehole",
   "/reports-and-accountability",
+  "/theory-of-change",
   "/safeguarding",
   "/stories",
   "/stories/what-are-we-without-our-dreams",

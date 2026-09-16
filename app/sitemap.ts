@@ -19,6 +19,7 @@ const LOCALIZED_ROUTES = [
   "/our-work",
   "/projects",
   "/impact",
+  "/theory-of-change",
   "/stories",
   "/gallery",
   "/get-involved",

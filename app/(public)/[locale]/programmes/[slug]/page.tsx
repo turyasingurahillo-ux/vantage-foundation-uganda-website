@@ -320,6 +320,14 @@ export default async function ProgrammePage({
               {p.programme.resultsEmpty}
             </p>
           )}
+          <p className="mt-8 text-sm">
+            <Link
+              href={localePath("/impact", locale)}
+              className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              {p.programme.readEvidenceCta}
+            </Link>
+          </p>
         </Container>
       </section>
 
