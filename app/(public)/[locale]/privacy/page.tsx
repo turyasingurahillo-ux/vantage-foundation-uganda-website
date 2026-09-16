@@ -287,6 +287,9 @@ export default async function PrivacyPage({
                   </a>
                 </li>
                 <li>Location: {site.contact.country}</li>
+                <li>
+                  Postal address: {site.contact.postalAddress.display}
+                </li>
               </ul>
             </div>
 

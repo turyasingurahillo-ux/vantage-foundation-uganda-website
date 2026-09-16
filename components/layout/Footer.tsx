@@ -193,6 +193,11 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
               <MapPin className="h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
               {site.contact.country}
             </p>
+            {/* Postal correspondence address — not a physical office, so no
+                location pin is attached to it. */}
+            <p className="mt-2 text-sm text-white/70">
+              {site.contact.postalAddress.display}
+            </p>
             {/* Social icons */}
             <div className="mt-6 flex gap-3">
               {socials.map((social) => (

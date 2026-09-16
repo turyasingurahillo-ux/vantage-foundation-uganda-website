@@ -39,6 +39,19 @@ export interface ContactInfo {
    * activity locations live in content/reach.ts as presence, not offices.
    */
   country: string;
+  /**
+   * Verified postal mailing address — correspondence only. A P.O. Box is
+   * NOT a physical office, street address or headquarters: keep it
+   * structurally separate from any location/office concept.
+   */
+  postalAddress: {
+    postOfficeBox: string;
+    /** The post-office locality, e.g. "Kampala GPO" — not an office city. */
+    locality: string;
+    country: string;
+    /** Human-readable form, e.g. "P.O. Box 130524, Kampala GPO, Uganda". */
+    display: string;
+  };
 }
 
 export interface SocialLinks {

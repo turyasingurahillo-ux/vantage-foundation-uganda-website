@@ -556,6 +556,17 @@ describe("office-claim correction (closeout)", () => {
     expect(site.contact.country).toBe("Uganda");
   });
 
+  it("publishes the verified postal address as a PO Box, not an office", () => {
+    const p = site.contact.postalAddress;
+    expect(p.postOfficeBox).toBe("130524");
+    expect(p.locality).toBe("Kampala GPO");
+    expect(p.country).toBe("Uganda");
+    expect(p.display).toBe("P.O. Box 130524, Kampala GPO, Uganda");
+    // The postal record carries no city/office semantics.
+    expect(p).not.toHaveProperty("streetAddress");
+    expect(p).not.toHaveProperty("office");
+  });
+
   it("no locale trust strip characterises Jinja or Ishaka as offices", () => {
     for (const [locale, c] of Object.entries(homepageSectionContent)) {
       for (const item of c.trust) {

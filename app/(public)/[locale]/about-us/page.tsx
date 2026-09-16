@@ -345,6 +345,10 @@ export default async function AboutPage({ params }: { params: LocaleParams }) {
           <div className="mt-8 max-w-3xl text-muted-foreground">
             <p>{content.governance[0]}</p>
             <p className="mt-4">{content.governance[1]}</p>
+            <p className="mt-4 text-sm">
+              {site.legalName} · {dictionary.contact.postalAddress}:{" "}
+              {site.contact.postalAddress.display}
+            </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-4">
             <Link

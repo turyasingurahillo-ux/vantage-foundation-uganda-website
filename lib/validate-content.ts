@@ -108,6 +108,14 @@ const contactInfo = z.object({
   // No street/locality address is published: Vantage maintains no physical
   // offices, and an activity location must never be emitted as one.
   country: nonEmpty,
+  // Verified postal mailing address only — a P.O. Box is correspondence
+  // infrastructure, never a physical office or headquarters.
+  postalAddress: z.object({
+    postOfficeBox: nonEmpty,
+    locality: nonEmpty,
+    country: nonEmpty,
+    display: nonEmpty,
+  }),
 });
 
 const socialLinks = z
