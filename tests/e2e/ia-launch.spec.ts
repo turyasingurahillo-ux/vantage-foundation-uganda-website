@@ -157,3 +157,26 @@ test.describe("Final IA (PR-6)", () => {
     expect(dims.scrollWidth).toBeLessThanOrEqual(dims.clientWidth);
   });
 });
+
+test.describe("Office-claim correction (closeout)", () => {
+  test("homepage trust strip contains no office claim", async ({ page }) => {
+    await page.goto("/");
+    const body = await page.locator("body").innerText();
+    expect(body).not.toMatch(/office/i);
+    await expect(page.getByText("Six outcome portfolios")).toBeVisible();
+  });
+
+  test("footer and contact show country only, no office list", async ({
+    page,
+  }) => {
+    await page.goto("/contact");
+    const body = await page.locator("body").innerText();
+    expect(body).not.toMatch(/office/i);
+  });
+
+  test("terms page no longer claims offices", async ({ page }) => {
+    await page.goto("/terms");
+    const body = await page.locator("body").innerText();
+    expect(body).not.toMatch(/office/i);
+  });
+});

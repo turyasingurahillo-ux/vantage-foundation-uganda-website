@@ -143,7 +143,23 @@ describe("buildNgoJsonLd", () => {
     expect(result.foundingDate).toBe("2020-12");
     expect(result.sameAs).toHaveLength(3);
     expect(result.sameAs).toContain("https://instagram.com/test");
-    expect(result.address["@type"]).toBe("PostalAddress");
-    expect(result.address.addressLocality).toBe("Kampala");
+    expect(result.address).toBeDefined();
+    expect(result.address!["@type"]).toBe("PostalAddress");
+    expect(result.address!.addressLocality).toBe("Kampala");
+  });
+
+  it("omits PostalAddress when no real office address exists", () => {
+    // Vantage maintains no physical offices — the builder must not emit a
+    // PostalAddress for an activity location.
+    const result = buildNgoJsonLd({
+      name: "Test NGO",
+      legalName: "Test NGO Ltd",
+      url: "https://example.com",
+      telephone: "+256 123",
+      country: "Uganda",
+      description: "A test NGO",
+    });
+    expect(result.address).toBeUndefined();
+    expect(result.contactPoint.areaServed).toBe("Uganda");
   });
 });

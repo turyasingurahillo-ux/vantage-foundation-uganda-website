@@ -30,6 +30,8 @@ import { getPublishedTeam } from "@/content/team";
 import { getPublishedPartners } from "@/content/partners";
 import { getPublishedReports } from "@/content/reports";
 import { getPublishedImpactStats } from "@/content/impact";
+import { site } from "@/content/site";
+import { homepageSectionContent } from "@/lib/i18n/page-content";
 import {
   partnershipOptions,
   resolvePartnershipTypeFromQuery,
@@ -541,5 +543,24 @@ describe("story taxonomy (PR-6)", () => {
     expect(storyCategoryOrDefault("Unknown label")).toBe("news");
     expect(storyCategoryOrDefault(undefined)).toBe("news");
     expect(storyCategoryOrDefault("field-story")).toBe("field-story");
+  });
+});
+
+describe("office-claim correction (closeout)", () => {
+  it("site.contact publishes no office list or street address", () => {
+    // Vantage maintains no physical offices — Jinja and Ishaka are
+    // activity/presence locations only.
+    expect("offices" in site.contact).toBe(false);
+    expect("address" in site.contact).toBe(false);
+    expect("city" in site.contact).toBe(false);
+    expect(site.contact.country).toBe("Uganda");
+  });
+
+  it("no locale trust strip characterises Jinja or Ishaka as offices", () => {
+    for (const [locale, c] of Object.entries(homepageSectionContent)) {
+      for (const item of c.trust) {
+        expect(item, `${locale} trust item`).not.toMatch(/Jinja|Ishaka/i);
+      }
+    }
   });
 });

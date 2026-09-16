@@ -646,7 +646,7 @@ export type HomepageSectionContent = {
 
 export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
   en: {
-    trust: ["Youth-led since December 2020", "Based in Uganda", "Offices in Jinja & Ishaka", "Community-centred"],
+    trust: ["Youth-led since December 2020", "Based in Uganda", "Six outcome portfolios", "Community-centred"],
     impact: { eyebrow: "Impact", title: "Evidence with context", description: "Each headline figure is tied to the programme, place, reporting period and counting method behind it.", note: "These are programme-team figures and are not presented as independently audited results. Supporting public reports will be linked as they are approved for publication.", cta: "Explore our impact" },
     problem: {
       eyebrow: "The challenge",
@@ -702,7 +702,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     flagship: { eyebrow: "Flagship work", title: "Where the model is furthest along", description: "The projects that best show what working across connected needs looks like in practice.", location: "Location", timeline: "Timeline", beneficiaries: "Beneficiaries", funding: "Funding", read: "Read the full story", support: "Support this project", viewAll: "View all projects" },
   },
   de: {
-    trust: ["Seit Dezember 2020 von jungen Menschen geführt", "In Uganda ansässig", "Büros in Jinja & Ishaka", "Gemeinschaftsnah"],
+    trust: ["Seit Dezember 2020 von jungen Menschen geführt", "In Uganda ansässig", "Sechs Ergebnisportfolios", "Gemeinschaftsnah"],
     impact: { eyebrow: "Wirkung", title: "Zahlen mit Kontext", description: "Jede Kennzahl ist mit dem zugehörigen Programm, Ort, Berichtszeitraum und der Zählmethode verknüpft.", note: "Diese Zahlen stammen von unseren Programmteams und sind keine unabhängig geprüften Ergebnisse. Öffentliche Belege werden verlinkt, sobald sie zur Veröffentlichung freigegeben sind.", cta: "Unsere Wirkung entdecken" },
     problem: {
       eyebrow: "Die Herausforderung",
@@ -758,7 +758,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     flagship: { eyebrow: "Leitprojekte", title: "Wo das Modell am weitesten ist", description: "Die Projekte, die am besten zeigen, wie Arbeit über verbundene Bedürfnisse hinweg in der Praxis aussieht.", location: "Ort", timeline: "Zeitraum", beneficiaries: "Begünstigte", funding: "Finanzierung", read: "Die ganze Geschichte lesen", support: "Dieses Projekt unterstützen", viewAll: "Alle Projekte ansehen" },
   },
   fr: {
-    trust: ["Dirigée par des jeunes depuis décembre 2020", "Basée en Ouganda", "Bureaux à Jinja et Ishaka", "Centrée sur les communautés"],
+    trust: ["Dirigée par des jeunes depuis décembre 2020", "Basée en Ouganda", "Six portefeuilles de résultats", "Centrée sur les communautés"],
     impact: { eyebrow: "Impact", title: "Des données mises en contexte", description: "Chaque chiffre clé est relié au programme, au lieu, à la période de référence et à la méthode de comptage correspondants.", note: "Ces chiffres proviennent de nos équipes de programme et ne sont pas présentés comme des résultats audités de façon indépendante. Les rapports publics seront ajoutés dès leur validation.", cta: "Découvrir notre impact" },
     problem: {
       eyebrow: "Le défi",
@@ -814,7 +814,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     flagship: { eyebrow: "Projets phares", title: "Là où le modèle est le plus avancé", description: "Les projets qui montrent le mieux ce que signifie, concrètement, travailler sur des besoins liés.", location: "Lieu", timeline: "Calendrier", beneficiaries: "Bénéficiaires", funding: "Financement", read: "Lire le récit complet", support: "Soutenir ce projet", viewAll: "Voir tous les projets" },
   },
   es: {
-    trust: ["Dirigida por jóvenes desde diciembre de 2020", "Con sede en Uganda", "Oficinas en Jinja e Ishaka", "Centrada en la comunidad"],
+    trust: ["Dirigida por jóvenes desde diciembre de 2020", "Con sede en Uganda", "Seis portafolios de resultados", "Centrada en la comunidad"],
     impact: { eyebrow: "Impacto", title: "Evidencia con contexto", description: "Cada cifra principal está vinculada al programa, lugar, período de reporte y método de conteo que la respalda.", note: "Estas son cifras del equipo de programa y no se presentan como resultados auditados de forma independiente. Los informes públicos de respaldo se vincularán a medida que sean aprobados para su publicación.", cta: "Explora nuestro impacto" },
     problem: {
       eyebrow: "El reto",
@@ -870,7 +870,7 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     flagship: { eyebrow: "Proyectos insignia", title: "Donde el modelo está más avanzado", description: "Los proyectos que mejor muestran cómo es, en la práctica, trabajar sobre necesidades conectadas.", location: "Ubicación", timeline: "Cronograma", beneficiaries: "Beneficiarios", funding: "Financiamiento", read: "Leer la historia completa", support: "Apoyar este proyecto", viewAll: "Ver todos los proyectos" },
   },
   ar: {
-    trust: ["تقودها الشباب منذ ديسمبر 2020", "مقرها في أوغندا", "مكاتب في جينجا وإيشاكا", "تركيزها على المجتمع"],
+    trust: ["تقودها الشباب منذ ديسمبر 2020", "مقرها في أوغندا", "ست محافظ نتائج", "تركيزها على المجتمع"],
     impact: { eyebrow: "التأثير", title: "أدلة ضمن سياقها", description: "كل رقم رئيسي مرتبط بالبرنامج والمكان وفترة الإبلاغ وطريقة العد التي تقف وراءه.", note: "هذه أرقام فريق البرنامج ولا تُعرض على أنها نتائج مدققة بشكل مستقل. سيتم ربط التقارير العامة الداعمة بمجرد الموافقة على نشرها.", cta: "استكشف تأثيرنا" },
     problem: {
       eyebrow: "التحدي",

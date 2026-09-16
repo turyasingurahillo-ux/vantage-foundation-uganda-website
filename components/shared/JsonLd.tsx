@@ -141,8 +141,13 @@ export function buildNgoJsonLd(args: {
    */
   email?: string;
   telephone: string;
-  address: string;
-  city: string;
+  /**
+   * Optional street/locality. Only pass a real organisational address —
+   * Vantage publishes no office address, so PostalAddress is omitted
+   * entirely rather than emitting an activity location as an office.
+   */
+  address?: string;
+  city?: string;
   country: string;
   description: string;
   logoUrl?: string;
@@ -174,12 +179,15 @@ export function buildNgoJsonLd(args: {
       areaServed: args.country,
       availableLanguage: "English",
     },
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: args.address,
-      addressLocality: args.city,
-      addressCountry: args.country,
-    },
+    address:
+      args.address && args.city
+        ? {
+            "@type": "PostalAddress",
+            streetAddress: args.address,
+            addressLocality: args.city,
+            addressCountry: args.country,
+          }
+        : undefined,
     description: args.description,
     foundingDate: args.foundingDate,
     sameAs: sameAs.length > 0 ? sameAs : undefined,

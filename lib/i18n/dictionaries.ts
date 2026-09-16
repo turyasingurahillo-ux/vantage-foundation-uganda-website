@@ -104,10 +104,6 @@ export const englishDictionary = {
     contactVantage: "Contact Vantage",
     newsletter: "Newsletter",
     newsletterDescription: "Get updates on our work, stories and ways to support.",
-    jinjaOffice: "Jinja Office",
-    ishakaOffice: "Ishaka Office",
-    easternRegion: "Eastern Region",
-    bushenyiDistrict: "Bushenyi District",
   },
   home: {
     heroEyebrow: "Youth-led. Community-rooted. Evidence-driven.",
@@ -230,7 +226,6 @@ const de: DeepPartial<Dictionary> = {
     summary: "Vantage Foundation Uganda Limited ist eine von jungen Menschen geführte gemeinnützige Organisation, die benachteiligten Gemeinschaften in Uganda besseren Zugang zu Gesundheit, Bildung, sauberem Wasser und humanitärer Hilfe ermöglicht.",
     impactAccountability: "Wirkung & Rechenschaft", contactVantage: "Vantage kontaktieren", newsletter: "Newsletter",
     newsletterDescription: "Erhalten Sie Neuigkeiten über unsere Arbeit, Geschichten und Unterstützungsmöglichkeiten.",
-    jinjaOffice: "Büro Jinja", ishakaOffice: "Büro Ishaka", easternRegion: "Ostregion", bushenyiDistrict: "Distrikt Bushenyi",
   },
   home: {
     heroEyebrow: "Von jungen Menschen geführt. In der Gemeinschaft verwurzelt. Evidenzbasiert.", heroTitle: "Die Hürden, vor denen junge Menschen stehen, hängen zusammen. Unsere Arbeit auch.",
@@ -310,7 +305,6 @@ const fr: DeepPartial<Dictionary> = {
     summary: "Vantage Foundation Uganda Limited est une organisation à but non lucratif dirigée par des jeunes. Elle améliore l’accès à la santé, à l’éducation, à l’eau potable et à l’aide humanitaire dans les communautés ougandaises mal desservies.",
     impactAccountability: "Impact et redevabilité", contactVantage: "Contacter Vantage", newsletter: "Infolettre",
     newsletterDescription: "Recevez des nouvelles de notre action, des récits et des façons de nous soutenir.",
-    jinjaOffice: "Bureau de Jinja", ishakaOffice: "Bureau d’Ishaka", easternRegion: "Région de l’Est", bushenyiDistrict: "District de Bushenyi",
   },
   home: {
     heroEyebrow: "Portés par la jeunesse. Ancrés dans les communautés. Fondée sur les preuves.", heroTitle: "Les défis auxquels les jeunes font face sont liés. Notre action aussi.",
@@ -390,7 +384,6 @@ const es: DeepPartial<Dictionary> = {
     summary: "Vantage Foundation Uganda Limited es una organización sin fines de lucro liderada por jóvenes que mejora el acceso a la salud, la educación, el agua potable y el apoyo humanitario en comunidades desatendidas de Uganda.",
     impactAccountability: "Impacto y rendición de cuentas", contactVantage: "Contactar con Vantage", newsletter: "Boletín",
     newsletterDescription: "Recibe actualizaciones sobre nuestro trabajo, historias y formas de apoyar.",
-    jinjaOffice: "Oficina de Jinja", ishakaOffice: "Oficina de Ishaka", easternRegion: "Región Oriental", bushenyiDistrict: "Distrito de Bushenyi",
   },
   home: {
     heroEyebrow: "Liderada por jóvenes. Con raíces comunitarias. Basada en evidencia.", heroTitle: "Los retos que enfrentan los jóvenes están conectados. Nuestro trabajo también.",
@@ -470,7 +463,6 @@ const ar: DeepPartial<Dictionary> = {
     summary: "Vantage Foundation Uganda Limited مؤسسة شبابية غير ربحية تعمل على تحسين الوصول إلى الصحة والتعليم والمياه النظيفة والدعم الإنساني في المجتمعات الأكثر حرمانًا في أوغندا.",
     impactAccountability: "التأثير والمساءلة", contactVantage: "التواصل مع Vantage", newsletter: "النشرة البريدية",
     newsletterDescription: "احصل على تحديثات حول عملنا وقصصنا وطرق الدعم.",
-    jinjaOffice: "مكتب جينجا", ishakaOffice: "مكتب إيشاكا", easternRegion: "المنطقة الشرقية", bushenyiDistrict: "مقاطعة بوشيني",
   },
   home: {
     heroEyebrow: "يقودها الشباب. وتنطلق من المجتمع. ومبنية على الأدلة.", heroTitle: "التحديات التي يواجهها الشباب مترابطة. وكذلك عملنا.",
