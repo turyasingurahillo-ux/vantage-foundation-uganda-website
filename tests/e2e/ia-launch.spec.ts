@@ -172,6 +172,14 @@ test.describe("Office-claim correction (closeout)", () => {
     await page.goto("/contact");
     const body = await page.locator("body").innerText();
     expect(body).not.toMatch(/office/i);
+    // Verified postal mailing address is labelled as such — a P.O. Box is
+    // correspondence infrastructure, not a physical office.
+    await expect(
+      page.getByText("Postal address:", { exact: false }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("P.O. Box 130524, Kampala GPO, Uganda").first(),
+    ).toBeVisible();
   });
 
   test("terms page no longer claims offices", async ({ page }) => {

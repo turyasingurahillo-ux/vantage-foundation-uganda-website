@@ -68,7 +68,8 @@ export default async function TermsPage({
               </h2>
               <p>
                 This website is operated by {site.legalName}, a youth-led
-                non-profit organisation registered in Uganda.
+                non-profit organisation registered in Uganda. Postal
+                correspondence: {site.contact.postalAddress.display}.
               </p>
             </div>
 

@@ -148,6 +148,16 @@ export function buildNgoJsonLd(args: {
    */
   address?: string;
   city?: string;
+  /**
+   * Optional verified postal mailing address. Emits postOfficeBoxNumber +
+   * locality + country only — never a streetAddress — so a P.O. Box is not
+   * misrepresented as a physical office location.
+   */
+  postalAddress?: {
+    postOfficeBox: string;
+    locality: string;
+    country: string;
+  };
   country: string;
   description: string;
   logoUrl?: string;
@@ -179,8 +189,14 @@ export function buildNgoJsonLd(args: {
       areaServed: args.country,
       availableLanguage: "English",
     },
-    address:
-      args.address && args.city
+    address: args.postalAddress
+      ? {
+          "@type": "PostalAddress",
+          postOfficeBoxNumber: args.postalAddress.postOfficeBox,
+          addressLocality: args.postalAddress.locality,
+          addressCountry: args.postalAddress.country,
+        }
+      : args.address && args.city
         ? {
             "@type": "PostalAddress",
             streetAddress: args.address,

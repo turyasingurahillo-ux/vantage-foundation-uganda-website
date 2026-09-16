@@ -29,6 +29,14 @@ export const site: SiteConfig = {
     // Vantage maintains no physical offices — Jinja and Ishaka are
     // programme/activity locations, not offices. Country only.
     country: "Uganda",
+    // Verified postal mailing address (correspondence only). Kampala GPO is
+    // the post office that hosts the box — it is not a Kampala office or HQ.
+    postalAddress: {
+      postOfficeBox: "130524",
+      locality: "Kampala GPO",
+      country: "Uganda",
+      display: "P.O. Box 130524, Kampala GPO, Uganda",
+    },
   },
   socials: {
     instagram: "https://www.instagram.com/vantagefoundationuganda/",

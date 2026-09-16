@@ -162,4 +162,27 @@ describe("buildNgoJsonLd", () => {
     expect(result.address).toBeUndefined();
     expect(result.contactPoint.areaServed).toBe("Uganda");
   });
+
+  it("emits a verified postal address as a PO Box, never a street address", () => {
+    const result = buildNgoJsonLd({
+      name: "Test NGO",
+      legalName: "Test NGO Ltd",
+      url: "https://example.com",
+      telephone: "+256 123",
+      country: "Uganda",
+      description: "A test NGO",
+      postalAddress: {
+        postOfficeBox: "130524",
+        locality: "Kampala GPO",
+        country: "Uganda",
+      },
+    });
+    expect(result.address).toEqual({
+      "@type": "PostalAddress",
+      postOfficeBoxNumber: "130524",
+      addressLocality: "Kampala GPO",
+      addressCountry: "Uganda",
+    });
+    expect(result.address).not.toHaveProperty("streetAddress");
+  });
 });

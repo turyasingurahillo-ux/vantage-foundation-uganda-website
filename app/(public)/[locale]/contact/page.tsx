@@ -134,6 +134,14 @@ export default async function ContactPage({
                     <p className="mt-1 text-sm text-muted-foreground">
                       {site.contact.country}
                     </p>
+                    {/* Postal correspondence address — a P.O. Box is not a
+                        physical office; it is labelled as such on purpose. */}
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      <span className="font-medium">
+                        {contact.postalAddress}:
+                      </span>{" "}
+                      {site.contact.postalAddress.display}
+                    </p>
                   </div>
                 </div>
               </Card>

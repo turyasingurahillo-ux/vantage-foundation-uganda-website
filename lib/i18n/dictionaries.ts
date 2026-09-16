@@ -141,6 +141,7 @@ export const englishDictionary = {
     email: "Email",
     phone: "Phone",
     location: "Location",
+    postalAddress: "Postal address",
     privateEmailHelp: "Use the form on this page — choose a category and your message goes straight to the right team.",
     sendTitle: "Send us a message",
     sendDescription: "Fill out the form below and we will respond as soon as possible.",
@@ -242,7 +243,7 @@ const de: DeepPartial<Dictionary> = {
   },
   contact: {
     title: "Kontakt", description: "Wir freuen uns, von Ihnen zu hören. Kontaktieren Sie uns zu Spenden, freiwilligem Engagement, Partnerschaften oder allgemeinen Anliegen.",
-    email: "E-Mail", phone: "Telefon", location: "Standort", privateEmailHelp: "Nutzen Sie das Formular auf dieser Seite – wählen Sie eine Kategorie, damit Ihre Nachricht direkt das zuständige Team erreicht.",
+    email: "E-Mail", phone: "Telefon", location: "Standort", postalAddress: "Postanschrift", privateEmailHelp: "Nutzen Sie das Formular auf dieser Seite – wählen Sie eine Kategorie, damit Ihre Nachricht direkt das zuständige Team erreicht.",
     sendTitle: "Nachricht senden", sendDescription: "Füllen Sie das Formular aus. Wir antworten so bald wie möglich.",
     whatsappTitle: "Kurze Frage? Schreiben Sie uns auf WhatsApp",
     whatsappDescription: "Der schnellste Weg, Vantage Foundation Uganda zu erreichen. Schreiben Sie uns eine Nachricht und wir melden uns bei Ihnen.",
@@ -321,7 +322,7 @@ const fr: DeepPartial<Dictionary> = {
   },
   contact: {
     title: "Nous contacter", description: "Nous serons heureux de vous lire. Contactez-nous au sujet des dons, du bénévolat, des partenariats ou pour toute question générale.",
-    email: "E-mail", phone: "Téléphone", location: "Adresse", privateEmailHelp: "Utilisez le formulaire de cette page et choisissez une catégorie : votre message sera transmis directement à l’équipe concernée.",
+    email: "E-mail", phone: "Téléphone", location: "Adresse", postalAddress: "Adresse postale", privateEmailHelp: "Utilisez le formulaire de cette page et choisissez une catégorie : votre message sera transmis directement à l’équipe concernée.",
     sendTitle: "Envoyez-nous un message", sendDescription: "Remplissez le formulaire ci-dessous. Nous vous répondrons dès que possible.",
     whatsappTitle: "Question rapide ? Contactez-nous sur WhatsApp",
     whatsappDescription: "Le moyen le plus rapide de joindre Vantage Foundation Uganda. Envoyez-nous un message et nous vous répondrons.",
@@ -400,7 +401,7 @@ const es: DeepPartial<Dictionary> = {
   },
   contact: {
     title: "Contáctanos", description: "Nos encantaría saber de ti. Escríbenos para donaciones, voluntariado, alianzas o consultas generales.",
-    email: "Correo electrónico", phone: "Teléfono", location: "Ubicación", privateEmailHelp: "Usa el formulario de esta página: elige una categoría y tu mensaje llegará directamente al equipo adecuado.",
+    email: "Correo electrónico", phone: "Teléfono", location: "Ubicación", postalAddress: "Dirección postal", privateEmailHelp: "Usa el formulario de esta página: elige una categoría y tu mensaje llegará directamente al equipo adecuado.",
     sendTitle: "Envíanos un mensaje", sendDescription: "Completa el siguiente formulario y te responderemos lo antes posible.",
     whatsappTitle: "¿Pregunta rápida? Escríbenos por WhatsApp",
     whatsappDescription: "La forma más rápida de contactar a Vantage Foundation Uganda. Envíanos un mensaje y te responderemos.",
@@ -479,7 +480,7 @@ const ar: DeepPartial<Dictionary> = {
   },
   contact: {
     title: "تواصل معنا", description: "يسعدنا تواصلك معنا. تواصل معنا بخصوص التبرعات أو التطوع أو الشراكات أو الاستفسارات العامة.",
-    email: "البريد الإلكتروني", phone: "الهاتف", location: "الموقع", privateEmailHelp: "استخدم النموذج في هذه الصفحة — اختر الفئة وسيصل رسالتك مباشرة إلى الفريق المعني.",
+    email: "البريد الإلكتروني", phone: "الهاتف", location: "الموقع", postalAddress: "العنوان البريدي", privateEmailHelp: "استخدم النموذج في هذه الصفحة — اختر الفئة وسيصل رسالتك مباشرة إلى الفريق المعني.",
     sendTitle: "أرسل لنا رسالة", sendDescription: "املأ النموذج أدناه وسنرد عليك في أقرب وقت ممكن.",
     whatsappTitle: "سؤال سريع؟ تواصل معنا عبر واتساب",
     whatsappDescription: "أسرع طريقة للتواصل مع Vantage Foundation Uganda. أرسل لنا رسالة وسنرد عليك.",

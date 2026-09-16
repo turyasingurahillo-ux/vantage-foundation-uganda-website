@@ -86,6 +86,7 @@ const ngoJsonLd = buildNgoJsonLd({
   url: site.url,
   email: site.contact.publicEmail,
   telephone: site.contact.phone,
+  postalAddress: site.contact.postalAddress,
   country: site.contact.country,
   description: site.description,
   logoUrl: "/brand/logos/vantage-logo-horizontal.svg",
