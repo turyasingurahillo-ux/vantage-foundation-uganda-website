@@ -23,9 +23,9 @@ export function Hero({ locale, dictionary }: { locale: Locale; dictionary: I18nD
         <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">{home.heroTitle}</h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/90 md:text-xl">{home.heroDescription}</p>
         <div className="mt-8 flex flex-wrap gap-4">
-          <Button href={localePath("/donate", locale)} size="lg">{home.donateNow}</Button>
-          <Button href={localePath("/impact", locale)} variant="outline" size="lg" className="border-white bg-white/10 text-white hover:bg-white/20">
-            {home.ourImpact}
+          <Button href={localePath("/our-work", locale)} size="lg">{home.exploreWork}</Button>
+          <Button href={localePath("/get-involved#partner", locale)} variant="outline" size="lg" className="border-white bg-white/10 text-white hover:bg-white/20">
+            {home.partnerWithUs}
           </Button>
         </div>
       </Container>

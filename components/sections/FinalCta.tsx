@@ -29,16 +29,16 @@ export function FinalCta({ locale, dictionary }: { locale: Locale; dictionary: I
             {home.finalDescription}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button href={localePath("/donate", locale)} size="lg">
-              {home.donateNow}
+            <Button href={localePath("/get-involved#partner", locale)} size="lg">
+              {home.partnerWithUs}
             </Button>
             <Button
-              href={localePath("/get-involved", locale)}
+              href={localePath("/donate", locale)}
               variant="outline"
               size="lg"
               className="border-white text-white hover:bg-white/10"
             >
-              {dictionary.navigation.getInvolved}
+              {home.donateNow}
             </Button>
           </div>
         </div>
