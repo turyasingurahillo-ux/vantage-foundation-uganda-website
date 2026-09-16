@@ -12,7 +12,7 @@ test.describe("public locale switching", () => {
     await desktopLanguage.selectOption("de");
     await page.waitForURL(/\/de$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "de");
-    await expect(page.getByRole("heading", { name: /Chancen schaffen/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Die Hürden/i })).toBeVisible();
 
     // Deep unprefixed URLs are stable shareable links: the saved preference
     // only redirects at the site root, so /about-us should stay English.
