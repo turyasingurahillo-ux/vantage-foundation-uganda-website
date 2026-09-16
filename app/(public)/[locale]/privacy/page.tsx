@@ -286,12 +286,7 @@ export default async function PrivacyPage({
                     {site.contact.phone}
                   </a>
                 </li>
-                <li>
-                  Address:{" "}
-                  {site.contact.offices
-                    .map((o) => `${o.city}, ${o.region}`)
-                    .join("; ")}
-                </li>
+                <li>Location: {site.contact.country}</li>
               </ul>
             </div>
 

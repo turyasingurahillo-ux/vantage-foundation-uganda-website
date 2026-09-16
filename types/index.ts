@@ -14,13 +14,6 @@ export interface NavEntry {
   children?: NavDropdownItem[];
 }
 
-export interface OfficeLocation {
-  label: string;
-  city: string;
-  region: string;
-  country: string;
-}
-
 export interface ContactInfo {
   /**
    * Public-facing contact alias, shown only when an administrator has actually
@@ -39,10 +32,13 @@ export interface ContactInfo {
    * protected operational mailbox.
    */
   whatsapp: string;
-  address: string;
-  city: string;
+  /**
+   * Country-level location only. Vantage does NOT maintain physical offices
+   * (confirmed organisationally: there are no offices in Jinja or Ishaka),
+   * so no street/locality address or office list is published here —
+   * activity locations live in content/reach.ts as presence, not offices.
+   */
   country: string;
-  offices: OfficeLocation[];
 }
 
 export interface SocialLinks {

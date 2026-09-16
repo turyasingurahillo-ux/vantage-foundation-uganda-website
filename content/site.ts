@@ -26,13 +26,9 @@ export const site: SiteConfig = {
     // channel on the public site — not the protected operational mailbox.
     // The helper in lib/whatsapp.ts normalises this to digits for wa.me.
     whatsapp: "+256 786 585 216",
-    address: "Jinja, Uganda",
-    city: "Jinja",
+    // Vantage maintains no physical offices — Jinja and Ishaka are
+    // programme/activity locations, not offices. Country only.
     country: "Uganda",
-    offices: [
-      { label: "Jinja Office", city: "Jinja", region: "Eastern Region", country: "Uganda" },
-      { label: "Ishaka Office", city: "Ishaka", region: "Bushenyi District", country: "Uganda" },
-    ],
   },
   socials: {
     instagram: "https://www.instagram.com/vantagefoundationuganda/",

@@ -39,7 +39,6 @@ export default async function ContactPage({
   const dictionary = await getDictionary(locale);
   const contact = dictionary.contact;
   const c = dictionary.common;
-  const f = dictionary.footer;
 
   return (
     <>
@@ -130,18 +129,11 @@ export default async function ContactPage({
                   </div>
                   <div>
                     <h3 className="font-semibold">{contact.location}</h3>
-                    <div className="mt-1 space-y-2">
-                      {site.contact.offices.map((office, index) => (
-                        <p key={office.label} className="text-sm text-muted-foreground">
-                          <span className="font-medium">
-                            {index === 0 ? f.jinjaOffice : f.ishakaOffice}:
-                          </span>{" "}
-                          {office.city},{" "}
-                          {index === 0 ? f.easternRegion : f.bushenyiDistrict},
-                          {" "}{office.country}
-                        </p>
-                      ))}
-                    </div>
+                    {/* Vantage maintains no physical offices; the country is
+                        the only published location. */}
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {site.contact.country}
+                    </p>
                   </div>
                 </div>
               </Card>

@@ -189,14 +189,10 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
                 label={c.whatsappUs}
               />
             </div>
-            <div className="mt-4 space-y-2">
-              {site.contact.offices.map((office, index) => (
-                <p key={office.label} className="inline-flex items-start gap-2 text-sm text-white/70">
-                  <MapPin className="h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
-                  <span><span className="font-medium text-white/90">{index === 0 ? f.jinjaOffice : f.ishakaOffice}:</span> {office.city}, {index === 0 ? f.easternRegion : f.bushenyiDistrict}</span>
-                </p>
-              ))}
-            </div>
+            <p className="mt-4 inline-flex items-start gap-2 text-sm text-white/70">
+              <MapPin className="h-4 w-4 shrink-0 text-deep-teal" aria-hidden="true" />
+              {site.contact.country}
+            </p>
             {/* Social icons */}
             <div className="mt-6 flex gap-3">
               {socials.map((social) => (

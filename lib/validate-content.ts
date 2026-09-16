@@ -105,8 +105,8 @@ const contactInfo = z.object({
     )
     .optional(),
   phone: nonEmpty,
-  address: nonEmpty,
-  city: nonEmpty,
+  // No street/locality address is published: Vantage maintains no physical
+  // offices, and an activity location must never be emitted as one.
   country: nonEmpty,
 });
 

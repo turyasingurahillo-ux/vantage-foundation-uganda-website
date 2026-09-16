@@ -62,7 +62,7 @@ test.describe("Homepage", () => {
 
     // Trust strip items
     await expect(page.getByText("Youth-led since")).toBeVisible();
-    await expect(page.getByText("Offices in Jinja & Ishaka")).toBeVisible();
+    await expect(page.getByText("Six outcome portfolios")).toBeVisible();
 
     // Proof: evidence-status labels visible on impact figures
     await expect(
