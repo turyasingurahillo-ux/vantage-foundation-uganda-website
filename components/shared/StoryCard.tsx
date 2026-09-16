@@ -34,7 +34,7 @@ export function StoryCard({ story, locale = "en" }: StoryCardProps) {
       </div>
       <div className="flex flex-1 flex-col p-5">
         <Badge variant="accent">
-          {contentType} · {story.category}
+          {contentType} · {p.stories.categories[story.category]}
         </Badge>
         <h3 className="mt-3 text-lg font-semibold leading-snug">
           <Link href={localePath(`/stories/${story.slug}`, locale)} className="hover:text-primary">

@@ -8,7 +8,7 @@ const MOBILE_VIEWPORTS = [
   { width: 430, height: 932 },
   { width: 768, height: 1024 },
 ];
-const EXPANDABLE_ITEMS = ["About", "Programmes", "Impact", "Get Involved"];
+const EXPANDABLE_ITEMS = ["About", "Programmes", "Impact", "Stories & Insights"];
 
 async function openMenuOverImpactEvidence(page: Page) {
   const evidence = page.getByRole("link", { name: "View project evidence" }).first();

@@ -129,6 +129,9 @@ export type GetInvolvedContent = {
   heroTitle: string;
   heroDescription: string;
   pathways: InvolvementPathway[];
+  /** Legacy sponsor/CSR/collaborate deep links land on this bridge line. */
+  legacyBridgeNote: string;
+  legacyBridgeCta: string;
   reachOutTitle: string;
   reachOutDescription: string;
 };
@@ -311,31 +314,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           ctaLabel: "Partner with us",
           ctaHref: "/partner",
         },
-        {
-          id: "sponsor",
-          title: "Sponsor",
-          description:
-            "Sponsor a specific project, event or community need and receive updates on outcomes.",
-          ctaLabel: "Sponsor a project",
-          ctaHref: "/contact?subject=sponsor",
-        },
-        {
-          id: "collaborate",
-          title: "Collaborate",
-          description:
-            "Join a campaign, workshop or community mobilisation aligned with your skills.",
-          ctaLabel: "Get in touch",
-          ctaHref: "/contact?subject=general",
-        },
-        {
-          id: "csr",
-          title: "Corporate social responsibility",
-          description:
-            "Align your organisation's CSR with youth empowerment, health, education and WASH impact.",
-          ctaLabel: "Discuss CSR",
-          ctaHref: "/partner",
-        },
-      ],
+                              ],
+      legacyBridgeNote: "Looking for sponsorship, CSR or institutional collaboration? Those now live under partnership.",
+      legacyBridgeCta: "Partner with us",
       reachOutTitle: "Reach out",
       reachOutDescription:
         "Tell us how you would like to be involved and we will follow up.",
@@ -605,31 +586,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           ctaLabel: "Partnerschaft beginnen",
           ctaHref: "/partner",
         },
-        {
-          id: "sponsor",
-          title: "Fördern",
-          description:
-            "Fördern Sie ein bestimmtes Projekt, eine Veranstaltung oder einen Bedarf vor Ort – und erfahren Sie, was daraus entsteht.",
-          ctaLabel: "Projekt fördern",
-          ctaHref: "/contact?subject=sponsor",
-        },
-        {
-          id: "collaborate",
-          title: "Zusammenarbeiten",
-          description:
-            "Beteiligen Sie sich an einer Kampagne, einem Workshop oder einer Mobilisierung, die zu Ihren Fähigkeiten passt.",
-          ctaLabel: "Kontakt aufnehmen",
-          ctaHref: "/contact?subject=general",
-        },
-        {
-          id: "csr",
-          title: "Unternehmerische Verantwortung",
-          description:
-            "Verbinden Sie die CSR-Strategie Ihrer Organisation mit Wirkung in den Bereichen Jugend, Gesundheit, Bildung und WASH.",
-          ctaLabel: "CSR besprechen",
-          ctaHref: "/partner",
-        },
-      ],
+                              ],
+      legacyBridgeNote: "Sie suchen Patenschaft, CSR oder institutionelle Zusammenarbeit? Diese liegen jetzt unter Partnerschaft.",
+      legacyBridgeCta: "Partner werden",
       reachOutTitle: "Kontakt aufnehmen",
       reachOutDescription:
         "Sagen Sie uns, wie Sie sich einbringen möchten – wir melden uns bei Ihnen.",
@@ -902,31 +861,9 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           ctaLabel: "Devenir partenaire",
           ctaHref: "/partner",
         },
-        {
-          id: "sponsor",
-          title: "Parrainer",
-          description:
-            "Parrainez un projet, un événement ou un besoin communautaire précis et suivez les résultats obtenus.",
-          ctaLabel: "Parrainer un projet",
-          ctaHref: "/contact?subject=sponsor",
-        },
-        {
-          id: "collaborate",
-          title: "Collaborer",
-          description:
-            "Participez à une campagne, un atelier ou une mobilisation communautaire en lien avec vos compétences.",
-          ctaLabel: "Nous contacter",
-          ctaHref: "/contact?subject=general",
-        },
-        {
-          id: "csr",
-          title: "Responsabilité sociétale",
-          description:
-            "Alignez la démarche RSE de votre organisation sur l’autonomisation des jeunes, la santé, l’éducation et l’impact WASH.",
-          ctaLabel: "Échanger sur la RSE",
-          ctaHref: "/partner",
-        },
-      ],
+                              ],
+      legacyBridgeNote: "Vous cherchez parrainage, RSE ou collaboration institutionnelle ? Cela relève désormais du partenariat.",
+      legacyBridgeCta: "Devenir partenaire",
       reachOutTitle: "Écrivez-nous",
       reachOutDescription:
         "Dites-nous comment vous souhaitez vous engager et nous reviendrons vers vous.",
@@ -1151,11 +1088,10 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       pathways: [
         { id: 'donate', title: 'Donar', description: 'Financie un proyecto, una campaña o nuestras operaciones generales. Cada contribución es una oportunidad más.', ctaLabel: 'Donar ahora', ctaHref: '/donate' },
         { id: 'volunteer', title: 'Hacerse voluntario', description: 'Comparta su tiempo como mentor, trabajador de salud, educador, voluntario de comunicaciones o ayudante de logística.', ctaLabel: 'Hacerse voluntario', ctaHref: '/contact?subject=volunteer' },
-        { id: 'partner', title: 'Asociarse', description: 'Colabore en programas, financiamiento, experiencia técnica o iniciativas comunitarias conjuntas.', ctaLabel: 'Asóciese con nosotros', ctaHref: '/contact?subject=partner' },
-        { id: 'sponsor', title: 'Patrocinar', description: 'Patrocine un proyecto, evento o necesidad comunitaria específicos y reciba actualizaciones sobre los resultados.', ctaLabel: 'Patrocinar un proyecto', ctaHref: '/contact?subject=sponsor' },
-        { id: 'collaborate', title: 'Colaborar', description: 'Únase a una campaña, taller o movilización comunitaria acorde con sus habilidades.', ctaLabel: 'Ponerse en contacto', ctaHref: '/contact?subject=general' },
-        { id: 'csr', title: 'Responsabilidad social corporativa', description: 'Alinee la RSC de su organización con el empoderamiento juvenil, la salud, la educación y el impacto WASH.', ctaLabel: 'Hablar de RSC', ctaHref: '/contact?subject=partner' },
+        { id: 'partner', title: 'Asociarse', description: 'Colabore en programas, financiamiento, experiencia técnica o iniciativas comunitarias conjuntas.', ctaLabel: 'Asóciese con nosotros', ctaHref: '/partner' },
       ],
+      legacyBridgeNote: '¿Busca patrocinio, RSC o colaboración institucional? Ahora forman parte de las alianzas.',
+      legacyBridgeCta: 'Asóciese con Vantage',
       reachOutTitle: 'Escríbanos',
       reachOutDescription: 'Cuéntenos cómo le gustaría participar y nos pondremos en contacto.',
     },
@@ -1298,11 +1234,10 @@ export const engagementContent: Record<Locale, EngagementContent> = {
       pathways: [
         { id: 'donate', title: 'تبرع', description: 'موّل مشروعًا أو حملة أو عملياتنا العامة. كل مساهمة هي ميزة إضافية.', ctaLabel: 'تبرع الآن', ctaHref: '/donate' },
         { id: 'volunteer', title: 'تطوع', description: 'شارك وقتك كمرشد أو عامل صحي أو معلم أو متطوع في الاتصالات أو مساعد في الخدمات اللوجستية.', ctaLabel: 'كن متطوعًا', ctaHref: '/contact?subject=volunteer' },
-        { id: 'partner', title: 'كن شريكًا', description: 'تعاون في البرامج أو التمويل أو الخبرة الفنية أو المبادرات المجتمعية المشتركة.', ctaLabel: 'كن شريكًا', ctaHref: '/contact?subject=partner' },
-        { id: 'sponsor', title: 'راعٍ', description: 'راعِ مشروعًا أو حدثًا أو حاجة مجتمعية محددة وتابع التقارير حول النتائج.', ctaLabel: 'راعِ مشروعًا', ctaHref: '/contact?subject=sponsor' },
-        { id: 'collaborate', title: 'تعاون', description: 'انضم إلى حملة أو ورشة عمل أو حشد مجتمعي يتناسب مع مهاراتك.', ctaLabel: 'تواصل معنا', ctaHref: '/contact?subject=general' },
-        { id: 'csr', title: 'المسؤولية الاجتماعية للشركات', description: 'اربط مسؤولية شركتك الاجتماعية بتمكين الشباب والصحة والتعليم والتأثير في مجال المياه والصرف الصحي والنظافة (WASH).', ctaLabel: 'ناقش المسؤولية الاجتماعية', ctaHref: '/contact?subject=partner' },
+        { id: 'partner', title: 'كن شريكًا', description: 'تعاون في البرامج أو التمويل أو الخبرة الفنية أو المبادرات المجتمعية المشتركة.', ctaLabel: 'كن شريكًا', ctaHref: '/partner' },
       ],
+      legacyBridgeNote: 'تبحثون عن رعاية أو مسؤولية اجتماعية أو تعاون مؤسسي؟ انتقلت الآن إلى الشراكة.',
+      legacyBridgeCta: 'شاركوا Vantage',
       reachOutTitle: 'تواصل معنا',
       reachOutDescription: 'أخبرنا كيف ترغب بالمشاركة وسنتواصل معك.',
     },

@@ -19,6 +19,7 @@
  */
 import { getPublishedStories } from "@/content/stories";
 import { getStories } from "@/lib/db/stories";
+import { storyCategoryOrDefault } from "@/types";
 import {
   markAnalyticsArticlesInactiveExcept,
   upsertAnalyticsArticle,
@@ -54,7 +55,7 @@ async function main() {
       refsBySlug.set(row.slug, {
         slug: row.slug,
         title: row.title,
-        category: row.category,
+        category: storyCategoryOrDefault(row.category),
         source: "db",
         dbId: row.id,
         publishedDate: row.date,

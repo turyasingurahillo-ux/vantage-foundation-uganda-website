@@ -1,5 +1,5 @@
 import { Locale } from "@/lib/i18n/config";
-import type { EvidenceStatus, PartnershipType } from "@/types";
+import type { EvidenceStatus, PartnershipType, StoryCategory } from "@/types";
 import { UiContent, uiContent } from "./ui";
 
 export interface BrandGuideContent {
@@ -359,6 +359,17 @@ export interface PageContent {
     donateCta: string;
     volunteerCta: string;
   };
+  whereWeWork: {
+    title: string;
+    description: string;
+    principles: { title: string; body: string }[];
+    districtsTitle: string;
+    districtsDescription: string;
+    caveat: string;
+    mapCta: string;
+    ourWorkCta: string;
+    partnerCta: string;
+  };
   stories: {
     title: string;
     description: string;
@@ -366,6 +377,8 @@ export interface PageContent {
     searchPlaceholder: string;
     filterCategoryLabel: string;
     noResults: string;
+    categoryEmpty: string;
+    categories: Record<StoryCategory, string>;
   };
   story: {
     updated: string;
@@ -497,7 +510,11 @@ function mergeWithEnglish(
       ...english.partner,
       ...partial.partner,
     } as PageContent["partner"],
-    stories: { ...english.stories, ...partial.stories },
+    whereWeWork: {
+      ...english.whereWeWork,
+      ...partial.whereWeWork,
+    } as PageContent["whereWeWork"],
+    stories: { ...english.stories, ...partial.stories } as PageContent["stories"],
     story: { ...english.story, ...partial.story },
     team: { ...english.team, ...partial.team },
     teamMember: { ...english.teamMember, ...partial.teamMember },
@@ -911,6 +928,33 @@ const englishPageContent: PageContent = {
     donateCta: "Donate",
     volunteerCta: "Get involved",
   },
+  whereWeWork: {
+    title: "Where We Work",
+    description:
+      "The Ugandan districts where Vantage Foundation Uganda has run programmes or projects — mapped honestly, linked to real work, and not stretched into a national-presence claim.",
+    principles: [
+      {
+        title: "A district is not an office",
+        body: "A pin means Vantage has run work there — a project, a session, a programme — not that a permanent office or team exists in the district.",
+      },
+      {
+        title: "Presence varies by period",
+        body: "Some districts reflect completed projects; others reflect ongoing programme work. The linked project pages carry the detail.",
+      },
+      {
+        title: "Reach is not a headcount",
+        body: "Estimated catchments describe the population a project could serve — they are never presented as a count of people reached.",
+      },
+    ],
+    districtsTitle: "Districts",
+    districtsDescription:
+      "Where Vantage's work has taken place, linked to the published projects behind each location where they exist.",
+    caveat:
+      "This map shows where Vantage has worked — not everywhere it plans to. District coverage reflects documented programme and project activity; it is not a statement of national reach or permanent presence.",
+    mapCta: "See where we work",
+    ourWorkCta: "Explore the six portfolios",
+    partnerCta: "Partner with us",
+  },
   stories: {
     title: "Stories & Insights",
     description:
@@ -919,6 +963,8 @@ const englishPageContent: PageContent = {
     searchPlaceholder: "Search stories and insights...",
     filterCategoryLabel: "Filter by category",
     noResults: "No stories match your filters.",
+    categoryEmpty: "No stories published in this category yet — check back as the work is documented.",
+    categories: { "field-story": "Field Stories", research: "Research", news: "News" },
   },
   story: {
     updated: "Updated",
@@ -1538,6 +1584,33 @@ const germanPageContent: DeepPartial<PageContent> = {
     donateCta: "Spenden",
     volunteerCta: "Mitmachen",
   },
+  whereWeWork: {
+    title: "Wo wir arbeiten",
+    description:
+      "Die ugandischen Distrikte, in denen Vantage Foundation Uganda Programme oder Projekte durchgeführt hat — ehrlich kartiert, mit echter Arbeit verlinkt und nicht zu einem landesweiten Anspruch aufgeblasen.",
+    principles: [
+      {
+        title: "Ein Distrikt ist kein Büro",
+        body: "Eine Markierung bedeutet, dass Vantage dort gearbeitet hat — ein Projekt, eine Sitzung, ein Programm — nicht, dass ein dauerhaftes Büro oder Team dort existiert.",
+      },
+      {
+        title: "Präsenz variiert je nach Zeitraum",
+        body: "Manche Distrikte stehen für abgeschlossene Projekte, andere für laufende Programmarbeit. Die verlinkten Projektseiten liefern die Details.",
+      },
+      {
+        title: "Reichweite ist keine Personenzahl",
+        body: "Geschätzte Einzugsgebiete beschreiben die Bevölkerung, die ein Projekt erreichen könnte — sie werden nie als Zahl erreichter Menschen dargestellt.",
+      },
+    ],
+    districtsTitle: "Distrikte",
+    districtsDescription:
+      "Wo die Arbeit von Vantage stattgefunden hat — verlinkt zu den veröffentlichten Projekten hinter jedem Ort, soweit vorhanden.",
+    caveat:
+      "Diese Karte zeigt, wo Vantage gearbeitet hat — nicht überall, wo es arbeiten will. Die Distriktabdeckung spiegelt dokumentierte Programm- und Projekttätigkeit wider; sie ist keine Aussage über landesweite Reichweite oder dauerhafte Präsenz.",
+    mapCta: "Wo wir tätig sind",
+    ourWorkCta: "Die sechs Portfolios erkunden",
+    partnerCta: "Partner werden",
+  },
   stories: {
     title: "Geschichten & Einblicke",
     description:
@@ -1546,6 +1619,8 @@ const germanPageContent: DeepPartial<PageContent> = {
     searchPlaceholder: "Geschichten und Einblicke suchen...",
     filterCategoryLabel: "Nach Kategorie filtern",
     noResults: "Keine Geschichten entsprechen Ihren Filtern.",
+    categoryEmpty: "In dieser Kategorie wurden noch keine Geschichten veröffentlicht.",
+    categories: { "field-story": "Geschichten aus dem Feld", research: "Forschung", news: "Neuigkeiten" },
   },
   story: {
     updated: "Aktualisiert",
@@ -2165,6 +2240,33 @@ const frenchPageContent: DeepPartial<PageContent> = {
     donateCta: "Faire un don",
     volunteerCta: "S'engager",
   },
+  whereWeWork: {
+    title: "Où nous travaillons",
+    description:
+      "Les districts ougandais où Vantage Foundation Uganda a mené des programmes ou projets — cartographiés honnêtement, reliés à un travail réel, sans prétendre à une présence nationale.",
+    principles: [
+      {
+        title: "Un district n'est pas un bureau",
+        body: "Un point signifie que Vantage y a mené un travail — un projet, une session, un programme — pas qu'un bureau ou une équipe permanente y existe.",
+      },
+      {
+        title: "La présence varie selon la période",
+        body: "Certains districts correspondent à des projets terminés, d'autres à un travail de programme en cours. Les pages projets liées portent le détail.",
+      },
+      {
+        title: "La portée n'est pas un nombre de personnes",
+        body: "Les zones estimées décrivent la population qu'un projet pourrait servir — jamais présentées comme un décompte de personnes atteintes.",
+      },
+    ],
+    districtsTitle: "Districts",
+    districtsDescription:
+      "Où le travail de Vantage a eu lieu, relié aux projets publiés derrière chaque lieu lorsqu'ils existent.",
+    caveat:
+      "Cette carte montre où Vantage a travaillé — pas partout où il prévoit de le faire. La couverture reflète une activité documentée ; ce n'est pas une déclaration de portée nationale ni de présence permanente.",
+    mapCta: "Voir où nous travaillons",
+    ourWorkCta: "Explorer les six portefeuilles",
+    partnerCta: "Devenir partenaire",
+  },
   stories: {
     title: "Récits et analyses",
     description:
@@ -2173,6 +2275,8 @@ const frenchPageContent: DeepPartial<PageContent> = {
     searchPlaceholder: "Rechercher des récits et analyses...",
     filterCategoryLabel: "Filtrer par catégorie",
     noResults: "Aucun récit ne correspond à vos filtres.",
+    categoryEmpty: "Aucun récit publié dans cette catégorie pour le moment.",
+    categories: { "field-story": "Récits de terrain", research: "Recherche", news: "Actualités" },
   },
   story: {
     updated: "Mis à jour",
@@ -2791,6 +2895,33 @@ const spanishPageContent: DeepPartial<PageContent> = {
     donateCta: "Donar",
     volunteerCta: "Participar",
   },
+  whereWeWork: {
+    title: "Dónde trabajamos",
+    description:
+      "Los distritos ugandeses donde Vantage Foundation Uganda ha ejecutado programas o proyectos — mapeados con honestidad, enlazados a trabajo real y sin convertirlo en una afirmación de presencia nacional.",
+    principles: [
+      {
+        title: "Un distrito no es una oficina",
+        body: "Una marca significa que Vantage ha trabajado allí — un proyecto, una sesión, un programa — no que exista una oficina o un equipo permanente en el distrito.",
+      },
+      {
+        title: "La presencia varía según el periodo",
+        body: "Algunos distritos reflejan proyectos completados; otros, trabajo de programa en curso. Las páginas de proyecto enlazadas llevan el detalle.",
+      },
+      {
+        title: "El alcance no es un recuento",
+        body: "Las áreas estimadas describen la población que un proyecto podría servir — nunca se presentan como un recuento de personas alcanzadas.",
+      },
+    ],
+    districtsTitle: "Distritos",
+    districtsDescription:
+      "Dónde ha tenido lugar el trabajo de Vantage, enlazado a los proyectos publicados detrás de cada ubicación cuando existen.",
+    caveat:
+      "Este mapa muestra dónde ha trabajado Vantage — no en todas partes donde planea hacerlo. La cobertura refleja actividad documentada de programas y proyectos; no es una declaración de alcance nacional ni de presencia permanente.",
+    mapCta: "Ver dónde trabajamos",
+    ourWorkCta: "Explorar los seis portafolios",
+    partnerCta: "Asóciese con Vantage",
+  },
   stories: {
     title: "Historias y reflexiones",
     description:
@@ -2799,6 +2930,8 @@ const spanishPageContent: DeepPartial<PageContent> = {
     searchPlaceholder: "Buscar historias y reflexiones...",
     filterCategoryLabel: "Filtrar por categoría",
     noResults: "Ninguna historia coincide con tus filtros.",
+    categoryEmpty: "Aún no hay historias publicadas en esta categoría.",
+    categories: { "field-story": "Historias de campo", research: "Investigación", news: "Noticias" },
   },
   story: {
     updated: "Actualizado",
@@ -3412,6 +3545,33 @@ const arabicPageContent: DeepPartial<PageContent> = {
     donateCta: "تبرعوا",
     volunteerCta: "شاركوا",
   },
+  whereWeWork: {
+    title: "أين نعمل",
+    description:
+      "المناطق الأوغندية التي نفذت فيها مؤسسة Vantage أوغندا برامج أو مشاريع — مرسومة بصدق، مرتبطة بعمل حقيقي، وغير مبالغ فيها كادعاء حضور وطني.",
+    principles: [
+      {
+        title: "المنطقة ليست مكتباً",
+        body: "العلامة تعني أن Vantage نفذت عملاً هناك — مشروعاً أو جلسة أو برنامجاً — لا أن مكتباً أو فريقاً دائماً موجود في المنطقة.",
+      },
+      {
+        title: "الحضور يختلف بحسب الفترة",
+        body: "بعض المناطق تعكس مشاريع مكتملة؛ وأخرى تعكس عملاً برنامجياً جارياً. صفحات المشاريع المرتبطة تحمل التفاصيل.",
+      },
+      {
+        title: "الوصول ليس عدداً من الأشخاص",
+        body: "النطاقات التقديرية تصف السكان الذين يمكن أن يخدمهم مشروع ما — لا تُقدَّم أبداً كعدد من الأشخاص الذين تم الوصول إليهم.",
+      },
+    ],
+    districtsTitle: "المناطق",
+    districtsDescription:
+      "أين جرى عمل Vantage، مرتبطاً بالمشاريع المنشورة وراء كل موقع حيثما وجدت.",
+    caveat:
+      "تُظهر هذه الخريطة أين عملت Vantage — لا كل مكان تخطط للعمل فيه. تعكس تغطية المناطق نشاطاً موثقاً للبرامج والمشاريع؛ وليست بياناً عن وصول وطني أو حضور دائم.",
+    mapCta: "أين نعمل",
+    ourWorkCta: "استكشفوا المحافظ الست",
+    partnerCta: "شاركوا Vantage",
+  },
   stories: {
     title: "قصص ورؤى",
     description:
@@ -3420,6 +3580,8 @@ const arabicPageContent: DeepPartial<PageContent> = {
     searchPlaceholder: "البحث في القصص والرؤى...",
     filterCategoryLabel: "تصفية حسب الفئة",
     noResults: "لا توجد قصص تطابق عوامل التصفية.",
+    categoryEmpty: "لا توجد قصص منشورة في هذه الفئة بعد.",
+    categories: { "field-story": "قصص ميدانية", research: "بحث", news: "أخبار" },
   },
   story: {
     updated: "تم التحديث",

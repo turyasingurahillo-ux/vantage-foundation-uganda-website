@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import type { StoryRow } from "@/lib/db/stories";
+import { STORY_CATEGORY_VALUES } from "@/types";
 
 /**
  * StoryEditorForm — the single canonical editor for creating and editing
@@ -58,7 +59,6 @@ export const STORY_FIELD_KEYS = [
   "role",
   "date",
   "location",
-  "category",
   "heroImageAlt",
   "heroImageCredit",
   "seoTitle",
@@ -242,7 +242,41 @@ export function StoryEditorForm({ csrfToken, story, onSaved, onCancel }: StoryEd
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {STORY_FIELD_KEYS.map((key) => (
+        {STORY_FIELD_KEYS.slice(0, 6).map((key) => (
+          <label
+            key={key}
+            className={
+              key === "excerpt" || key === "seoDescription" ? "block sm:col-span-2" : "block"
+            }
+          >
+            <span className="block text-sm font-medium">{fieldLabel(key)}</span>
+            <input
+              required={REQUIRED_FIELDS.has(key)}
+              type={key === "date" ? "date" : "text"}
+              value={form[key]}
+              onChange={(e) => set(key, e.target.value)}
+              className="mt-1.5 block w-full rounded-lg border border-border px-3 py-2 text-sm"
+            />
+          </label>
+        ))}
+        {/* Primary taxonomy is a fixed enum — not free text. */}
+        <label className="block">
+          <span className="block text-sm font-medium">Category</span>
+          <select
+            required
+            value={form.category}
+            onChange={(e) => set("category", e.target.value)}
+            className="mt-1.5 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          >
+            <option value="">Select a category</option>
+            {STORY_CATEGORY_VALUES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat === "field-story" ? "Field Story" : cat === "research" ? "Research" : "News"}
+              </option>
+            ))}
+          </select>
+        </label>
+        {STORY_FIELD_KEYS.slice(6).map((key) => (
           <label
             key={key}
             className={

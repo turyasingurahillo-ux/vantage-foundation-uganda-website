@@ -52,6 +52,12 @@ export const englishDictionary = {
     partner: "Partner",
     sponsor: "Sponsor",
     csr: "Corporate Social Responsibility",
+    overview: "Overview",
+    leadership: "Leadership",
+    allStories: "All Stories",
+    fieldStories: "Field Stories",
+    research: "Research",
+    news: "News",
   },
   common: {
     learnMore: "Learn more",
@@ -204,6 +210,8 @@ const de: DeepPartial<Dictionary> = {
     projects: "Projekte", whereWeWork: "Wo wir tätig sind", impactResults: "Wirkungsergebnisse", theoryOfChange: "Theory of Change", reports: "Berichte",
     stories: "Geschichten & Einblicke", getInvolved: "Mitmachen", donate: "Spenden", volunteer: "Freiwillig engagieren",
     partner: "Partner werden", sponsor: "Fördern", csr: "Gesellschaftliche Unternehmensverantwortung",
+    overview: "Überblick", leadership: "Leitung", allStories: "Alle Geschichten", fieldStories: "Geschichten aus dem Feld", research: "Forschung", news: "Neuigkeiten",
+
   },
   common: {
     learnMore: "Mehr erfahren", readMore: "Weiterlesen", viewAll: "Alle anzeigen", required: "Pflichtfeld", optional: "optional",
@@ -283,6 +291,8 @@ const fr: DeepPartial<Dictionary> = {
     projects: "Projets", whereWeWork: "Où nous intervenons", impactResults: "Résultats d’impact", theoryOfChange: "Théorie du changement", reports: "Rapports",
     stories: "Récits et perspectives", getInvolved: "S’engager", donate: "Faire un don", volunteer: "Devenir bénévole",
     partner: "Devenir partenaire", sponsor: "Parrainer", csr: "Responsabilité sociétale des entreprises",
+    overview: "Vue d’ensemble", leadership: "Direction", allStories: "Tous les récits", fieldStories: "Récits de terrain", research: "Recherche", news: "Actualités",
+
   },
   common: {
     learnMore: "En savoir plus", readMore: "Lire la suite", viewAll: "Tout voir", required: "obligatoire", optional: "facultatif",
@@ -362,6 +372,8 @@ const es: DeepPartial<Dictionary> = {
     projects: "Proyectos", whereWeWork: "Dónde trabajamos", impactResults: "Resultados de impacto", theoryOfChange: "Teoría del cambio", reports: "Informes",
     stories: "Historias y perspectivas", getInvolved: "Participa", donate: "Donar", volunteer: "Voluntariado",
     partner: "Asociarse", sponsor: "Patrocinar", csr: "Responsabilidad social corporativa",
+    overview: "Resumen", leadership: "Liderazgo", allStories: "Todas las historias", fieldStories: "Historias de campo", research: "Investigación", news: "Noticias",
+
   },
   common: {
     learnMore: "Más información", readMore: "Leer más", viewAll: "Ver todo", required: "obligatorio", optional: "opcional",
@@ -441,6 +453,8 @@ const ar: DeepPartial<Dictionary> = {
     projects: "المشاريع", whereWeWork: "أين نعمل", impactResults: "نتائج التأثير", theoryOfChange: "نظرية التغيير", reports: "التقارير",
     stories: "القصص والرؤى", getInvolved: "شارك معنا", donate: "تبرع", volunteer: "تطوع",
     partner: "كن شريكًا", sponsor: "راعٍ", csr: "المسؤولية الاجتماعية للشركات",
+    overview: "نظرة عامة", leadership: "القيادة", allStories: "كل القصص", fieldStories: "قصص ميدانية", research: "بحث", news: "أخبار",
+
   },
   common: {
     learnMore: "اعرف المزيد", readMore: "اقرأ المزيد", viewAll: "عرض الكل", required: "مطلوب", optional: "اختياري",

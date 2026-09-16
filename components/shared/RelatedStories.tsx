@@ -97,7 +97,7 @@ function RelatedStoryCard({ story, locale = "en" }: { story: Story; locale?: Loc
 
         <div className="flex flex-1 flex-col p-5">
           <p className="text-xs font-bold uppercase tracking-[0.08em] text-primary">
-            {contentType} · {story.category}
+            {contentType} · {getPageContent(locale).stories.categories[story.category]}
           </p>
           <h3 className="mt-2 text-base font-semibold leading-snug text-foreground group-hover:text-primary">
             {story.title}
