@@ -15,6 +15,7 @@ import { getPageContent } from "@/lib/i18n/content/pages";
 import { resolveLocale, type LocaleParams } from "@/lib/i18n/params";
 import { localePath } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { STORY_CATEGORY_VALUES, type StoryCategory } from "@/types";
 
 export async function generateMetadata({
   params,
@@ -36,8 +37,10 @@ export const revalidate = 3600;
 
 export default async function StoriesPage({
   params,
+  searchParams,
 }: {
   params: LocaleParams;
+  searchParams: Promise<{ category?: string }>;
 }) {
   const locale = await resolveLocale(params);
   const p = getPageContent(locale);
@@ -46,9 +49,20 @@ export default async function StoriesPage({
   const s = p.stories;
   const ui = p.ui.contentTypes;
 
-  const stories = await getPublishedStoriesWithDb();
+  // Blueprint taxonomy filter — URL-addressable so a filtered view can be
+  // shared/bookmarked. Unknown values fall back to "all" safely.
+  const { category } = await searchParams;
+  const activeCategory = STORY_CATEGORY_VALUES.includes(
+    category as StoryCategory,
+  )
+    ? (category as StoryCategory)
+    : undefined;
+
+  const allStories = await getPublishedStoriesWithDb();
+  const stories = activeCategory
+    ? allStories.filter((story) => story.category === activeCategory)
+    : allStories;
   const [featured, ...rest] = stories;
-  const categories = [...new Set(stories.map((s) => s.category))].sort();
 
   return (
     <>
@@ -100,7 +114,7 @@ export default async function StoriesPage({
                       </p>
                       <div className="mt-3">
                         <Badge variant="accent">
-                          {featuredContentType} · {featured.category}
+                          {featuredContentType} · {s.categories[featured.category]}
                         </Badge>
                       </div>
                     </>
@@ -132,15 +146,50 @@ export default async function StoriesPage({
         </section>
       )}
 
-      {/* All stories with search and filter */}
+      {/* Taxonomy navigation — URL-addressable filter links, not
+          client-only state, so a filtered view can be shared. */}
       <section className="py-12 md:py-16">
         <Container>
-          <SectionHeader
-            align="left"
-            title={s.title}
-            description={s.description}
-          />
-          <StoryList stories={rest} categories={categories} locale={locale} />
+          <nav aria-label={s.filterCategoryLabel} className="mb-10">
+            <ul className="flex flex-wrap gap-2">
+              <li>
+                <Link
+                  href={localePath("/stories", locale)}
+                  aria-current={!activeCategory ? "page" : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
+                    !activeCategory
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-white text-foreground hover:border-primary"
+                  }`}
+                >
+                  {c.all}
+                </Link>
+              </li>
+              {STORY_CATEGORY_VALUES.map((cat) => (
+                <li key={cat}>
+                  <Link
+                    href={localePath(`/stories?category=${cat}`, locale)}
+                    aria-current={activeCategory === cat ? "page" : undefined}
+                    className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold transition-colors ${
+                      activeCategory === cat
+                        ? "border-primary bg-primary text-white"
+                        : "border-border bg-white text-foreground hover:border-primary"
+                    }`}
+                  >
+                    {s.categories[cat]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {activeCategory && rest.length === 0 && !featured ? (
+            <div className="rounded-xl border border-dashed border-border p-12 text-center">
+              <p className="text-muted-foreground">{s.categoryEmpty}</p>
+            </div>
+          ) : (
+            <StoryList stories={rest} locale={locale} />
+          )}
         </Container>
       </section>
     </>

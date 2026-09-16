@@ -24,7 +24,8 @@ import {
   getFlagshipProjects,
   getAllThemes,
 } from "@/content/projects";
-import { getPublishedStories, getStorySlugs } from "@/content/stories";
+import { stories, getPublishedStories, getStorySlugs } from "@/content/stories";
+import { STORY_CATEGORY_VALUES, storyCategoryOrDefault } from "@/types";
 import { getPublishedTeam } from "@/content/team";
 import { getPublishedPartners } from "@/content/partners";
 import { getPublishedReports } from "@/content/reports";
@@ -509,5 +510,36 @@ describe("contactSchema partnership fields (PR-5)", () => {
 
   it("still works with no partnership fields at all", () => {
     expect(contactSchema.safeParse(base).success).toBe(true);
+  });
+});
+
+describe("story taxonomy (PR-6)", () => {
+  it("every published static story uses a canonical StoryCategory", () => {
+    for (const story of stories) {
+      expect(STORY_CATEGORY_VALUES).toContain(story.category);
+    }
+  });
+
+  it("has at least one story per category — no invented empty marketing", () => {
+    const counts = Object.fromEntries(
+      STORY_CATEGORY_VALUES.map((c) => [
+        c,
+        stories.filter((s) => s.category === c).length,
+      ]),
+    );
+    expect(counts["field-story"]).toBeGreaterThan(0);
+    expect(counts["research"]).toBeGreaterThan(0);
+    expect(counts["news"]).toBeGreaterThan(0);
+  });
+
+  it("coerces legacy free-text categories to the taxonomy", () => {
+    expect(storyCategoryOrDefault("Research & Learning")).toBe("research");
+    expect(storyCategoryOrDefault("Health policy")).toBe("research");
+    expect(storyCategoryOrDefault("Youth voice")).toBe("field-story");
+    expect(storyCategoryOrDefault("Event highlight")).toBe("news");
+    expect(storyCategoryOrDefault("Career guide")).toBe("research");
+    expect(storyCategoryOrDefault("Unknown label")).toBe("news");
+    expect(storyCategoryOrDefault(undefined)).toBe("news");
+    expect(storyCategoryOrDefault("field-story")).toBe("field-story");
   });
 });

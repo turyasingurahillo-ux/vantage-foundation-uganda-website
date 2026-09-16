@@ -6,6 +6,7 @@ import { guard } from "@/lib/auth";
 import { validateCsrfHeader, CSRF_HEADER_NAME } from "@/lib/csrf";
 import { logError, logInfo } from "@/lib/logger";
 import { appendAuditLog } from "@/lib/db/audit";
+import { STORY_CATEGORY_VALUES, type StoryCategory } from "@/types";
 import {
   createStory,
   getStories,
@@ -26,7 +27,7 @@ const storyFields = {
   role: z.string().max(150).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   location: z.string().max(150).optional(),
-  category: z.string().min(1).max(100),
+  category: z.enum(STORY_CATEGORY_VALUES as [StoryCategory, ...StoryCategory[]]),
   body: z.string().min(1),
   heroImageKey: z.string().max(500).optional(),
   heroImageAlt: z.string().max(500).optional(),

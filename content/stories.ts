@@ -22,7 +22,7 @@ export const stories: Story[] = [
     updatedAt: "2026-08-14",
     readingTimeMinutes: 39,
     location: "Uganda",
-    category: "Career guide",
+    category: "research",
     heroImage: "/images/stories/beyond-the-ward-careers-uganda.webp",
     heroImageAlt:
       "A young Ugandan health professional carrying a white coat at branching paths toward research, public health, health data and clinical care.",
@@ -126,7 +126,7 @@ export const stories: Story[] = [
     role: "Research & Learning",
     date: "2026-08-04",
     location: "Uganda",
-    category: "Research & Learning",
+    category: "research",
     heroImage: "/images/photos/photo-073.webp",
     heroImageAlt:
       "A large classroom of secondary school students in uniforms and headscarves sits at wooden desks during a mentorship session in Kampala.",
@@ -284,7 +284,7 @@ At Vantage Foundation Uganda, we believe that when young people are given the ri
     role: "Co-founder and Operations Director",
     date: "2026-08-02",
     location: "Kampala, Uganda",
-    category: "Health policy",
+    category: "research",
     heroImage: "/images/stories/healers-in-crisis-hero.webp",
     heroImageAlt:
       "Four young Ugandan doctors and nurses in scrubs and white coats standing outside a public hospital entrance, an ambulance and waiting patients behind them.",
@@ -429,7 +429,8 @@ That is a debt the nation cannot keep deferring.
     role: "Youth participant",
     date: "2023-06-01",
     location: "Uganda",
-    category: "Youth voice",
+    category: "field-story",
+    tags: ["youth voice"],
     heroImage: "/images/photos/photo-058.webp",
     heroImageAlt:
       "A young woman in a \"Vantage Foundation, Write My Own Story\" t-shirt sits and smiles outdoors near a borehole pump.",
@@ -504,7 +505,8 @@ And perhaps, somewhere between who we are and who we dream of becoming, we find 
     role: "Founding team",
     date: "2023-03-01",
     location: "Uganda",
-    category: "Leadership reflection",
+    category: "field-story",
+    tags: ["leadership reflection"],
     heroImage: "/images/stories/what-we-mean-advantage-hero.webp",
     heroImageAlt:
       "Hillary Turyasingura stands on a green hillside overlooking a broad mountain valley beneath a blue, cloud-filled sky.",
@@ -566,7 +568,8 @@ That is the belief this foundation is built on. Not status. Not visibility. Just
     role: "Programme team",
     date: "2023-06-01",
     location: "Rural Uganda",
-    category: "Programme update",
+    category: "field-story",
+    tags: ["programme update", "SaveGirl"],
     heroImage: "/images/photos/photo-016.webp",
     heroImageAlt:
       "A facilitator in a pink \"SaveGirl Uganda\" shirt teaches at a classroom chalkboard while students listen.",
@@ -586,7 +589,8 @@ Period poverty is connected to low self-esteem, limited financial literacy, lack
     role: "Programme team",
     date: "2023-03-08",
     location: "Basajjabalaba High School, Bushenyi",
-    category: "Event highlight",
+    category: "news",
+    tags: ["event", "community"],
     heroImage: "/images/photos/photo-038.webp",
     heroImageAlt:
       "Students and teachers gather in a school hall for a Women's Day celebration, with panelists seated at a front table beneath chalkboard notes.",
@@ -606,7 +610,8 @@ The event focused on confidence, education and the power of young women to shape
     role: "Programme team",
     date: "2022-09-10",
     location: "Bushenyi, Uganda",
-    category: "Event highlight",
+    category: "news",
+    tags: ["event", "financial literacy"],
     heroImage: "/images/projects/bushenyi-youth-conference-27.webp",
     heroImageAlt:
       "Young people in matching branded t-shirts gather at the Bushenyi youth conference on financial literacy and career education.",
@@ -628,7 +633,8 @@ From budgeting to goal-setting, the conversations were energetic and honest. You
     role: "Programme team",
     date: "2023-09-01",
     location: "Kampala, Uganda",
-    category: "Event highlight",
+    category: "field-story",
+    tags: ["field session", "mental health"],
     heroImage: "/images/photos/photo-073.webp",
     heroImageAlt:
       "A large classroom of secondary school students in uniforms and headscarves sits at wooden desks during an assembly.",
@@ -648,7 +654,8 @@ For many students, it was the first time mental health had been discussed openly
     role: "Medical doctor and volunteer",
     date: "2026-08-04",
     location: "Uganda",
-    category: "Volunteer voice",
+    category: "field-story",
+    tags: ["volunteer voice"],
     heroImage: "/images/photos/community-health-camp-checkup.webp",
     heroImageAlt:
       "A volunteer medical professional conducts a health check-up on a community member at a rural health camp.",

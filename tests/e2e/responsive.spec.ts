@@ -27,6 +27,7 @@ const routes = [
   "/reports-and-accountability",
   "/theory-of-change",
   "/partner",
+  "/where-we-work",
   "/safeguarding",
   "/stories",
   "/stories/what-are-we-without-our-dreams",
@@ -95,8 +96,9 @@ test("primary mobile controls meet a 44px touch target", async ({ page }) => {
 
 test("Uganda reach map is tappable and shows project details on a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  // The map lives on /impact#where-we-work since PR-2 moved it off the homepage.
-  await page.goto("/impact");
+  // The map's canonical home is /where-we-work (PR-6); /impact#where-we-work
+  // remains as a teaser anchor.
+  await page.goto("/where-we-work");
 
   const mapSection = page.getByTestId("uganda-reach-map-section");
   await mapSection.scrollIntoViewIfNeeded();

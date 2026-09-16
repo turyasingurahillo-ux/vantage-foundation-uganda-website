@@ -3,7 +3,7 @@ import "server-only";
 import { createPresignedGetUrl } from "@/lib/storage/r2-client";
 import { getStories, getStoryBySlug as getDbRowBySlug, type StoryRow } from "@/lib/db/stories";
 import { getPublishedStories, getStoryBySlug, getStorySlugs } from "@/content/stories";
-import type { Story } from "@/types";
+import { storyCategoryOrDefault, type Story, type StoryCategory } from "@/types";
 
 const PUBLIC_URL_TTL_SECONDS = 24 * 60 * 60;
 
@@ -21,7 +21,7 @@ async function toStory(row: StoryRow): Promise<Story> {
     role: row.role ?? undefined,
     date: row.date,
     location: row.location ?? undefined,
-    category: row.category,
+    category: storyCategoryOrDefault(row.category),
     body: row.body,
     heroImage,
     heroImageAlt: row.heroImageAlt ?? undefined,
@@ -91,7 +91,7 @@ export async function getAllStorySlugsWithDb(): Promise<string[]> {
 export interface PublishedStoryRef {
   slug: string;
   title: string;
-  category: string;
+  category: StoryCategory;
   source: "static" | "db";
   dbId?: number;
   publishedDate?: string;
@@ -118,7 +118,7 @@ export async function resolvePublishedStoryBySlug(
       return {
         slug: row.slug,
         title: row.title,
-        category: row.category,
+        category: storyCategoryOrDefault(row.category),
         source: "db",
         dbId: row.id,
         publishedDate: row.date,

@@ -333,12 +333,12 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
   const navItems: NavEntry[] = [
     { label: n.about, href: localize("/about-us"), children: [
       { label: n.ourStory, href: localize("/about-us") },
-      { label: n.team, href: localize("/about-us/team") },
+      { label: n.leadership, href: localize("/about-us/team") },
       { label: n.governance, href: localize("/about-us#governance") },
-      { label: n.reportsAccountability, href: localize("/reports-and-accountability") },
-      { label: n.contact, href: localize("/contact") },
+      { label: n.whereWeWork, href: localize("/where-we-work") },
     ] },
     { label: n.programmes, href: localize("/our-work"), children: [
+      { label: n.overview, href: localize("/our-work") },
       { label: "Health & Wellbeing", href: localize("/programmes/health-wellbeing") },
       { label: "Education & Learning", href: localize("/programmes/education-learning") },
       { label: "Financial Capability", href: localize("/programmes/financial-capability-economic-opportunity") },
@@ -348,20 +348,18 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
       { label: "Vantage Point", href: localize("/programmes/vantage-point") },
     ] },
     { label: n.impact, href: localize("/impact"), children: [
-      { label: n.projects, href: localize("/projects") },
-      { label: n.whereWeWork, href: localize("/impact#where-we-work") },
       { label: n.impactResults, href: localize("/impact") },
       { label: n.theoryOfChange, href: localize("/theory-of-change") },
-      { label: n.reports, href: localize("/reports-and-accountability") },
+      { label: n.projects, href: localize("/projects") },
+      { label: n.reportsAccountability, href: localize("/reports-and-accountability") },
     ] },
-    { label: n.stories, href: localize("/stories") },
-    { label: n.getInvolved, href: localize("/get-involved"), children: [
-      { label: n.donate, href: localize("/donate") },
-      { label: n.volunteer, href: localize("/get-involved#volunteer") },
-      { label: n.partner, href: localize("/partner") },
-      { label: n.sponsor, href: localize("/get-involved#sponsor") },
-      { label: n.csr, href: localize("/get-involved#csr") },
+    { label: n.stories, href: localize("/stories"), children: [
+      { label: n.allStories, href: localize("/stories") },
+      { label: n.fieldStories, href: localize("/stories?category=field-story") },
+      { label: n.research, href: localize("/stories?category=research") },
+      { label: n.news, href: localize("/stories?category=news") },
     ] },
+    { label: n.partner, href: localize("/partner") },
     { label: n.donate, href: localize("/donate") },
   ];
   const donateItem = navItems.at(-1);

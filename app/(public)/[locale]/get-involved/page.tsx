@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/shared/Container";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Card } from "@/components/ui/Card";
@@ -86,6 +87,20 @@ export default async function GetInvolvedPage({
               );
             })}
           </div>
+          {/* Legacy deep links — #sponsor, #csr and #collaborate all land
+              here and route onward to the institutional partnership hub. */}
+          <p className="mt-8 text-sm text-muted-foreground">
+            <span id="sponsor" className="scroll-mt-24" />
+            <span id="collaborate" className="scroll-mt-24" />
+            <span id="csr" className="scroll-mt-24" />
+            {content.legacyBridgeNote}{" "}
+            <Link
+              href={localePath("/partner", locale)}
+              className="font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              {content.legacyBridgeCta} &rarr;
+            </Link>
+          </p>
         </Container>
       </section>
 

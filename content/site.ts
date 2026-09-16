@@ -51,16 +51,16 @@ export const site: SiteConfig = {
       href: "/about-us",
       children: [
         { label: "Our Story", href: "/about-us" },
-        { label: "Team", href: "/about-us/team" },
+        { label: "Leadership", href: "/about-us/team" },
         { label: "Governance", href: "/about-us#governance" },
-        { label: "Reports and Accountability", href: "/reports-and-accountability" },
-        { label: "Contact", href: "/contact" },
+        { label: "Where We Work", href: "/where-we-work" },
       ],
     },
     {
       label: "Programmes",
       href: "/our-work",
       children: [
+        { label: "Overview", href: "/our-work" },
         { label: "Health & Wellbeing", href: "/programmes/health-wellbeing" },
         { label: "Education & Learning", href: "/programmes/education-learning" },
         {
@@ -83,27 +83,25 @@ export const site: SiteConfig = {
       label: "Impact",
       href: "/impact",
       children: [
-        { label: "Projects", href: "/projects" },
-        { label: "Where We Work", href: "/impact#where-we-work" },
         { label: "Impact Results", href: "/impact" },
         { label: "Theory of Change", href: "/theory-of-change" },
-        { label: "Reports", href: "/reports-and-accountability" },
+        { label: "Projects", href: "/projects" },
+        { label: "Reports & Accountability", href: "/reports-and-accountability" },
       ],
     },
     {
       label: "Stories & Insights",
       href: "/stories",
+      children: [
+        { label: "All Stories", href: "/stories" },
+        { label: "Field Stories", href: "/stories?category=field-story" },
+        { label: "Research", href: "/stories?category=research" },
+        { label: "News", href: "/stories?category=news" },
+      ],
     },
     {
-      label: "Get Involved",
-      href: "/get-involved",
-      children: [
-        { label: "Donate", href: "/donate" },
-        { label: "Volunteer", href: "/get-involved#volunteer" },
-        { label: "Partner", href: "/partner" },
-        { label: "Sponsor", href: "/get-involved#sponsor" },
-        { label: "Corporate Social Responsibility", href: "/get-involved#csr" },
-      ],
+      label: "Partner",
+      href: "/partner",
     },
     {
       label: "Donate",
@@ -111,6 +109,6 @@ export const site: SiteConfig = {
     },
   ],
   primaryCta: { label: "Donate", href: "/donate" },
-  secondaryCta: { label: "Partner With Us", href: "/get-involved" },
+  secondaryCta: { label: "Partner With Us", href: "/partner" },
   url: resolveSiteUrl(),
 };

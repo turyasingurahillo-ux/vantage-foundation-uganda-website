@@ -16,7 +16,7 @@ interface StoryHeroProps {
 
 export function StoryHero({ story, framing, readingTime, locale = "en" }: StoryHeroProps) {
   const contentType = story.contentType ?? "Story";
-  const kicker = `${contentType} · ${story.category}`;
+  const kicker = `${contentType} · ${getPageContent(locale).stories.categories[story.category]}`;
 
   if (framing.variant === "cinematic") {
     return (

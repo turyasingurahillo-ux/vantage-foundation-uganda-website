@@ -105,7 +105,7 @@ export type HomepageSectionContent = {
   instagram: { title: string; description: string; follow: string; postsLabel: string };
   partners: { eyebrow: string; title: string; description: string };
   accountability: { eyebrow: string; title: string; description: string; items: Array<{ title: string; description: string; href: string }>; learnMore: string; closing: string; contactCta: string };
-  involved: { eyebrow: string; title: string; description: string; cards: Array<{ title: string; description: string; cta: string }> };
+
   flagship: { eyebrow: string; title: string; description: string; location: string; timeline: string; beneficiaries: string; funding: string; read: string; support: string; viewAll: string };
 };
 
@@ -164,9 +164,6 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     },
     instagram: { title: "Popular on Instagram", description: "See the stories, programmes and community moments reaching the most people.", follow: "Follow Vantage Foundation Uganda on Instagram", postsLabel: "Popular Instagram posts" },
     partners: { eyebrow: "Partners", title: "Verified relationships", description: "Each relationship is described precisely so a banking service, in-kind contribution or programme collaboration is never overstated." },
-    involved: { eyebrow: "Get Involved", title: "Join the movement", description: "There are many ways to help create one more advantage for a young person, family or community.", cards: [
-      { title: "Donate", description: "Fund a project, campaign or our general operations.", cta: "Give now" }, { title: "Volunteer", description: "Share your time as a mentor, health worker, educator or logistics helper.", cta: "Become a volunteer" }, { title: "Partner", description: "Collaborate on programmes, funding or technical expertise.", cta: "Partner with us" }, { title: "Sponsor", description: "Sponsor a specific project, event or community need.", cta: "Sponsor a project" }, { title: "Collaborate", description: "Join a campaign, workshop or community mobilisation.", cta: "Get in touch" }, { title: "Corporate social responsibility", description: "Align your organisation’s CSR with youth and community impact.", cta: "Discuss CSR" },
-    ] },
     flagship: { eyebrow: "Flagship work", title: "Where the model is furthest along", description: "The projects that best show what working across connected needs looks like in practice.", location: "Location", timeline: "Timeline", beneficiaries: "Beneficiaries", funding: "Funding", read: "Read the full story", support: "Support this project", viewAll: "View all projects" },
   },
   de: {
@@ -223,9 +220,6 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     },
     instagram: { title: "Beliebt auf Instagram", description: "Entdecken Sie Geschichten, Programme und Momente aus den Gemeinschaften, die besonders viele Menschen erreichen.", follow: "Vantage Foundation Uganda auf Instagram folgen", postsLabel: "Beliebte Instagram-Beiträge" },
     partners: { eyebrow: "Partner", title: "Nachvollziehbare Partnerschaften", description: "Jede Beziehung wird genau beschrieben, damit Bankdienstleistungen, Sachleistungen und Programmkooperationen korrekt eingeordnet werden." },
-    involved: { eyebrow: "Mitmachen", title: "Teil der Bewegung werden", description: "Es gibt viele Wege, jungen Menschen, Familien und Gemeinschaften eine weitere Chance zu ermöglichen.", cards: [
-      { title: "Spenden", description: "Finanzieren Sie ein Projekt, eine Kampagne oder unsere allgemeine Arbeit.", cta: "Jetzt spenden" }, { title: "Freiwillig engagieren", description: "Bringen Sie Ihre Zeit als Mentor, Gesundheitsfachkraft, Lehrkraft oder Logistikhelfer ein.", cta: "Freiwillig mitarbeiten" }, { title: "Partner werden", description: "Arbeiten Sie bei Programmen, Finanzierung oder Fachwissen mit uns zusammen.", cta: "Partnerschaft beginnen" }, { title: "Fördern", description: "Unterstützen Sie ein bestimmtes Projekt, eine Veranstaltung oder einen Bedarf vor Ort.", cta: "Projekt fördern" }, { title: "Zusammenarbeiten", description: "Beteiligen Sie sich an einer Kampagne, einem Workshop oder einer Mobilisierung.", cta: "Kontakt aufnehmen" }, { title: "Unternehmerische Verantwortung", description: "Verbinden Sie Ihre CSR-Aktivitäten mit Wirkung für Jugend und Gemeinschaften.", cta: "CSR besprechen" },
-    ] },
     flagship: { eyebrow: "Leitprojekte", title: "Wo das Modell am weitesten ist", description: "Die Projekte, die am besten zeigen, wie Arbeit über verbundene Bedürfnisse hinweg in der Praxis aussieht.", location: "Ort", timeline: "Zeitraum", beneficiaries: "Begünstigte", funding: "Finanzierung", read: "Die ganze Geschichte lesen", support: "Dieses Projekt unterstützen", viewAll: "Alle Projekte ansehen" },
   },
   fr: {
@@ -282,9 +276,6 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     },
     instagram: { title: "Populaire sur Instagram", description: "Découvrez les récits, programmes et moments communautaires qui touchent le plus de personnes.", follow: "Suivre Vantage Foundation Uganda sur Instagram", postsLabel: "Publications Instagram populaires" },
     partners: { eyebrow: "Partenaires", title: "Des relations vérifiées", description: "Chaque relation est décrite avec précision afin de distinguer clairement service bancaire, contribution en nature et collaboration de programme." },
-    involved: { eyebrow: "S’engager", title: "Rejoignez le mouvement", description: "Il existe de nombreuses façons de créer une possibilité de plus pour un jeune, une famille ou une communauté.", cards: [
-      { title: "Faire un don", description: "Financez un projet, une campagne ou notre fonctionnement général.", cta: "Donner maintenant" }, { title: "Devenir bénévole", description: "Donnez de votre temps comme mentor, soignant, éducateur ou soutien logistique.", cta: "Devenir bénévole" }, { title: "Devenir partenaire", description: "Collaborez avec nous sur les programmes, le financement ou l’expertise technique.", cta: "Devenir partenaire" }, { title: "Parrainer", description: "Soutenez un projet, un événement ou un besoin communautaire précis.", cta: "Parrainer un projet" }, { title: "Collaborer", description: "Participez à une campagne, un atelier ou une mobilisation communautaire.", cta: "Nous contacter" }, { title: "Responsabilité sociétale", description: "Alignez votre démarche RSE sur l’impact auprès des jeunes et des communautés.", cta: "Échanger sur la RSE" },
-    ] },
     flagship: { eyebrow: "Projets phares", title: "Là où le modèle est le plus avancé", description: "Les projets qui montrent le mieux ce que signifie, concrètement, travailler sur des besoins liés.", location: "Lieu", timeline: "Calendrier", beneficiaries: "Bénéficiaires", funding: "Financement", read: "Lire le récit complet", support: "Soutenir ce projet", viewAll: "Voir tous les projets" },
   },
   es: {
@@ -341,9 +332,6 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     },
     instagram: { title: "Popular en Instagram", description: "Descubre las historias, programas y momentos comunitarios que llegan a más personas.", follow: "Sigue a Vantage Foundation Uganda en Instagram", postsLabel: "Publicaciones populares de Instagram" },
     partners: { eyebrow: "Socios", title: "Relaciones verificadas", description: "Cada relación se describe con precisión para que un servicio bancario, contribución en especie o colaboración de programa nunca se exagere." },
-    involved: { eyebrow: "Participa", title: "Únete al movimiento", description: "Hay muchas formas de ayudar a crear una oportunidad más para una persona joven, una familia o una comunidad.", cards: [
-      { title: "Donar", description: "Financia un proyecto, una campaña o nuestras operaciones generales.", cta: "Donar ahora" }, { title: "Ser voluntario", description: "Comparte tu tiempo como mentor, trabajador de salud, educador o ayudante de logística.", cta: "Ser voluntario" }, { title: "Socios", description: "Colabora en programas, financiamiento o experiencia técnica.", cta: "Asociarse con nosotros" }, { title: "Patrocinar", description: "Patrocina un proyecto, evento o necesidad comunitaria específica.", cta: "Patrocinar un proyecto" }, { title: "Colaborar", description: "Únete a una campaña, taller o movilización comunitaria.", cta: "Ponte en contacto" }, { title: "Responsabilidad social corporativa", description: "Alinea la RSC de tu organización con el impacto en jóvenes y comunidades.", cta: "Hablar de RSC" },
-    ] },
     flagship: { eyebrow: "Proyectos insignia", title: "Donde el modelo está más avanzado", description: "Los proyectos que mejor muestran cómo es, en la práctica, trabajar sobre necesidades conectadas.", location: "Ubicación", timeline: "Cronograma", beneficiaries: "Beneficiarios", funding: "Financiamiento", read: "Leer la historia completa", support: "Apoyar este proyecto", viewAll: "Ver todos los proyectos" },
   },
   ar: {
@@ -400,9 +388,6 @@ export const homepageSectionContent: Record<Locale, HomepageSectionContent> = {
     },
     instagram: { title: "الأكثر شيوعًا على Instagram", description: "شاهد القصص والبرامج واللحظات المجتمعية التي تصل إلى أكبر عدد من الناس.", follow: "تابع Vantage Foundation Uganda على Instagram", postsLabel: "منشورات Instagram الأكثر شيوعًا" },
     partners: { eyebrow: "الشركاء", title: "علاقات موثقة", description: "يتم وصف كل علاقة بدقة حتى لا يتم المبالغة في أي خدمة مصرفية أو مساهمة عينية أو تعاون برنامجي." },
-    involved: { eyebrow: "شارك", title: "انضم إلى الحركة", description: "هناك العديد من الطرق للمساعدة في خلق ميزة أخرى لشاب أو أسرة أو مجتمع.", cards: [
-      { title: "تبرع", description: "مول مشروعًا أو حملة أو عملياتنا العامة.", cta: "تبرع الآن" }, { title: "تطوع", description: "شارك وقتك كموجه أو عامل صحي أو معلم أو مساعد لوجستي.", cta: "كن متطوعًا" }, { title: "شريك", description: "تعاون في البرامج أو التمويل أو الخبرة التقنية.", cta: "تعاون معنا" }, { title: "رعاية", description: "رعّى مشروعًا أو حدثًا أو حاجة مجتمعية محددة.", cta: "رعاية مشروع" }, { title: "تعاون", description: "انضم إلى حملة أو ورشة عمل أو حشد مجتمعي.", cta: "تواصل معنا" }, { title: "المسؤولية الاجتماعية للشركات", description: "أدمج مسؤوليتك الاجتماعية للشركات مع تأثيرها على الشباب والمجتمعات.", cta: "ناقش المسؤولية الاجتماعية للشركات" },
-    ] },
     flagship: { eyebrow: "المشاريع الرائدة", title: "حيث بلغ النموذج أبعد نقطة", description: "المشاريع التي تُظهر بأفضل شكل ما يعنيه العمل عبر احتياجات مترابطة على أرض الواقع.", location: "الموقع", timeline: "الجدول الزمني", beneficiaries: "المستفيدون", funding: "التمويل", read: "اقرأ القصة كاملة", support: "ادعم هذا المشروع", viewAll: "عرض جميع المشاريع" },
   },
 };

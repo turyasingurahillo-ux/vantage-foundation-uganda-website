@@ -28,6 +28,7 @@ const publicRoutes = [
   "/reports-and-accountability",
   "/theory-of-change",
   "/partner",
+  "/where-we-work",
   "/safeguarding",
   "/stories",
   "/stories/what-are-we-without-our-dreams",

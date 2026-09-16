@@ -6,31 +6,34 @@ describe("Navigation structure", () => {
     expect(site.nav).toHaveLength(6);
   });
 
-  it("includes About, Programmes, Impact, Stories & Insights, Get Involved, and Donate", () => {
+  it("includes the blueprint top-level: About, Programmes, Impact, Stories & Insights, Partner, Donate", () => {
     const labels = site.nav.map((n) => n.label);
     expect(labels).toContain("About");
     expect(labels).toContain("Programmes");
     expect(labels).toContain("Impact");
     expect(labels).toContain("Stories & Insights");
-    expect(labels).toContain("Get Involved");
+    expect(labels).toContain("Partner");
     expect(labels).toContain("Donate");
+    // PR-6: Get Involved is no longer a top-level destination
+    expect(labels).not.toContain("Get Involved");
   });
 
-  it("About dropdown includes Our Story, Team, Governance, Reports, Contact", () => {
+  it("About dropdown includes Our Story, Leadership, Governance, Where We Work", () => {
     const about = site.nav.find((n) => n.label === "About");
     expect(about?.children).toBeDefined();
     const childLabels = about!.children!.map((c) => c.label);
     expect(childLabels).toContain("Our Story");
-    expect(childLabels).toContain("Team");
+    expect(childLabels).toContain("Leadership");
     expect(childLabels).toContain("Governance");
-    expect(childLabels).toContain("Reports and Accountability");
-    expect(childLabels).toContain("Contact");
+    expect(childLabels).toContain("Where We Work");
+    const childHrefs = about!.children!.map((c) => c.href);
+    expect(childHrefs).toContain("/where-we-work");
   });
 
-  it("Programmes dropdown includes the six portfolios plus Vantage Point", () => {
+  it("Programmes dropdown includes overview, the six portfolios plus Vantage Point", () => {
     const programmes = site.nav.find((n) => n.label === "Programmes");
     expect(programmes?.children).toBeDefined();
-    expect(programmes!.children).toHaveLength(7);
+    expect(programmes!.children).toHaveLength(8);
     const childLabels = programmes!.children!.map((c) => c.label);
     expect(childLabels).toContain("Health & Wellbeing");
     expect(childLabels).toContain("Education & Learning");
@@ -46,21 +49,29 @@ describe("Navigation structure", () => {
     expect(childHrefs).toContain("/programmes/vantage-point");
   });
 
-  it("Get Involved dropdown includes Donate, Volunteer, Partner, Sponsor, CSR", () => {
-    const getInvolved = site.nav.find((n) => n.label === "Get Involved");
-    expect(getInvolved?.children).toBeDefined();
-    const childLabels = getInvolved!.children!.map((c) => c.label);
-    expect(childLabels).toContain("Donate");
-    expect(childLabels).toContain("Volunteer");
-    expect(childLabels).toContain("Partner");
-    expect(childLabels).toContain("Sponsor");
-    expect(childLabels).toContain("Corporate Social Responsibility");
+  it("Stories dropdown exposes the canonical taxonomy", () => {
+    const stories = site.nav.find((n) => n.label === "Stories & Insights");
+    expect(stories?.children).toBeDefined();
+    const childHrefs = stories!.children!.map((c) => c.href);
+    expect(childHrefs).toContain("/stories");
+    expect(childHrefs).toContain("/stories?category=field-story");
+    expect(childHrefs).toContain("/stories?category=research");
+    expect(childHrefs).toContain("/stories?category=news");
   });
 
-  it("Stories and Donate have no dropdown children", () => {
-    const stories = site.nav.find((n) => n.label === "Stories");
+  it("Impact dropdown includes ToC, Projects, Reports and no stale map anchor", () => {
+    const impact = site.nav.find((n) => n.label === "Impact");
+    const childHrefs = impact!.children!.map((c) => c.href);
+    expect(childHrefs).toContain("/theory-of-change");
+    expect(childHrefs).toContain("/projects");
+    expect(childHrefs).toContain("/reports-and-accountability");
+    expect(childHrefs).not.toContain("/impact#where-we-work");
+  });
+
+  it("Partner and Donate have no dropdown children", () => {
+    const partner = site.nav.find((n) => n.label === "Partner");
     const donate = site.nav.find((n) => n.label === "Donate");
-    expect(stories?.children).toBeUndefined();
+    expect(partner?.children).toBeUndefined();
     expect(donate?.children).toBeUndefined();
   });
 

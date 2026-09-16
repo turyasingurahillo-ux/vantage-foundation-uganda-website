@@ -36,18 +36,19 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
   ];
 
   const impactLinks = [
-    { label: n.projects, href: href("/projects") },
     { label: n.impactResults, href: href("/impact") },
+    { label: n.theoryOfChange, href: href("/theory-of-change") },
+    { label: n.projects, href: href("/projects") },
     { label: n.reportsAccountability, href: href("/reports-and-accountability") },
-    { label: n.whereWeWork, href: href("/impact#where-we-work") },
+    { label: n.whereWeWork, href: href("/where-we-work") },
   ];
 
   const getInvolvedLinks = [
     { label: n.donate, href: href("/donate") },
-    { label: n.volunteer, href: href("/get-involved#volunteer") },
     { label: n.partner, href: href("/partner") },
-    { label: n.sponsor, href: href("/get-involved#sponsor") },
-    { label: n.csr, href: href("/get-involved#csr") },
+    { label: n.volunteer, href: href("/get-involved#volunteer") },
+    { label: n.stories, href: href("/stories") },
+    { label: n.contact, href: href("/contact") },
   ];
 
   const legalLinks = [

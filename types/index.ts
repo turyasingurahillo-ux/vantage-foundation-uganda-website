@@ -568,6 +568,45 @@ export interface Project {
   flagship?: boolean;
 }
 
+/**
+ * The blueprint editorial taxonomy for /stories — three canonical
+ * categories, not free-text drift:
+ * - field-story: grounded narratives from participants, communities,
+ *   programme implementation and first-person/volunteer perspectives;
+ * - research: evidence, analysis, evaluation and programme learning;
+ * - news: organizational updates, events, announcements, milestones.
+ * Secondary descriptors (youth-voice, health-policy, ...) belong in
+ * `tags`, never in the primary category.
+ */
+export type StoryCategory = "field-story" | "research" | "news";
+
+export const STORY_CATEGORY_VALUES: StoryCategory[] = [
+  "field-story",
+  "research",
+  "news",
+];
+
+/** Coerce legacy/free-text category labels to the canonical taxonomy. */
+export function storyCategoryOrDefault(value: string | undefined | null): StoryCategory {
+  if (value === "field-story" || value === "research" || value === "news") {
+    return value;
+  }
+  // Legacy labels that clearly map onto the taxonomy.
+  const normalized = (value ?? "").toLowerCase();
+  if (normalized.includes("research") || normalized.includes("policy") || normalized.includes("guide")) {
+    return "research";
+  }
+  if (
+    normalized.includes("voice") ||
+    normalized.includes("reflection") ||
+    normalized.includes("journey") ||
+    normalized.includes("field")
+  ) {
+    return "field-story";
+  }
+  return "news";
+}
+
 export interface Story {
   id: string;
   slug: string;
@@ -585,7 +624,8 @@ export interface Story {
   /** Editorially reviewed reading-time estimate. */
   readingTimeMinutes?: number;
   location?: string;
-  category: string;
+  /** Canonical blueprint taxonomy — see {@link StoryCategory}. */
+  category: StoryCategory;
   /** Numeric database id for DB-backed stories (analytics tracking). Null for static stories. */
   dbId?: number;
   heroImage?: string;

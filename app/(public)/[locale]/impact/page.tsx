@@ -22,7 +22,6 @@ import {
   ImpactMetricList,
   type ImpactTier,
 } from "@/components/shared/ImpactMetric";
-import { LazyUgandaReachMap } from "@/components/sections/LazyUgandaReachMap";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -317,7 +316,26 @@ export default async function ImpactPage({
         className="scroll-mt-24"
         data-testid="uganda-reach-map-section"
       >
-        <LazyUgandaReachMap locale={locale} />
+        {/* Canonical geography now lives at /where-we-work; this anchor
+            stays so historical deep links still land somewhere sensible. */}
+        <section className="bg-surface py-16 md:py-20">
+          <Container>
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {p.whereWeWork.title}
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                {p.whereWeWork.districtsDescription}
+              </p>
+              <Button
+                href={localePath("/where-we-work", locale)}
+                className="mt-6"
+              >
+                {p.whereWeWork.mapCta} &rarr;
+              </Button>
+            </div>
+          </Container>
+        </section>
       </div>
 
       {/* Monitoring approach */}
