@@ -103,7 +103,7 @@ export const englishDictionary = {
     bushenyiDistrict: "Bushenyi District",
   },
   home: {
-    heroEyebrow: "Youth-led. Community-rooted.",
+    heroEyebrow: "Youth-led. Community-rooted. Evidence-driven.",
     heroTitle: "Changing the world, one advantage at a time.",
     heroDescription: "Vantage Foundation Uganda is a youth-led nonprofit improving access to health, education, clean water and humanitarian support in underserved Ugandan communities.",
     exploreWork: "Explore our work",
@@ -129,7 +129,7 @@ export const englishDictionary = {
     targetBeneficiaries: "Target beneficiaries",
     approach: "Our approach",
     meetTeam: "Meet the team",
-    teamDescription: "Youth-led and volunteer-driven.",
+    teamDescription: "Youth-led and community-rooted.",
     fullTeam: "Meet the full team",
     governanceTitle: "Governance and accountability",
     governanceDescription: "We are working towards the highest standards of transparency and safeguarding.",
@@ -226,7 +226,7 @@ const de: DeepPartial<Dictionary> = {
     jinjaOffice: "Büro Jinja", ishakaOffice: "Büro Ishaka", easternRegion: "Ostregion", bushenyiDistrict: "Distrikt Bushenyi",
   },
   home: {
-    heroEyebrow: "Von jungen Menschen geführt. In der Gemeinschaft verwurzelt.", heroTitle: "Chancen schaffen, die Leben verändern",
+    heroEyebrow: "Von jungen Menschen geführt. In der Gemeinschaft verwurzelt. Evidenzbasiert.", heroTitle: "Chancen schaffen, die Leben verändern",
     heroDescription: "Gemeinsam mit benachteiligten Gemeinschaften in Uganda verbessern wir den Zugang zu Gesundheit, Bildung, sauberem Wasser und humanitärer Hilfe.",
     exploreWork: "Unsere Arbeit entdecken", whoWeAre: "Wer wir sind", ourImpact: "Unsere Wirkung", areasTitle: "Unsere Arbeitsbereiche",
     areasDescription: "Vier miteinander verbundene Programme, die an den Lebensrealitäten der Gemeinschaften ansetzen.", joinUs: "Machen Sie mit",
@@ -236,7 +236,7 @@ const de: DeepPartial<Dictionary> = {
   about: {
     title: "Über Vantage Foundation Uganda", description: "Von jungen Menschen geführt, gemeinschaftsnah und jeder neuen Chance verpflichtet.", mission: "Mission", vision: "Vision", values: "Werte",
     whoWeServe: "Für wen wir arbeiten", whoWeServeDescription: "Wir konzentrieren uns auf Menschen und Orte, die in der Entwicklungsarbeit häufig übersehen werden.",
-    targetBeneficiaries: "Zielgruppen", approach: "Unser Ansatz", meetTeam: "Unser Team", teamDescription: "Von jungen Menschen geführt und von Freiwilligen getragen.",
+    targetBeneficiaries: "Zielgruppen", approach: "Unser Ansatz", meetTeam: "Unser Team", teamDescription: "Von jungen Menschen geführt und in den Gemeinschaften verwurzelt.",
     fullTeam: "Das ganze Team kennenlernen", governanceTitle: "Leitung und Rechenschaft", governanceDescription: "Wir arbeiten auf höchste Standards bei Transparenz und Schutz hin.",
   },
   contact: {
@@ -305,7 +305,7 @@ const fr: DeepPartial<Dictionary> = {
     jinjaOffice: "Bureau de Jinja", ishakaOffice: "Bureau d’Ishaka", easternRegion: "Région de l’Est", bushenyiDistrict: "District de Bushenyi",
   },
   home: {
-    heroEyebrow: "Portés par la jeunesse. Ancrés dans les communautés.", heroTitle: "Créer des possibilités qui transforment des vies",
+    heroEyebrow: "Portés par la jeunesse. Ancrés dans les communautés. Fondée sur les preuves.", heroTitle: "Créer des possibilités qui transforment des vies",
     heroDescription: "Aux côtés des communautés mal desservies d’Ouganda, nous améliorons l’accès à la santé, à l’éducation, à l’eau potable et à l’aide humanitaire.",
     exploreWork: "Découvrir notre action", whoWeAre: "Qui sommes-nous", ourImpact: "Notre impact", areasTitle: "Nos domaines d’action",
     areasDescription: "Quatre programmes complémentaires conçus autour des réalités vécues par les communautés.", joinUs: "Rejoignez-nous",
@@ -315,7 +315,7 @@ const fr: DeepPartial<Dictionary> = {
   about: {
     title: "À propos de Vantage Foundation Uganda", description: "Dirigée par des jeunes, centrée sur les communautés et engagée à créer une possibilité de plus.", mission: "Mission", vision: "Vision", values: "Valeurs",
     whoWeServe: "Les personnes que nous accompagnons", whoWeServeDescription: "Nous nous concentrons sur les personnes et les lieux souvent laissés de côté par les programmes de développement.",
-    targetBeneficiaries: "Bénéficiaires prioritaires", approach: "Notre approche", meetTeam: "Rencontrez l’équipe", teamDescription: "Une organisation dirigée par des jeunes et portée par des bénévoles.",
+    targetBeneficiaries: "Bénéficiaires prioritaires", approach: "Notre approche", meetTeam: "Rencontrez l’équipe", teamDescription: "Une organisation dirigée par des jeunes et ancrée dans les communautés.",
     fullTeam: "Découvrir toute l’équipe", governanceTitle: "Gouvernance et redevabilité", governanceDescription: "Nous visons les normes les plus élevées en matière de transparence et de protection.",
   },
   contact: {
@@ -384,7 +384,7 @@ const es: DeepPartial<Dictionary> = {
     jinjaOffice: "Oficina de Jinja", ishakaOffice: "Oficina de Ishaka", easternRegion: "Región Oriental", bushenyiDistrict: "Distrito de Bushenyi",
   },
   home: {
-    heroEyebrow: "Liderada por jóvenes. Con raíces comunitarias.", heroTitle: "Cambiando el mundo, una ventaja a la vez",
+    heroEyebrow: "Liderada por jóvenes. Con raíces comunitarias. Basada en evidencia.", heroTitle: "Cambiando el mundo, una ventaja a la vez",
     heroDescription: "Vantage Foundation Uganda es una organización sin fines de lucro liderada por jóvenes que mejora el acceso a la salud, la educación, el agua potable y el apoyo humanitario en comunidades desatendidas de Uganda.",
     exploreWork: "Descubre nuestro trabajo", whoWeAre: "Quiénes somos", ourImpact: "Nuestro impacto", areasTitle: "Nuestras áreas de trabajo",
     areasDescription: "Cuatro programas interconectados diseñados en torno a las realidades que enfrentan las comunidades.", joinUs: "Únete",
@@ -394,7 +394,7 @@ const es: DeepPartial<Dictionary> = {
   about: {
     title: "Sobre Vantage Foundation Uganda", description: "Liderada por jóvenes, centrada en la comunidad y comprometida con una ventaja más a la vez.", mission: "Misión", vision: "Visión", values: "Valores",
     whoWeServe: "A quién servimos", whoWeServeDescription: "Nos enfocamos en las personas y los lugares que a menudo quedan al margen del desarrollo convencional.",
-    targetBeneficiaries: "Beneficiarios prioritarios", approach: "Nuestro enfoque", meetTeam: "Conoce al equipo", teamDescription: "Liderada por jóvenes e impulsada por voluntarios.",
+    targetBeneficiaries: "Beneficiarios prioritarios", approach: "Nuestro enfoque", meetTeam: "Conoce al equipo", teamDescription: "Liderada por jóvenes y arraigada en las comunidades.",
     fullTeam: "Conoce al equipo completo", governanceTitle: "Gobernanza y rendición de cuentas", governanceDescription: "Trabajamos para alcanzar los más altos estándares de transparencia y protección.",
   },
   contact: {
@@ -463,7 +463,7 @@ const ar: DeepPartial<Dictionary> = {
     jinjaOffice: "مكتب جينجا", ishakaOffice: "مكتب إيشاكا", easternRegion: "المنطقة الشرقية", bushenyiDistrict: "مقاطعة بوشيني",
   },
   home: {
-    heroEyebrow: "يقودها الشباب. وتنطلق من المجتمع.", heroTitle: "نغيّر العالم، ميزةً تلو الأخرى",
+    heroEyebrow: "يقودها الشباب. وتنطلق من المجتمع. ومبنية على الأدلة.", heroTitle: "نغيّر العالم، ميزةً تلو الأخرى",
     heroDescription: "Vantage Foundation Uganda هي مؤسسة شبابية غير ربحية تعمل على تحسين الوصول إلى الصحة والتعليم والمياه النظيفة والدعم الإنساني في المجتمعات الأكثر حرمانًا في أوغندا.",
     exploreWork: "استكشف عملنا", whoWeAre: "من نحن", ourImpact: "تأثيرنا", areasTitle: "مجالات عملنا",
     areasDescription: "أربع برامج مترابطة صُممت استنادًا إلى الواقع الذي تواجهه المجتمعات.", joinUs: "انضم إلينا",
@@ -473,7 +473,7 @@ const ar: DeepPartial<Dictionary> = {
   about: {
     title: "نبذة عن Vantage Foundation Uganda", description: "مؤسسة شبابية ترتكز على المجتمع وتلتزم بتقديم ميزة إضافية في كل مرة.", mission: "الرسالة", vision: "الرؤية", values: "القيم",
     whoWeServe: "من نخدم", whoWeServeDescription: "نركز على الأشخاص والأماكن التي غالبًا ما تُهمَل في التنمية السائدة.",
-    targetBeneficiaries: "الفئات المستهدفة", approach: "نهجنا", meetTeam: "تعرّف على الفريق", teamDescription: "بقيادة الشباب وتدفعها روح التطوع.",
+    targetBeneficiaries: "الفئات المستهدفة", approach: "نهجنا", meetTeam: "تعرّف على الفريق", teamDescription: "بقيادة الشباب ومتجذرة في المجتمعات.",
     fullTeam: "تعرّف على الفريق بالكامل", governanceTitle: "الحوكمة والمساءلة", governanceDescription: "نعمل بما يضمن أعلى معايير الشفافية والحماية.",
   },
   contact: {

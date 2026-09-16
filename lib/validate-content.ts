@@ -264,6 +264,15 @@ const partnerSchema = z.object({
   description: z.string().optional(),
 });
 
+const evidenceStatusSchema = z.enum([
+  "verified",
+  "programme-team-figure",
+  "estimated-catchment",
+  "pilot",
+  "planned",
+  "external-evidence",
+]);
+
 const impactStatSchema = z.object({
   value: nonEmpty,
   label: nonEmpty,
@@ -271,6 +280,7 @@ const impactStatSchema = z.object({
   location: nonEmpty,
   period: nonEmpty,
   methodology: nonEmpty,
+  evidenceStatus: evidenceStatusSchema,
   href: urlOrPath,
 });
 
