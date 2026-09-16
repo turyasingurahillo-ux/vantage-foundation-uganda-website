@@ -1,96 +1,631 @@
 import type { Locale } from "./config";
 
 type AboutContent = {
-  intro: [string, string];
   mission: string;
   vision: string;
   values: string[];
-  beneficiaries: string[];
-  approach: string;
   governance: [string, string];
-  imageAlt: string;
+  /** Institutional descriptor used in the hero: "Youth-led. Community-rooted. Evidence-driven." */
+  tagline: string;
+  /** Hero paragraph — Uganda, youth/community orientation, six portfolios. */
+  institutional: string;
+  whyTitle: string;
+  whyBody: [string, string];
+  whyCta: string;
+  storyTitle: string;
+  storyLead: string;
+  /** Only milestones supported by documented repository content. */
+  milestones: { year: string; title: string; body: string }[];
+  identityTitle: string;
+  identityIntro: string;
+  identity: { title: string; body: string }[];
+  identityImpactCta: string;
+  howTitle: string;
+  howDescription: string;
+  howSteps: { title: string; body: string }[];
+  howCta: string;
+  portfoliosTitle: string;
+  portfoliosDescription: string;
+  vpTitle: string;
+  vpBody: string;
+  vpStatusLabel: string;
+  vpCta: string;
+  geoTitle: string;
+  geoBody: string;
+  geoCta: string;
+  buildingTitle: string;
+  buildingBody: string;
+  closingTitle: string;
+  closingBody: string;
+  partnerCta: string;
+  donateCta: string;
 };
 
 export const aboutContent: Record<Locale, AboutContent> = {
   en: {
-    intro: [
-      "Vantage Foundation Uganda is a youth-led nonprofit established in December 2020. Our story is like that of many young people: our lives started small, yet one spark can ignite lasting change. We are a work in progress that holds a light for those younger than us because we can relate — and through this we have become changemakers.",
-      "We envision improved livelihoods in communities across Uganda and Africa. Today, we help young people in Uganda achieve their full potential through health, education, humanitarian aid, and water, sanitation and hygiene.",
-    ],
     mission: "To change the world, one advantage at a time.",
     vision: "Improved livelihoods in Ugandan and East African communities.",
     values: ["Growth", "Sustainability", "Safety", "Inclusivity"],
-    beneficiaries: ["Young people in rural areas", "Women and girls", "Children and orphans", "People in remote districts and urban informal settlements"],
-    approach: "We identify districts and communities that larger international NGOs often overlook and strengthen the reach of existing social safety nets. We recognise that development is sequential: without health and nutrition, education cannot be absorbed; without education, poverty cannot be escaped.",
     governance: [
       "Vantage Foundation Uganda is a youth-led organisation formalising its governance structures, safeguarding policies and financial reporting so that every donor, partner and community can trust how resources are used.",
       "Annual reports, financial statements and project reports will be published on our Reports and Accountability page.",
     ],
-    imageAlt: "Vantage Foundation Uganda working with a community",
+    tagline: "Youth-led. Community-rooted. Evidence-driven.",
+    institutional:
+      "Vantage Foundation Uganda is a youth-led nonprofit working in Ugandan communities where health, education, income, basic needs, safety and voice are inseparable. It organises its work into six connected outcome portfolios — designed with communities, delivered close to them, and increasingly measured and published.",
+    whyTitle: "Why Vantage exists",
+    whyBody: [
+      "People's lives do not arrive in separate categories. A health problem interrupts schooling; an interrupted education becomes an economic gap; economic vulnerability puts safety, dignity and basic needs at risk. Treating these as unrelated silos is how communities get served in fragments.",
+      "Vantage was created to work the other way around — as one organisation responding to connected needs through six portfolios that reinforce each other. That is the institutional rationale behind everything from a borehole to a book club to a menstrual-health mentorship programme.",
+    ],
+    whyCta: "See the Theory of Change",
+    storyTitle: "Our story",
+    storyLead:
+      "Vantage Foundation Uganda was founded in December 2020 by young Ugandans. It began with small, direct community work and has grown — deliberately and unevenly — into an organisation with a structured programme architecture and a deepening evidence discipline.",
+    milestones: [
+      {
+        year: "December 2020",
+        title: "Founded",
+        body: "Vantage Foundation Uganda is established by young Ugandans as a youth-led nonprofit — built from the conviction that people who share a community's reality are well placed to change it.",
+      },
+      {
+        year: "2021",
+        title: "First programme work",
+        body: "SaveGirl Uganda — the Foundation's first project — begins as a crowdfunding campaign for sanitary pads and grows into a mentorship and skills programme. Semi-annual workshops on mental health, sexual and reproductive health and financial literacy begin.",
+      },
+      {
+        year: "2022",
+        title: "Learning and literacy",
+        body: "The Advantage Book Club launches in August, giving young people access to influential self-development books. In September, Vantage and Girl Power USA jointly host a youth conference on financial literacy and career education in Bushenyi.",
+      },
+      {
+        year: "2023",
+        title: "Programme development",
+        body: "SaveGirl Uganda expands to include a menstrual-cup initiative, adding product access and hands-on training to its mentorship model.",
+      },
+      {
+        year: "May 2025",
+        title: "First flagship infrastructure",
+        body: "The Kasaale Deep Borehole is completed in Magada Sub-county, Namutumba District — a WASH intervention serving an estimated catchment of up to 10,000 people.",
+      },
+      {
+        year: "Today",
+        title: "A connected architecture",
+        body: "The work is organised into six outcome portfolios with explicit evidence statuses, an Impact & Learning framework, and Vantage Point — a planned cross-programme platform for dialogue and reflection.",
+      },
+    ],
+    identityTitle: "What our identity means",
+    identityIntro:
+      "Three words describe how Vantage is built. Each is a commitment with a specific meaning — not a slogan.",
+    identity: [
+      {
+        title: "Youth-led",
+        body: "Vantage was founded and is led by young Ugandans, and young people shape its programmes, voices and direction. That does not mean everyone it works with is young — it means youth leadership is the organisation's centre of gravity, and younger people are treated as participants and leaders, not only recipients.",
+      },
+      {
+        title: "Community-rooted",
+        body: "Programme understanding comes from the communities where the work happens — their priorities, constraints and existing structures. Vantage works in districts and settlements that larger organisations often overlook, and designs with the people the work is for.",
+      },
+      {
+        title: "Evidence-driven",
+        body: "Vantage is building a discipline of measurement, honest claim-labelling and learning — distinguishing what it intends, what teams report, what is estimated and what is verified. This is an organisational direction and operating discipline, not a claim that every programme already carries mature evaluation evidence.",
+      },
+    ],
+    identityImpactCta: "See how we measure and report",
+    howTitle: "How Vantage works",
+    howDescription:
+      "The same operating logic runs through every portfolio — a discipline, not a slogan.",
+    howSteps: [
+      {
+        title: "Understand context",
+        body: "Start from the community's reality — the constraints, priorities and existing structures on the ground.",
+      },
+      {
+        title: "Design and respond",
+        body: "Shape the response with the people it serves, connecting needs rather than treating them separately.",
+      },
+      {
+        title: "Implement and connect",
+        body: "Deliver close to communities and link portfolios where needs overlap — health with education, income with protection.",
+      },
+      {
+        title: "Observe and measure",
+        body: "Track what is actually happening — and label every public figure with its evidence status.",
+      },
+      {
+        title: "Learn and adapt",
+        body: "Feed what is learned back into programme design and into what Vantage publishes.",
+      },
+    ],
+    howCta: "Read the Theory of Change",
+    portfoliosTitle: "Six connected portfolios",
+    portfoliosDescription:
+      "Each portfolio is distinct — with its own outcomes, approach and evidence — but they are designed to reinforce one another, because that is how the underlying needs actually behave.",
+    vpTitle: "Vantage Point",
+    vpBody:
+      "Vantage Point is the planned cross-programme platform — a space for dialogue, youth and community voice, evidence and learning across the six portfolios. It is not a seventh portfolio, and it is still being built.",
+    vpStatusLabel: "Planned",
+    vpCta: "Learn about Vantage Point",
+    geoTitle: "Where we work",
+    geoBody:
+      "Vantage's documented work spans a set of Ugandan districts — from Bushenyi and Jinja to Namutumba, Gulu, Kiryandongo and the Kalangala islands. Presence means documented programme and project activity, not permanent offices in every district.",
+    geoCta: "Explore where we work",
+    buildingTitle: "What we are building toward",
+    buildingBody:
+      "A Uganda where young people and their communities can reach healthcare, learning, economic capability, basic needs, safety and real participation — and where an organisation like Vantage can prove, publish and improve what it does. The Theory of Change sets out how the portfolios are expected to get there; Impact & Learning is where progress — and limits — get reported.",
+    closingTitle: "Work with Vantage",
+    closingBody:
+      "Whether you are a funder, researcher, technical partner or individual supporter, there is a clear route in.",
+    partnerCta: "Partner with us",
+    donateCta: "Donate",
   },
   de: {
-    intro: [
-      "Vantage Foundation Uganda ist eine von jungen Menschen geführte gemeinnützige Organisation, die im Dezember 2020 gegründet wurde. Unsere Geschichte ähnelt der vieler junger Menschen: Wir haben klein angefangen, doch ein einziger Funke kann dauerhafte Veränderung entfachen. Wir entwickeln uns stetig weiter und geben Jüngeren Orientierung, weil wir ihre Erfahrungen verstehen — so sind wir selbst zu Gestalterinnen und Gestaltern des Wandels geworden.",
-      "Unsere Vision sind bessere Lebensbedingungen in Uganda und Afrika. Heute unterstützen wir junge Menschen in Uganda dabei, ihr Potenzial auszuschöpfen — durch Gesundheit, Bildung, humanitäre Hilfe sowie Wasser, Sanitärversorgung und Hygiene.",
-    ],
     mission: "Die Welt verändern — eine Chance nach der anderen.",
     vision: "Bessere Lebensbedingungen in Gemeinschaften in Uganda und Ostafrika.",
     values: ["Wachstum", "Nachhaltigkeit", "Sicherheit", "Inklusion"],
-    beneficiaries: ["Junge Menschen in ländlichen Gebieten", "Frauen und Mädchen", "Kinder und Waisen", "Menschen in abgelegenen Distrikten und informellen städtischen Siedlungen"],
-    approach: "Wir arbeiten in Distrikten und Gemeinschaften, die von größeren internationalen NGOs häufig übersehen werden, und stärken die Reichweite bestehender sozialer Sicherungssysteme. Entwicklung baut aufeinander auf: Ohne Gesundheit und Ernährung kann Bildung nicht greifen; ohne Bildung lässt sich Armut nur schwer überwinden.",
     governance: [
       "Vantage Foundation Uganda ist eine von jungen Menschen geführte Organisation, die ihre Leitungsstrukturen, Schutzrichtlinien und die Finanzberichterstattung weiter formalisiert, damit Spendende, Partner und Gemeinschaften nachvollziehen können, wie Mittel eingesetzt werden.",
       "Jahresberichte, Finanzabschlüsse und Projektberichte veröffentlichen wir auf der Seite Berichte und Rechenschaft.",
     ],
-    imageAlt: "Vantage Foundation Uganda bei der Zusammenarbeit mit einer Gemeinschaft",
+    tagline: "Von jungen Menschen geführt. In den Gemeinschaften verwurzelt. Evidenzorientiert.",
+    institutional:
+      "Vantage Foundation Uganda ist eine von jungen Menschen geführte gemeinnützige Organisation, die in ugandischen Gemeinschaften arbeitet, in denen Gesundheit, Bildung, Einkommen, Grundbedürfnisse, Sicherheit und Mitsprache untrennbar zusammenhängen. Sie gliedert ihre Arbeit in sechs verbundene Portfolios — mit Gemeinschaften gestaltet, in ihrer Nähe umgesetzt und zunehmend gemessen und veröffentlicht.",
+    whyTitle: "Warum es Vantage gibt",
+    whyBody: [
+      "Das Leben der Menschen kommt nicht in getrennten Kategorien daher. Ein Gesundheitsproblem unterbricht die Schulbildung; eine unterbrochene Bildung wird zu einer wirtschaftlichen Lücke; wirtschaftliche Verletzlichkeit gefährdet Sicherheit, Würde und Grundbedürfnisse. Wer diese als unverbundene Silos behandelt, versorgt Gemeinschaften nur in Fragmenten.",
+      "Vantage wurde gegründet, um anders zu arbeiten — als eine Organisation, die auf verbundene Bedürfnisse mit sechs Portfolios reagiert, die einander verstärken. Das ist die institutionelle Begründung hinter allem, von einem Brunnen über einen Lesekreis bis zu einem Mentoring-Programm für Menstruationsgesundheit.",
+    ],
+    whyCta: "Die Theory of Change ansehen",
+    storyTitle: "Unsere Geschichte",
+    storyLead:
+      "Vantage Foundation Uganda wurde im Dezember 2020 von jungen Uganderinnen und Ugandern gegründet. Sie begann mit kleiner, direkter Gemeinschaftsarbeit und ist — bewusst und ungleichmäßig — zu einer Organisation mit strukturierter Programmarchitektur und vertiefter Evidenzdisziplin gewachsen.",
+    milestones: [
+      {
+        year: "Dezember 2020",
+        title: "Gründung",
+        body: "Vantage Foundation Uganda wird von jungen Uganderinnen und Ugandern als von Jugend geführte gemeinnützige Organisation gegründet — aus der Überzeugung, dass Menschen, die die Realität einer Gemeinschaft teilen, gut positioniert sind, sie zu verändern.",
+      },
+      {
+        year: "2021",
+        title: "Erste Programmarbeit",
+        body: "SaveGirl Uganda — das erste Projekt der Stiftung — beginnt als Crowdfunding-Kampagne für Damenbinden und wächst zu einem Mentoring- und Kompetenzprogramm. Halbjährliche Workshops zu psychischer Gesundheit, sexueller und reproduktiver Gesundheit und Finanzwissen beginnen.",
+      },
+      {
+        year: "2022",
+        title: "Lernen und Bildung",
+        body: "Der Advantage Book Club startet im August und gibt jungen Menschen Zugang zu einflussreicher Selbstentwicklungsliteratur. Im September veranstalten Vantage und Girl Power USA gemeinsam eine Jugendkonferenz zu Finanzwissen und Berufsbildung in Bushenyi.",
+      },
+      {
+        year: "2023",
+        title: "Programmentwicklung",
+        body: "SaveGirl Uganda erweitert sich um eine Menstruationstassen-Initiative, die dem Mentoring-Modell Produktzugang und praktische Schulung hinzufügt.",
+      },
+      {
+        year: "Mai 2025",
+        title: "Erste Flaggschiff-Infrastruktur",
+        body: "Das Kasaale-Tiefenbohrloch wird in Magada Sub-county, Distrikt Namutumba, fertiggestellt — eine WASH-Maßnahme mit einem geschätzten Einzugsgebiet von bis zu 10.000 Menschen.",
+      },
+      {
+        year: "Heute",
+        title: "Eine verbundene Architektur",
+        body: "Die Arbeit ist in sechs Ergebnisportfolios mit expliziten Evidenzstatus, einem Impact-&-Learning-Rahmen und Vantage Point gegliedert — einer geplanten programmübergreifenden Plattform für Dialog und Reflexion.",
+      },
+    ],
+    identityTitle: "Was unsere Identität bedeutet",
+    identityIntro:
+      "Drei Worte beschreiben, wie Vantage aufgebaut ist. Jedes ist eine Verpflichtung mit einer bestimmten Bedeutung — kein Schlagwort.",
+    identity: [
+      {
+        title: "Von jungen Menschen geführt",
+        body: "Vantage wurde von jungen Uganderinnen und Ugandern gegründet und wird von ihnen geleitet; junge Menschen prägen Programme, Stimmen und Ausrichtung. Das heißt nicht, dass alle, mit denen es arbeitet, jung sind — es heißt, dass Führung durch junge Menschen der Schwerpunkt der Organisation ist und Jüngere als Teilnehmende und Gestaltende behandelt werden, nicht nur als Empfangende.",
+      },
+      {
+        title: "In den Gemeinschaften verwurzelt",
+        body: "Das Programmverständnis kommt aus den Gemeinschaften, in denen die Arbeit stattfindet — ihren Prioritäten, Zwängen und bestehenden Strukturen. Vantage arbeitet in Distrikten und Siedlungen, die größere Organisationen oft übersehen, und gestaltet mit den Menschen, für die die Arbeit gedacht ist.",
+      },
+      {
+        title: "Evidenzorientiert",
+        body: "Vantage baut eine Disziplin aus Messung, ehrlicher Kennzeichnung von Aussagen und Lernen auf — und unterscheidet, was es beabsichtigt, was Teams berichten, was geschätzt ist und was verifiziert wurde. Das ist eine organisatorische Richtung und Arbeitsdisziplin, nicht die Behauptung, jedes Programm verfüge bereits über reife Evaluationsbelege.",
+      },
+    ],
+    identityImpactCta: "Wie wir messen und berichten",
+    howTitle: "Wie Vantage arbeitet",
+    howDescription:
+      "Dieselbe Arbeitslogik durchzieht jedes Portfolio — eine Disziplin, kein Schlagwort.",
+    howSteps: [
+      {
+        title: "Kontext verstehen",
+        body: "Ausgehend von der Realität der Gemeinschaft — den Zwängen, Prioritäten und bestehenden Strukturen vor Ort.",
+      },
+      {
+        title: "Gestalten und reagieren",
+        body: "Die Antwort mit den Menschen formen, für die sie gedacht ist, und Bedürfnisse verbinden statt sie getrennt zu behandeln.",
+      },
+      {
+        title: "Umsetzen und verbinden",
+        body: "In der Nähe der Gemeinschaften umsetzen und Portfolios verknüpfen, wo sich Bedürfnisse überschneiden — Gesundheit mit Bildung, Einkommen mit Schutz.",
+      },
+      {
+        title: "Beobachten und messen",
+        body: "Verfolgen, was tatsächlich geschieht — und jede öffentliche Zahl mit ihrem Evidenzstatus kennzeichnen.",
+      },
+      {
+        title: "Lernen und anpassen",
+        body: "Das Gelernte in die Programmgestaltung und in das, was Vantage veröffentlicht, zurückführen.",
+      },
+    ],
+    howCta: "Die Theory of Change lesen",
+    portfoliosTitle: "Sechs verbundene Portfolios",
+    portfoliosDescription:
+      "Jedes Portfolio ist eigenständig — mit eigenen Ergebnissen, Ansätzen und Evidenz — doch sie sind so gestaltet, dass sie einander verstärken, denn genau so verhalten sich die zugrunde liegenden Bedürfnisse.",
+    vpTitle: "Vantage Point",
+    vpBody:
+      "Vantage Point ist die geplante programmübergreifende Plattform — ein Raum für Dialog, die Stimmen von Jugend und Gemeinschaften, Evidenz und Lernen über die sechs Portfolios hinweg. Es ist kein siebtes Portfolio und befindet sich noch im Aufbau.",
+    vpStatusLabel: "Geplant",
+    vpCta: "Über Vantage Point",
+    geoTitle: "Wo wir arbeiten",
+    geoBody:
+      "Die dokumentierte Arbeit von Vantage umfasst eine Reihe ugandischer Distrikte — von Bushenyi und Jinja bis Namutumba, Gulu, Kiryandongo und den Kalangala-Inseln. Präsenz bedeutet dokumentierte Programm- und Projekttätigkeit, nicht ständige Büros in jedem Distrikt.",
+    geoCta: "Wo wir arbeiten erkunden",
+    buildingTitle: "Woran wir bauen",
+    buildingBody:
+      "Ein Uganda, in dem junge Menschen und ihre Gemeinschaften Zugang zu Gesundheitsversorgung, Bildung, wirtschaftlicher Leistungsfähigkeit, Grundbedürfnissen, Sicherheit und echter Teilhabe erreichen — und in dem eine Organisation wie Vantage nachweisen, veröffentlichen und verbessern kann, was sie tut. Die Theory of Change beschreibt, wie die Portfolios dorthin gelangen sollen; Impact & Learning ist der Ort, an dem Fortschritt — und Grenzen — berichtet werden.",
+    closingTitle: "Mit Vantage arbeiten",
+    closingBody:
+      "Ob Geldgeberin, Forscher, technischer Partner oder einzelne Unterstützerin — es gibt einen klaren Weg hinein.",
+    partnerCta: "Partner werden",
+    donateCta: "Spenden",
   },
   fr: {
-    intro: [
-      "Vantage Foundation Uganda est une organisation à but non lucratif dirigée par des jeunes et fondée en décembre 2020. Notre histoire ressemble à celle de nombreux jeunes : nous avons commencé modestement, mais une seule étincelle peut susciter un changement durable. Nous continuons d’apprendre tout en éclairant la voie des plus jeunes, car nous comprenons leur vécu — c’est ainsi que nous sommes devenus des acteurs du changement.",
-      "Nous aspirons à de meilleures conditions de vie en Ouganda et en Afrique. Aujourd’hui, nous aidons les jeunes Ougandais à réaliser leur potentiel grâce à la santé, à l’éducation, à l’aide humanitaire ainsi qu’à l’eau, l’assainissement et l’hygiène.",
-    ],
     mission: "Changer le monde, une possibilité à la fois.",
     vision: "De meilleures conditions de vie dans les communautés ougandaises et est-africaines.",
     values: ["Développement", "Durabilité", "Sécurité", "Inclusion"],
-    beneficiaries: ["Jeunes des zones rurales", "Femmes et filles", "Enfants et orphelins", "Personnes vivant dans des districts isolés et des quartiers urbains informels"],
-    approach: "Nous intervenons dans des districts et des communautés souvent délaissés par les grandes ONG internationales et renforçons la portée des dispositifs de protection sociale existants. Le développement se construit par étapes : sans santé ni nutrition, l’éducation ne peut porter ses fruits ; sans éducation, il est difficile d’échapper à la pauvreté.",
     governance: [
       "Vantage Foundation Uganda est une organisation dirigée par des jeunes qui formalise ses structures de gouvernance, ses politiques de protection et ses rapports financiers afin que chaque donateur, partenaire et communauté puisse suivre l’utilisation des ressources.",
       "Les rapports annuels, états financiers et rapports de projet seront publiés sur notre page Rapports et redevabilité.",
     ],
-    imageAlt: "Vantage Foundation Uganda travaillant avec une communauté",
+    tagline: "Dirigée par des jeunes. Enracinée dans les communautés. Guidée par les preuves.",
+    institutional:
+      "Vantage Foundation Uganda est une organisation à but non lucratif dirigée par des jeunes, qui travaille dans des communautés ougandaises où la santé, l’éducation, le revenu, les besoins essentiels, la sécurité et la participation sont indissociables. Elle organise son travail en six portefeuilles de résultats connectés — conçus avec les communautés, mis en œuvre à leur proximité, et de plus en plus mesurés et publiés.",
+    whyTitle: "Pourquoi Vantage existe",
+    whyBody: [
+      "La vie des gens ne se présente pas en catégories séparées. Un problème de santé interrompt la scolarité ; une scolarité interrompue devient un déficit économique ; la vulnérabilité économique compromet la sécurité, la dignité et les besoins essentiels. Traiter ces enjeux comme des silos sans lien, c’est servir les communautés par fragments.",
+      "Vantage a été créée pour faire l’inverse — une seule organisation qui répond à des besoins connectés par six portefeuilles qui se renforcent mutuellement. C’est la logique institutionnelle derrière tout, du forage au club de lecture en passant par le mentorat en santé menstruelle.",
+    ],
+    whyCta: "Voir la théorie du changement",
+    storyTitle: "Notre histoire",
+    storyLead:
+      "Vantage Foundation Uganda a été fondée en décembre 2020 par de jeunes Ougandais. Elle a commencé par un travail communautaire modeste et direct, puis a grandi — délibérément et de façon inégale — vers une organisation dotée d’une architecture de programmes structurée et d’une discipline de preuve grandissante.",
+    milestones: [
+      {
+        year: "Décembre 2020",
+        title: "Fondation",
+        body: "Vantage Foundation Uganda est créée par de jeunes Ougandais comme une organisation à but non lucratif dirigée par des jeunes — née de la conviction que ceux qui partagent la réalité d’une communauté sont bien placés pour la transformer.",
+      },
+      {
+        year: "2021",
+        title: "Premier travail de programme",
+        body: "SaveGirl Uganda — le premier projet de la Fondation — débute comme une campagne de financement participatif pour des serviettes hygiéniques et devient un programme de mentorat et de compétences. Des ateliers semestriels sur la santé mentale, la santé sexuelle et reproductive et l’éducation financière commencent.",
+      },
+      {
+        year: "2022",
+        title: "Apprentissage et littératie",
+        body: "L’Advantage Book Club est lancé en août et donne aux jeunes accès à des livres de développement personnel influents. En septembre, Vantage et Girl Power USA coorganisent à Bushenyi une conférence de jeunes sur l’éducation financière et l’orientation.",
+      },
+      {
+        year: "2023",
+        title: "Développement des programmes",
+        body: "SaveGirl Uganda s’enrichit d’une initiative de coupes menstruelles, ajoutant l’accès au produit et une formation pratique à son modèle de mentorat.",
+      },
+      {
+        year: "Mai 2025",
+        title: "Première infrastructure phare",
+        body: "Le forage profond de Kasaale est achevé à Magada Sub-county, district de Namutumba — une intervention WASH desservant une zone estimée jusqu’à 10 000 personnes.",
+      },
+      {
+        year: "Aujourd’hui",
+        title: "Une architecture connectée",
+        body: "Le travail est organisé en six portefeuilles de résultats avec des statuts de preuve explicites, un cadre Impact & Learning, et Vantage Point — une plateforme transversale prévue pour le dialogue et la réflexion.",
+      },
+    ],
+    identityTitle: "Ce que signifie notre identité",
+    identityIntro:
+      "Trois mots décrivent comment Vantage est construite. Chacun est un engagement au sens précis — pas un slogan.",
+    identity: [
+      {
+        title: "Dirigée par des jeunes",
+        body: "Vantage a été fondée et est dirigée par de jeunes Ougandais, et les jeunes façonnent ses programmes, ses voix et son cap. Cela ne signifie pas que toutes les personnes avec qui elle travaille sont jeunes — cela signifie que le leadership des jeunes est le centre de gravité de l’organisation et que les plus jeunes sont traités comme des participants et des leaders, pas seulement des bénéficiaires.",
+      },
+      {
+        title: "Enracinée dans les communautés",
+        body: "La compréhension des programmes vient des communautés où le travail a lieu — leurs priorités, leurs contraintes et leurs structures existantes. Vantage travaille dans des districts et des quartiers que les grandes organisations négligent souvent, et conçoit avec les personnes pour qui le travail est fait.",
+      },
+      {
+        title: "Guidée par les preuves",
+        body: "Vantage construit une discipline de mesure, d’étiquetage honnête des affirmations et d’apprentissage — distinguant ce qu’elle vise, ce que les équipes rapportent, ce qui est estimé et ce qui est vérifié. C’est une direction organisationnelle et une discipline de travail, pas la prétention que chaque programme dispose déjà de preuves d’évaluation abouties.",
+      },
+    ],
+    identityImpactCta: "Comment nous mesurons et rendons compte",
+    howTitle: "Comment Vantage travaille",
+    howDescription:
+      "La même logique de travail traverse chaque portefeuille — une discipline, pas un slogan.",
+    howSteps: [
+      {
+        title: "Comprendre le contexte",
+        body: "Partir de la réalité de la communauté — les contraintes, priorités et structures existantes sur le terrain.",
+      },
+      {
+        title: "Concevoir et répondre",
+        body: "Façonner la réponse avec les personnes qu’elle sert, en reliant les besoins plutôt qu’en les traitant séparément.",
+      },
+      {
+        title: "Mettre en œuvre et relier",
+        body: "Agir au plus près des communautés et relier les portefeuilles là où les besoins se chevauchent — santé avec éducation, revenu avec protection.",
+      },
+      {
+        title: "Observer et mesurer",
+        body: "Suivre ce qui se passe réellement — et étiqueter chaque chiffre public de son statut de preuve.",
+      },
+      {
+        title: "Apprendre et adapter",
+        body: "Réinjecter les apprentissages dans la conception des programmes et dans ce que Vantage publie.",
+      },
+    ],
+    howCta: "Lire la théorie du changement",
+    portfoliosTitle: "Six portefeuilles connectés",
+    portfoliosDescription:
+      "Chaque portefeuille est distinct — avec ses résultats, son approche et ses preuves propres — mais ils sont conçus pour se renforcer mutuellement, car c’est ainsi que se comportent les besoins sous-jacents.",
+    vpTitle: "Vantage Point",
+    vpBody:
+      "Vantage Point est la plateforme transversale prévue — un espace de dialogue, de voix des jeunes et des communautés, de preuves et d’apprentissage à travers les six portefeuilles. Ce n’est pas un septième portefeuille, et elle est encore en construction.",
+    vpStatusLabel: "Prévue",
+    vpCta: "Découvrir Vantage Point",
+    geoTitle: "Où nous travaillons",
+    geoBody:
+      "Le travail documenté de Vantage couvre un ensemble de districts ougandais — de Bushenyi et Jinja à Namutumba, Gulu, Kiryandongo et les îles Kalangala. La présence signifie une activité de programme et de projet documentée, pas des bureaux permanents dans chaque district.",
+    geoCta: "Explorer où nous travaillons",
+    buildingTitle: "Ce vers quoi nous construisons",
+    buildingBody:
+      "Une Ouganda où les jeunes et leurs communautés peuvent accéder aux soins, à l’apprentissage, à la capacité économique, aux besoins essentiels, à la sécurité et à une vraie participation — et où une organisation comme Vantage peut prouver, publier et améliorer ce qu’elle fait. La théorie du changement décrit comment les portefeuilles sont censés y parvenir ; Impact & Learning est l’endroit où les progrès — et les limites — sont rapportés.",
+    closingTitle: "Travailler avec Vantage",
+    closingBody:
+      "Que vous soyez bailleur de fonds, chercheuse, partenaire technique ou soutien individuel, il existe une voie claire.",
+    partnerCta: "Devenir partenaire",
+    donateCta: "Faire un don",
   },
   es: {
-    intro: [
-      "Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes, establecida en diciembre de 2020. Nuestra historia se parece a la de muchos jóvenes: nuestras vidas comenzaron a pequeña escala, pero una sola chispa puede encender un cambio duradero. Somos un trabajo en progreso que sostiene una luz para quienes son más jóvenes que nosotros, porque podemos identificarnos con ellos, y a través de esto nos hemos convertido en agentes de cambio.",
-      "Imaginamos medios de vida mejorados en comunidades de Uganda y África. Hoy, ayudamos a los jóvenes de Uganda a alcanzar su máximo potencial a través de la salud, la educación, la ayuda humanitaria y el agua, saneamiento e higiene.",
-    ],
     mission: "Cambiar el mundo, una oportunidad a la vez.",
     vision: "Medios de vida mejorados en comunidades de Uganda y África Oriental.",
     values: ["Crecimiento", "Sostenibilidad", "Seguridad", "Inclusión"],
-    beneficiaries: ["Jóvenes en zonas rurales", "Mujeres y niñas", "Niños y huérfanos", "Personas en distritos remotos y asentamientos urbanos informales"],
-    approach: "Identificamos distritos y comunidades que las ONG internacionales más grandes suelen pasar por alto y fortalecemos el alcance de las redes de seguridad social existentes. Reconocemos que el desarrollo es secuencial: sin salud y nutrición, la educación no puede ser asimilada; sin educación, no se puede escapar de la pobreza.",
     governance: [
       "Vantage Foundation Uganda es una organización dirigida por jóvenes que está formalizando sus estructuras de gobernanza, políticas de protección e informes financieros para que cada donante, socio y comunidad pueda confiar en cómo se utilizan los recursos.",
       "Los informes anuales, estados financieros e informes de proyectos se publicarán en nuestra página de Informes y Rendición de Cuentas.",
     ],
-    imageAlt: "Vantage Foundation Uganda trabajando con una comunidad",
+    tagline: "Dirigida por jóvenes. Arraigada en las comunidades. Guiada por la evidencia.",
+    institutional:
+      "Vantage Foundation Uganda es una organización sin fines de lucro dirigida por jóvenes que trabaja en comunidades ugandesas donde la salud, la educación, los ingresos, las necesidades básicas, la seguridad y la participación son inseparables. Organiza su trabajo en seis portafolios de resultados conectados — diseñados con las comunidades, ejecutados cerca de ellas y cada vez más medidos y publicados.",
+    whyTitle: "Por qué existe Vantage",
+    whyBody: [
+      "La vida de las personas no llega en categorías separadas. Un problema de salud interrumpe la escolaridad; una educación interrumpida se convierte en una brecha económica; la vulnerabilidad económica pone en riesgo la seguridad, la dignidad y las necesidades básicas. Tratar estos asuntos como silos inconexos es servir a las comunidades a fragmentos.",
+      "Vantage se creó para trabajar al revés — como una sola organización que responde a necesidades conectadas mediante seis portafolios que se refuerzan entre sí. Esa es la lógica institucional detrás de todo, desde un pozo hasta un club de lectura o un programa de mentoría en salud menstrual.",
+    ],
+    whyCta: "Ver la teoría del cambio",
+    storyTitle: "Nuestra historia",
+    storyLead:
+      "Vantage Foundation Uganda fue fundada en diciembre de 2020 por jóvenes ugandeses. Comenzó con trabajo comunitario pequeño y directo y ha crecido — deliberada y desigualmente — hasta convertirse en una organización con una arquitectura de programas estructurada y una disciplina de evidencia en profundización.",
+    milestones: [
+      {
+        year: "Diciembre de 2020",
+        title: "Fundación",
+        body: "Vantage Foundation Uganda es establecida por jóvenes ugandeses como una organización sin fines de lucro dirigida por jóvenes — construida sobre la convicción de que quienes comparten la realidad de una comunidad están bien posicionados para cambiarla.",
+      },
+      {
+        year: "2021",
+        title: "Primer trabajo de programa",
+        body: "SaveGirl Uganda — el primer proyecto de la Fundación — comienza como una campaña de micromecenazgo para toallas higiénicas y crece hasta convertirse en un programa de mentoría y habilidades. Comienzan los talleres semestrales sobre salud mental, salud sexual y reproductiva y educación financiera.",
+      },
+      {
+        year: "2022",
+        title: "Aprendizaje y alfabetización",
+        body: "El Advantage Book Club se lanza en agosto, dando a los jóvenes acceso a libros influyentes de desarrollo personal. En septiembre, Vantage y Girl Power USA organizan conjuntamente en Bushenyi una conferencia juvenil sobre educación financiera y orientación profesional.",
+      },
+      {
+        year: "2023",
+        title: "Desarrollo de programas",
+        body: "SaveGirl Uganda se amplía con una iniciativa de copas menstruales, añadiendo acceso al producto y formación práctica a su modelo de mentoría.",
+      },
+      {
+        year: "Mayo de 2025",
+        title: "Primera infraestructura insignia",
+        body: "Se completa el pozo profundo de Kasaale en Magada Sub-county, distrito de Namutumba — una intervención WASH que sirve a un área estimada de hasta 10.000 personas.",
+      },
+      {
+        year: "Hoy",
+        title: "Una arquitectura conectada",
+        body: "El trabajo se organiza en seis portafolios de resultados con estados de evidencia explícitos, un marco de Impacto y Aprendizaje, y Vantage Point — una plataforma transversal prevista para el diálogo y la reflexión.",
+      },
+    ],
+    identityTitle: "Qué significa nuestra identidad",
+    identityIntro:
+      "Tres palabras describen cómo está construida Vantage. Cada una es un compromiso con un significado concreto — no un eslogan.",
+    identity: [
+      {
+        title: "Dirigida por jóvenes",
+        body: "Vantage fue fundada y es dirigida por jóvenes ugandeses, y los jóvenes dan forma a sus programas, voces y rumbo. Eso no significa que todos con quienes trabaja sean jóvenes — significa que el liderazgo juvenil es el centro de gravedad de la organización y que los más jóvenes son tratados como participantes y líderes, no solo como beneficiarios.",
+      },
+      {
+        title: "Arraigada en las comunidades",
+        body: "La comprensión de los programas proviene de las comunidades donde ocurre el trabajo — sus prioridades, limitaciones y estructuras existentes. Vantage trabaja en distritos y asentamientos que las grandes organizaciones suelen pasar por alto, y diseña con las personas para quienes se hace el trabajo.",
+      },
+      {
+        title: "Guiada por la evidencia",
+        body: "Vantage está construyendo una disciplina de medición, etiquetado honesto de afirmaciones y aprendizaje — distinguiendo lo que pretende, lo que los equipos reportan, lo que se estima y lo que se verifica. Es una dirección organizacional y una disciplina de trabajo, no la afirmación de que cada programa ya dispone de evidencia de evaluación madura.",
+      },
+    ],
+    identityImpactCta: "Cómo medimos y rendimos cuentas",
+    howTitle: "Cómo trabaja Vantage",
+    howDescription:
+      "La misma lógica de trabajo recorre cada portafolio — una disciplina, no un eslogan.",
+    howSteps: [
+      {
+        title: "Comprender el contexto",
+        body: "Partir de la realidad de la comunidad — las limitaciones, prioridades y estructuras existentes sobre el terreno.",
+      },
+      {
+        title: "Diseñar y responder",
+        body: "Dar forma a la respuesta con las personas a las que sirve, conectando las necesidades en lugar de tratarlas por separado.",
+      },
+      {
+        title: "Implementar y conectar",
+        body: "Ejecutar cerca de las comunidades y vincular los portafolios donde las necesidades se solapan — salud con educación, ingresos con protección.",
+      },
+      {
+        title: "Observar y medir",
+        body: "Seguir lo que realmente ocurre — y etiquetar cada cifra pública con su estado de evidencia.",
+      },
+      {
+        title: "Aprender y adaptar",
+        body: "Reincorporar lo aprendido al diseño de los programas y a lo que Vantage publica.",
+      },
+    ],
+    howCta: "Leer la teoría del cambio",
+    portfoliosTitle: "Seis portafolios conectados",
+    portfoliosDescription:
+      "Cada portafolio es distinto — con sus propios resultados, enfoque y evidencia — pero están diseñados para reforzarse mutuamente, porque así se comportan las necesidades subyacentes.",
+    vpTitle: "Vantage Point",
+    vpBody:
+      "Vantage Point es la plataforma transversal prevista — un espacio de diálogo, voces de jóvenes y comunidades, evidencia y aprendizaje a través de los seis portafolios. No es un séptimo portafolio y aún está en construcción.",
+    vpStatusLabel: "Prevista",
+    vpCta: "Conocer Vantage Point",
+    geoTitle: "Dónde trabajamos",
+    geoBody:
+      "El trabajo documentado de Vantage abarca un conjunto de distritos ugandeses — desde Bushenyi y Jinja hasta Namutumba, Gulu, Kiryandongo y las islas Kalangala. Presencia significa actividad documentada de programas y proyectos, no oficinas permanentes en cada distrito.",
+    geoCta: "Explorar dónde trabajamos",
+    buildingTitle: "Hacia qué construimos",
+    buildingBody:
+      "Una Uganda donde los jóvenes y sus comunidades puedan alcanzar atención sanitaria, aprendizaje, capacidad económica, necesidades básicas, seguridad y participación real — y donde una organización como Vantage pueda demostrar, publicar y mejorar lo que hace. La teoría del cambio establece cómo se espera que los portafolios lleguen allí; Impacto y Aprendizaje es donde se reportan los avances — y los límites.",
+    closingTitle: "Trabajar con Vantage",
+    closingBody:
+      "Ya sea financiador, investigadora, socio técnico o simpatizante individual, existe una vía clara.",
+    partnerCta: "Asóciese con Vantage",
+    donateCta: "Donar",
   },
   ar: {
-    intro: [
-      "Vantage Foundation Uganda هي منظمة غير ربحية يقودها الشباب، تأسست في ديسمبر 2020. قصتنا تشبه قصة كثير من الشباب: حياتنا بدأت بشكل متواضع، ومع ذلك يمكن للشرارة الواحدة أن تشعل تغييرًا دائمًا. نحن مشروع قيد التقدم يحمل ضوءًا لمن هم أصغر منا لأننا نستطيع التعاطف معهم — ومن خلال ذلك أصبحنا صانعي تغيير.",
-      "نحن نتطلع إلى تحسين سبل العيش في مجتمعات أوغندا وأفريقيا. اليوم، نساعد الشباب في أوغندا على تحقيق إمكاناتهم الكاملة من خلال الصحة والتعليم والإغاثة الإنسانية والمياه والصرف الصحي والنظافة.",
-    ],
     mission: "تغيير العالم، ميزة واحدة في كل مرة.",
     vision: "تحسين سبل العيش في مجتمعات أوغندا وشرق أفريقيا.",
     values: ["النمو", "الاستدامة", "السلامة", "الشمول"],
-    beneficiaries: ["الشباب في المناطق الريفية", "النساء والفتيات", "الأطفال والأيتام", "الأشخاص في المناطق النائية والتجمعات الحضرية العشوائية"],
-    approach: "نحدد المناطق والمجتمعات التي تغفلها المنظمات غير الحكومية الدولية الكبرى غالبًا، ونعزز وصول شبكات الأمان الاجتماعي القائمة. ندرك أن التنمية متسلسلة: بلا صحة وتغذية، لا يمكن استيعاب التعليم؛ وبلا تعليم، لا يمكن الفرار من الفقر.",
     governance: [
       "Vantage Foundation Uganda منظمة يقودها الشباب تعمل على إضفاء الطابع الرسمي على هياكل الحوكمة وسياسات الحماية والإبلاغ المالي، بحيث يمكن لكل متبرع وشريك ومجتمع الوثوق بكيفية استخدام الموارد.",
       "سيتم نشر التقارير السنوية والبيانات المالية وتقارير المشاريع في صفحة التقارير والمساءلة الخاصة بنا.",
     ],
-    imageAlt: "Vantage Foundation Uganda تعمل مع مجتمع",
+    tagline: "بقيادة الشباب. متجذرة في المجتمعات. مستندة إلى الأدلة.",
+    institutional:
+      "Vantage Foundation Uganda منظمة غير ربحية يقودها الشباب وتعمل في مجتمعات أوغندية حيث الصحة والتعليم والدخل والاحتياجات الأساسية والسلامة والمشاركة غير قابلة للانفصال. تنظم عملها في ست محافظ نتائج مترابطة — مصممة مع المجتمعات، ومنفذة بالقرب منها، وتُقاس وتُنشر على نحو متزايد.",
+    whyTitle: "لماذا توجد Vantage",
+    whyBody: [
+      "حياة الناس لا تأتي في فئات منفصلة. مشكلة صحية تقطع الدراسة؛ وتعليم منقطع يتحول إلى فجوة اقتصادية؛ والضعف الاقتصادي يهدد السلامة والكرامة والاحتياجات الأساسية. معاملة هذه القضايا كصوامع غير مترابطة تعني خدمة المجتمعات بشكل مجزأ.",
+      "أُنشئت Vantage لتعمل بالعكس — كمنظمة واحدة تستجيب لاحتياجات مترابطة عبر ست محافظ تعزز بعضها بعضًا. هذا هو المنطق المؤسسي وراء كل شيء، من بئر ماء إلى نادي قراءة إلى برنامج إرشاد في الصحة الإنجابية.",
+    ],
+    whyCta: "اطّلعوا على نظرية التغيير",
+    storyTitle: "قصتنا",
+    storyLead:
+      "تأسست Vantage Foundation Uganda في ديسمبر 2020 على يد شباب أوغنديين. بدأت بعمل مجتمعي صغير ومباشر، ونمت — عن قصد وبشكل غير متساوٍ — إلى منظمة ذات بنية برامجية منظمة وانضباط أدلة متعمق.",
+    milestones: [
+      {
+        year: "ديسمبر 2020",
+        title: "التأسيس",
+        body: "تأسست Vantage Foundation Uganda على يد شباب أوغنديين كمنظمة غير ربحية يقودها الشباب — انطلاقًا من قناعة بأن من يشاركون واقع مجتمعهم هم في أفضل موقع لتغييره.",
+      },
+      {
+        year: "2021",
+        title: "أول عمل برامجي",
+        body: "بدأت SaveGirl Uganda — أول مشروع للمؤسسة — كحملة تمويل جماعي لشراء الفوط الصحية، ثم نمت إلى برنامج إرشاد ومهارات. وبدأت ورش العمل نصف السنوية حول الصحة النفسية والصحة الجنسية والإنجابية والثقافة المالية.",
+      },
+      {
+        year: "2022",
+        title: "التعلم ومحو الأمية",
+        body: "انطلق Advantage Book Club في أغسطس مانحًا الشباب وصولًا إلى كتب التنمية الذاتية المؤثرة. وفي سبتمبر، نظمت Vantage وGirl Power USA مؤتمرًا شبابيًا حول الثقافة المالية والتوجيه المهني في بوشينيي.",
+      },
+      {
+        year: "2023",
+        title: "تطوير البرامج",
+        body: "توسعت SaveGirl Uganda لتشمل مبادرة الأكواب الحيضية، مضيفةً الوصول إلى المنتج والتدريب العملي إلى نموذج الإرشاد.",
+      },
+      {
+        year: "مايو 2025",
+        title: "أول بنية تحتية رائدة",
+        body: "اكتمل بئر كاسالي العميق في مقاطعة ماغادا الفرعية، منطقة ناموتومبا — تدخل في المياه والصرف الصحي والنظافة يخدم نطاقًا تقديريًا يصل إلى 10,000 شخص.",
+      },
+      {
+        year: "اليوم",
+        title: "بنية مترابطة",
+        body: "يُنظَّم العمل في ست محافظ نتائج بحالات أدلة صريحة، وإطار للأثر والتعلم، وVantage Point — منصة مخططة عابرة للبرامج للحوار والتأمل.",
+      },
+    ],
+    identityTitle: "ماذا تعني هويتنا",
+    identityIntro:
+      "ثلاث كلمات تصف كيف بُنيت Vantage. كل واحدة التزام له معنى محدد — وليست شعارًا.",
+    identity: [
+      {
+        title: "بقيادة الشباب",
+        body: "أسس شباب أوغنديون Vantage ويقودونها، والشباب يشكلون برامجها وأصواتها وتوجهها. لا يعني ذلك أن كل من تعمل معهم شباب — بل يعني أن قيادة الشباب هي مركز ثقل المنظمة، وأن الأصغر سنًا يُعامَلون كمشاركين وقادة، لا كمستفيدين فقط.",
+      },
+      {
+        title: "متجذرة في المجتمعات",
+        body: "يأتي فهم البرامج من المجتمعات التي يحدث فيها العمل — أولوياتها وقيودها وهياكلها القائمة. تعمل Vantage في مناطق وتجمعات تغفلها المنظمات الكبرى غالبًا، وتصمم مع الأشخاص الذين صُمم العمل لأجلهم.",
+      },
+      {
+        title: "مستندة إلى الأدلة",
+        body: "تبني Vantage انضباطًا في القياس ووسم الادعاءات بصدق والتعلم — مميزةً بين ما تنويه، وما تبلغ عنه الفرق، وما هو مقدَّر، وما هو موثق. هذا اتجاه تنظيمي وانضباط عمل، لا ادعاء بأن كل برنامج يمتلك بالفعل أدلة تقييم ناضجة.",
+      },
+    ],
+    identityImpactCta: "كيف نقيس ونُبلغ",
+    howTitle: "كيف تعمل Vantage",
+    howDescription:
+      "نفس منطق العمل يسري في كل محفظة — انضباط، لا شعار.",
+    howSteps: [
+      {
+        title: "فهم السياق",
+        body: "الانطلاق من واقع المجتمع — القيود والأولويات والهياكل القائمة على الأرض.",
+      },
+      {
+        title: "التصميم والاستجابة",
+        body: "تشكيل الاستجابة مع الأشخاص الذين تخدمهم، وربط الاحتياجات بدلًا من معالجتها منفصلة.",
+      },
+      {
+        title: "التنفيذ والربط",
+        body: "التنفيذ بالقرب من المجتمعات وربط المحافظ حيث تتداخل الاحتياجات — الصحة مع التعليم، والدخل مع الحماية.",
+      },
+      {
+        title: "الرصد والقياس",
+        body: "تتبع ما يحدث فعلًا — ووسم كل رقم منشور بحالة أدلته.",
+      },
+      {
+        title: "التعلم والتكييف",
+        body: "إعادة ما تُعلِّمه النتائج إلى تصميم البرامج وإلى ما تنشره Vantage.",
+      },
+    ],
+    howCta: "اقرأوا نظرية التغيير",
+    portfoliosTitle: "ست محافظ مترابطة",
+    portfoliosDescription:
+      "كل محفظة متميزة — بنتائجها ونهجها وأدلتها الخاصة — لكنها مصممة لتعزز بعضها بعضًا، لأن الاحتياجات الكامنة تتصرف بهذه الطريقة فعلًا.",
+    vpTitle: "Vantage Point",
+    vpBody:
+      "Vantage Point هي المنصة المخططة العابرة للبرامج — مساحة للحوار وأصوات الشباب والمجتمعات والأدلة والتعلم عبر المحافظ الست. ليست محفظة سابعة، وما تزال قيد البناء.",
+    vpStatusLabel: "مخططة",
+    vpCta: "تعرفوا على Vantage Point",
+    geoTitle: "أين نعمل",
+    geoBody:
+      "يمتد عمل Vantage الموثق عبر مجموعة من المناطق الأوغندية — من بوشينيي وجينجا إلى ناموتومبا وغولو وكيرياندونغو وجزر كالانغالا. الحضور يعني نشاطًا موثقًا للبرامج والمشاريع، لا مكاتب دائمة في كل منطقة.",
+    geoCta: "استكشفوا أين نعمل",
+    buildingTitle: "ما نبني نحوه",
+    buildingBody:
+      "أوغندا يستطيع فيها الشباب ومجتمعاتهم الوصول إلى الرعاية الصحية والتعلم والقدرة الاقتصادية والاحتياجات الأساسية والسلامة والمشاركة الحقيقية — وحيث يمكن لمنظمة مثل Vantage أن تثبت وتنشر وتحسّن ما تفعله. تحدد نظرية التغيير كيف يُتوقع أن تصل المحافظ إلى ذلك؛ والأثر والتعلم هو المكان الذي تُذكر فيه التقدمات — والحدود.",
+    closingTitle: "اعملوا مع Vantage",
+    closingBody:
+      "سواء كنتم ممولًا أو باحثًا أو شريكًا تقنيًا أو داعمًا فرديًا، هناك طريق واضح للانضمام.",
+    partnerCta: "شاركوا Vantage",
+    donateCta: "تبرعوا",
   },
 };
 

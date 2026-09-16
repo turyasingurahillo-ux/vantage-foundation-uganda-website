@@ -129,14 +129,10 @@ export const englishDictionary = {
   },
   about: {
     title: "About Vantage Foundation Uganda",
-    description: "Youth-led, community-centred and committed to one more advantage at a time.",
+    description: "Youth-led, community-rooted and evidence-driven — who Vantage is, why it exists and how it works.",
     mission: "Mission",
     vision: "Vision",
     values: "Values",
-    whoWeServe: "Who we serve",
-    whoWeServeDescription: "We focus on the people and places often left out of mainstream development.",
-    targetBeneficiaries: "Target beneficiaries",
-    approach: "Our approach",
     meetTeam: "Meet the team",
     teamDescription: "Youth-led and community-rooted.",
     fullTeam: "Meet the full team",
@@ -245,9 +241,8 @@ const de: DeepPartial<Dictionary> = {
     donateNow: "Jetzt spenden", stayInLoop: "Bleiben Sie auf dem Laufenden", stayDescription: "Abonnieren Sie Neuigkeiten zu Projekten, Geschichten und Möglichkeiten, unsere Arbeit zu unterstützen.",
   },
   about: {
-    title: "Über Vantage Foundation Uganda", description: "Von jungen Menschen geführt, gemeinschaftsnah und jeder neuen Chance verpflichtet.", mission: "Mission", vision: "Vision", values: "Werte",
-    whoWeServe: "Für wen wir arbeiten", whoWeServeDescription: "Wir konzentrieren uns auf Menschen und Orte, die in der Entwicklungsarbeit häufig übersehen werden.",
-    targetBeneficiaries: "Zielgruppen", approach: "Unser Ansatz", meetTeam: "Unser Team", teamDescription: "Von jungen Menschen geführt und in den Gemeinschaften verwurzelt.",
+    title: "Über Vantage Foundation Uganda", description: "Von jungen Menschen geführt, in den Gemeinschaften verwurzelt, evidenzorientiert — wer Vantage ist, warum es existiert und wie es arbeitet.", mission: "Mission", vision: "Vision", values: "Werte",
+    meetTeam: "Unser Team", teamDescription: "Von jungen Menschen geführt und in den Gemeinschaften verwurzelt.",
     fullTeam: "Das ganze Team kennenlernen", governanceTitle: "Leitung und Rechenschaft", governanceDescription: "Wir arbeiten auf höchste Standards bei Transparenz und Schutz hin.",
   },
   contact: {
@@ -326,9 +321,8 @@ const fr: DeepPartial<Dictionary> = {
     donateNow: "Faire un don", stayInLoop: "Restez informé·e", stayDescription: "Abonnez-vous pour recevoir nos actualités, nos récits et les possibilités de soutenir notre action.",
   },
   about: {
-    title: "À propos de Vantage Foundation Uganda", description: "Dirigée par des jeunes, centrée sur les communautés et engagée à créer une possibilité de plus.", mission: "Mission", vision: "Vision", values: "Valeurs",
-    whoWeServe: "Les personnes que nous accompagnons", whoWeServeDescription: "Nous nous concentrons sur les personnes et les lieux souvent laissés de côté par les programmes de développement.",
-    targetBeneficiaries: "Bénéficiaires prioritaires", approach: "Notre approche", meetTeam: "Rencontrez l’équipe", teamDescription: "Une organisation dirigée par des jeunes et ancrée dans les communautés.",
+    title: "À propos de Vantage Foundation Uganda", description: "Dirigée par des jeunes, enracinée dans les communautés, guidée par les preuves — qui est Vantage, pourquoi elle existe et comment elle travaille.", mission: "Mission", vision: "Vision", values: "Valeurs",
+    meetTeam: "Rencontrez l’équipe", teamDescription: "Une organisation dirigée par des jeunes et ancrée dans les communautés.",
     fullTeam: "Découvrir toute l’équipe", governanceTitle: "Gouvernance et redevabilité", governanceDescription: "Nous visons les normes les plus élevées en matière de transparence et de protection.",
   },
   contact: {
@@ -407,9 +401,8 @@ const es: DeepPartial<Dictionary> = {
     donateNow: "Dona ahora", stayInLoop: "Mantente informado", stayDescription: "Suscríbete para recibir actualizaciones de proyectos, historias y oportunidades para apoyar nuestra labor.",
   },
   about: {
-    title: "Sobre Vantage Foundation Uganda", description: "Liderada por jóvenes, centrada en la comunidad y comprometida con una ventaja más a la vez.", mission: "Misión", vision: "Visión", values: "Valores",
-    whoWeServe: "A quién servimos", whoWeServeDescription: "Nos enfocamos en las personas y los lugares que a menudo quedan al margen del desarrollo convencional.",
-    targetBeneficiaries: "Beneficiarios prioritarios", approach: "Nuestro enfoque", meetTeam: "Conoce al equipo", teamDescription: "Liderada por jóvenes y arraigada en las comunidades.",
+    title: "Sobre Vantage Foundation Uganda", description: "Dirigida por jóvenes, arraigada en las comunidades, guiada por la evidencia — quién es Vantage, por qué existe y cómo trabaja.", mission: "Misión", vision: "Visión", values: "Valores",
+    meetTeam: "Conoce al equipo", teamDescription: "Liderada por jóvenes y arraigada en las comunidades.",
     fullTeam: "Conoce al equipo completo", governanceTitle: "Gobernanza y rendición de cuentas", governanceDescription: "Trabajamos para alcanzar los más altos estándares de transparencia y protección.",
   },
   contact: {
@@ -488,9 +481,8 @@ const ar: DeepPartial<Dictionary> = {
     donateNow: "تبرّع الآن", stayInLoop: "ابقَ على اطلاع", stayDescription: "اشترك لتلقّي تحديثات المشاريع والقصص وفرص دعم عملنا.",
   },
   about: {
-    title: "نبذة عن Vantage Foundation Uganda", description: "مؤسسة شبابية ترتكز على المجتمع وتلتزم بتقديم ميزة إضافية في كل مرة.", mission: "الرسالة", vision: "الرؤية", values: "القيم",
-    whoWeServe: "من نخدم", whoWeServeDescription: "نركز على الأشخاص والأماكن التي غالبًا ما تُهمَل في التنمية السائدة.",
-    targetBeneficiaries: "الفئات المستهدفة", approach: "نهجنا", meetTeam: "تعرّف على الفريق", teamDescription: "بقيادة الشباب ومتجذرة في المجتمعات.",
+    title: "نبذة عن Vantage Foundation Uganda", description: "بقيادة الشباب، متجذرة في المجتمعات، مستندة إلى الأدلة — من هي Vantage ولماذا توجد وكيف تعمل.", mission: "الرسالة", vision: "الرؤية", values: "القيم",
+    meetTeam: "تعرّف على الفريق", teamDescription: "بقيادة الشباب ومتجذرة في المجتمعات.",
     fullTeam: "تعرّف على الفريق بالكامل", governanceTitle: "الحوكمة والمساءلة", governanceDescription: "نعمل بما يضمن أعلى معايير الشفافية والحماية.",
   },
   contact: {
