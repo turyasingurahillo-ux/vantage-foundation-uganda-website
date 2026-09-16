@@ -31,6 +31,7 @@ import { impactStats } from "../content/impact";
 import { reports } from "../content/reports";
 import { theoryOfChange } from "../content/theory-of-change";
 import { evidenceItems } from "../content/evidence";
+import { partnershipOptions } from "../content/partnership";
 import { faq } from "../content/faq";
 import { mediaAssets } from "../content/media";
 import { reachDistricts } from "../content/reach";
@@ -464,6 +465,36 @@ const evidenceItemSchema = z.object({
   reviewedAt: z.string().optional(),
 });
 
+const partnershipOptionSchema = z.object({
+  id: z.enum([
+    "programme-funding",
+    "evidence-learning",
+    "technology-equipment",
+    "research",
+    "pro-bono",
+    "referral-ecosystem",
+  ]),
+  relevantProgrammeIds: z.array(programmeSlugSchema).optional(),
+  vantagePointRelevant: z.boolean().optional(),
+  impactLearningRelevant: z.boolean().optional(),
+  links: z
+    .array(
+      z.object({
+        labelKey: z.enum([
+          "ourWork",
+          "impact",
+          "theoryOfChange",
+          "reports",
+          "safeguarding",
+          "privacy",
+          "vantagePoint",
+        ]),
+        href: urlOrPath,
+      })
+    )
+    .optional(),
+});
+
 const mediaAssetSchema = z.object({
   id: nonEmpty,
   src: nonEmpty,
@@ -662,6 +693,41 @@ function checkCrossReferences(errors: ValidationError[]) {
     }
   }
 
+  // Partnership mechanisms: exactly six, unique ids, blueprint order.
+  const EXPECTED_PARTNERSHIP_ORDER = [
+    "programme-funding",
+    "evidence-learning",
+    "technology-equipment",
+    "research",
+    "pro-bono",
+    "referral-ecosystem",
+  ] as const;
+  if (partnershipOptions.length !== EXPECTED_PARTNERSHIP_ORDER.length) {
+    errors.push({
+      file: "content/partnership.ts",
+      path: "(root)",
+      message: `expected exactly ${EXPECTED_PARTNERSHIP_ORDER.length} partnership mechanisms, found ${partnershipOptions.length}`,
+    });
+  }
+  partnershipOptions.forEach((option, i) => {
+    if (option.id !== EXPECTED_PARTNERSHIP_ORDER[i]) {
+      errors.push({
+        file: "content/partnership.ts",
+        path: `[${i}].id`,
+        message: `expected mechanism "${EXPECTED_PARTNERSHIP_ORDER[i]}", found "${option.id}" — blueprint order must not drift`,
+      });
+    }
+    for (const pid of option.relevantProgrammeIds ?? []) {
+      if (!PROGRAMME_SLUG_VALUES.includes(pid)) {
+        errors.push({
+          file: "content/partnership.ts",
+          path: `${option.id}.relevantProgrammeIds`,
+          message: `references unknown programme "${pid}" — Vantage Point is a platform, not a portfolio`,
+        });
+      }
+    }
+  });
+
   // Reach districts: projectSlugs must reference existing projects.
   for (const district of reachDistricts) {
     if (district.projectSlugs) {
@@ -771,6 +837,13 @@ export function validateAllContent(): ValidationError[] {
       "content/evidence.ts",
       evidenceItems,
       z.array(evidenceItemSchema)
+    )
+  );
+  errors.push(
+    ...validateModule(
+      "content/partnership.ts",
+      partnershipOptions,
+      z.array(partnershipOptionSchema)
     )
   );
   errors.push(...validateModule("content/faq.ts", faq, z.array(faqItemSchema)));

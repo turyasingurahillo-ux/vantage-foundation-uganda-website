@@ -29,6 +29,11 @@ import { getPublishedTeam } from "@/content/team";
 import { getPublishedPartners } from "@/content/partners";
 import { getPublishedReports } from "@/content/reports";
 import { getPublishedImpactStats } from "@/content/impact";
+import {
+  partnershipOptions,
+  resolvePartnershipTypeFromQuery,
+} from "@/content/partnership";
+import { contactSchema } from "@/lib/form-schemas";
 
 describe("programmes (six-portfolio architecture)", () => {
   it("has exactly six public portfolios", () => {
@@ -431,5 +436,78 @@ describe("getAllProgrammeLearning (PR-4)", () => {
       expect(learning.title).toBeTruthy();
       expect(learning.body).toBeTruthy();
     }
+  });
+});
+
+describe("partnership options (PR-5)", () => {
+  it("has exactly the six blueprint mechanisms in order", () => {
+    expect(partnershipOptions).toHaveLength(6);
+    expect(partnershipOptions.map((o) => o.id)).toEqual([
+      "programme-funding",
+      "evidence-learning",
+      "technology-equipment",
+      "research",
+      "pro-bono",
+      "referral-ecosystem",
+    ]);
+  });
+
+  it("references only valid programme slugs — Vantage Point is never a programme", () => {
+    const valid = new Set(programmes.map((p) => p.slug));
+    for (const option of partnershipOptions) {
+      for (const pid of option.relevantProgrammeIds ?? []) {
+        expect(valid.has(pid)).toBe(true);
+        expect(pid).not.toBe("vantage-point");
+      }
+    }
+  });
+
+  it("resolves ?type= deep links only to real mechanisms", () => {
+    expect(resolvePartnershipTypeFromQuery("research")).toBe("research");
+    expect(resolvePartnershipTypeFromQuery("pro-bono")).toBe("pro-bono");
+    expect(resolvePartnershipTypeFromQuery("gold-partner")).toBe("");
+    expect(resolvePartnershipTypeFromQuery(undefined)).toBe("");
+    expect(resolvePartnershipTypeFromQuery("vantage-point")).toBe("");
+  });
+});
+
+describe("contactSchema partnership fields (PR-5)", () => {
+  const base = {
+    name: "Jane Doe",
+    email: "jane@example.org",
+    subject: "partnerships",
+    message: "We would like to explore a partnership.",
+  };
+
+  it("accepts a valid partnership_type + programme", () => {
+    const parsed = contactSchema.safeParse({
+      ...base,
+      partnership_type: "research",
+      programme: "health-wellbeing",
+      role: "Programme Officer",
+      org_website: "https://example.org",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects an invalid partnership_type enum", () => {
+    const parsed = contactSchema.safeParse({
+      ...base,
+      partnership_type: "gold-partner",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects an arbitrary programme id", () => {
+    const parsed = contactSchema.safeParse({
+      ...base,
+      partnership_type: "programme-funding",
+      programme: "vantage-point",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("still works with no partnership fields at all", () => {
+    expect(contactSchema.safeParse(base).success).toBe(true);
   });
 });

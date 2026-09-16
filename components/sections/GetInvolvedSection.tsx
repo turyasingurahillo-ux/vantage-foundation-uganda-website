@@ -25,7 +25,7 @@ const pathways = [
     icon: Handshake,
     title: "Partner",
     description: "Collaborate on programmes, funding or technical expertise.",
-    href: "/get-involved#partner",
+    href: "/partner",
     cta: "Partner with us",
   },
   {

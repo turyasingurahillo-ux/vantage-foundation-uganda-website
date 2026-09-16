@@ -29,7 +29,7 @@ export function FinalCta({ locale, dictionary }: { locale: Locale; dictionary: I
             {home.finalDescription}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button href={localePath("/get-involved#partner", locale)} size="lg">
+            <Button href={localePath("/partner", locale)} size="lg">
               {home.partnerWithUs}
             </Button>
             <Button

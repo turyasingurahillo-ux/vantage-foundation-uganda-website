@@ -1,5 +1,5 @@
 import { Locale } from "@/lib/i18n/config";
-import type { EvidenceStatus } from "@/types";
+import type { EvidenceStatus, PartnershipType } from "@/types";
 import { UiContent, uiContent } from "./ui";
 
 export interface BrandGuideContent {
@@ -303,6 +303,62 @@ export interface PageContent {
     viewImpact: string;
     viewVantagePoint: string;
   };
+  partner: {
+    title: string;
+    eyebrow: string;
+    description: string;
+    exploreCta: string;
+    conversationCta: string;
+    whyTitle: string;
+    whyItems: { title: string; body: string }[];
+    mechanismsTitle: string;
+    mechanismsDescription: string;
+    mechanisms: Record<
+      PartnershipType,
+      { title: string; summary: string; prompt: string }
+    >;
+    discussCta: string;
+    linkLabels: {
+      ourWork: string;
+      impact: string;
+      theoryOfChange: string;
+      reports: string;
+      safeguarding: string;
+      privacy: string;
+      vantagePoint: string;
+    };
+    portfoliosTitle: string;
+    portfoliosDescription: string;
+    vantagePointTitle: string;
+    vantagePointDescription: string;
+    vantagePointCta: string;
+    approachTitle: string;
+    approachItems: { title: string; body: string }[];
+    formTitle: string;
+    formDescription: string;
+    form: {
+      fullName: string;
+      email: string;
+      organisation: string;
+      partnershipType: string;
+      selectType: string;
+      programme: string;
+      selectProgramme: string;
+      role: string;
+      country: string;
+      orgWebsite: string;
+      timeline: string;
+      message: string;
+      sending: string;
+      sendEnquiry: string;
+      enquiryReceived: string;
+      replyTime: string;
+      contactPrivacy: string;
+    };
+    alternativeNote: string;
+    donateCta: string;
+    volunteerCta: string;
+  };
   stories: {
     title: string;
     description: string;
@@ -437,6 +493,10 @@ function mergeWithEnglish(
       },
     },
     toc: { ...english.toc, ...partial.toc },
+    partner: {
+      ...english.partner,
+      ...partial.partner,
+    } as PageContent["partner"],
     stories: { ...english.stories, ...partial.stories },
     story: { ...english.story, ...partial.story },
     team: { ...english.team, ...partial.team },
@@ -699,6 +759,157 @@ const englishPageContent: PageContent = {
     viewProgrammes: "Explore the six portfolios",
     viewImpact: "See results & evidence",
     viewVantagePoint: "How Vantage Point connects it",
+  },
+  partner: {
+    title: "Partner with Vantage",
+    eyebrow: "Partner with Vantage",
+    description:
+      "Vantage works across interconnected youth and community outcomes in Uganda — and seeks partnerships whose funding, expertise, systems, evidence capability or reach can complement community-rooted implementation.",
+    exploreCta: "Explore partnership options",
+    conversationCta: "Start a conversation",
+    whyTitle: "Why partner with Vantage",
+    whyItems: [
+      {
+        title: "Community-rooted, youth-led",
+        body: "Vantage is a youth-led organization working inside the communities it serves — implementation is shaped by the people it is for.",
+      },
+      {
+        title: "An integrated programme model",
+        body: "Six connected portfolios — not isolated projects — because young people's outcomes in health, education, livelihoods and safety are interconnected.",
+      },
+      {
+        title: "Evidence-aware by design",
+        body: "Every published figure carries a status label — verified, programme-team figure, estimated catchment, pilot, planned or external — so partners can see exactly what each claim is.",
+      },
+      {
+        title: "A public theory of change",
+        body: "Our logic is published — including the assumptions it depends on and the external actors it relies on — not just our intentions.",
+      },
+      {
+        title: "Accountability surfaced, not buried",
+        body: "Safeguarding, privacy, accessibility and reporting architecture are public and linked, not filed away.",
+      },
+      {
+        title: "Learning is part of the work",
+        body: "Programme learning is recorded and attributed — partners can support not only delivery, but knowing what works and what needs to change.",
+      },
+    ],
+    mechanismsTitle: "Ways to partner",
+    mechanismsDescription:
+      "Six ways institutions, funders, researchers and professionals typically work with Vantage. These are starting points for a conversation — not fixed packages, and not every portfolio is actively fundraising.",
+    mechanisms: {
+      "programme-funding": {
+        title: "Fund a programme",
+        summary:
+          "Institutional funding that supports programme or project implementation across Vantage's six portfolios — from health and education to livelihoods, basic needs and youth participation.",
+        prompt:
+          "Which programme or area of work would you like to explore funding?",
+      },
+      "evidence-learning": {
+        title: "Fund evidence & learning",
+        summary:
+          "Support the measurement and learning side of the work — monitoring, evidence generation, learning documentation, data systems or evaluation capacity — so Vantage can keep improving what it does, not just deliver it.",
+        prompt:
+          "What aspect of evidence, monitoring or learning would you like to support?",
+      },
+      "technology-equipment": {
+        title: "Technology & equipment",
+        summary:
+          "Appropriate technology or equipment that strengthens programme delivery or operational capability — where a defined need exists and Vantage can assess relevance, maintenance and programme fit.",
+        prompt:
+          "What technology or equipment would you like to discuss?",
+      },
+      research: {
+        title: "Research collaboration",
+        summary:
+          "Work with universities, researchers and evidence organizations on questions arising from Vantage's programmes — evaluation, implementation learning, evidence synthesis or youth-informed inquiry — within Vantage's safeguarding and data-responsibility commitments.",
+        prompt:
+          "Tell us briefly about the research or learning question.",
+      },
+      "pro-bono": {
+        title: "Pro bono expertise",
+        summary:
+          "Targeted professional or technical expertise — legal, finance, MEAL, technology, communications, research or programme systems — matched to a defined organizational need rather than general volunteering.",
+        prompt: "What expertise would you like to offer?",
+      },
+      "referral-ecosystem": {
+        title: "Referral & ecosystem partnership",
+        summary:
+          "Some outcomes depend on systems beyond Vantage. Referral pathways, service coordination and ecosystem relationships with schools, health facilities, local government, protection actors and civil society make the integrated model work.",
+        prompt:
+          "What kind of referral or coordination relationship would you like to explore?",
+      },
+    },
+    discussCta: "Discuss this →",
+    linkLabels: {
+      ourWork: "Our work",
+      impact: "Impact & Learning",
+      theoryOfChange: "Theory of Change",
+      reports: "Reports & Accountability",
+      safeguarding: "Safeguarding",
+      privacy: "Privacy",
+      vantagePoint: "Vantage Point",
+    },
+    portfoliosTitle: "What a partnership could connect to",
+    portfoliosDescription:
+      "Vantage's work is organized in six connected portfolios. A partnership can focus on one — or on the organizational capability underneath all of them.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "The planned cross-programme platform where learning, dialogue, evidence and community voice connect across all six portfolios — a natural fit for evidence, research and knowledge-exchange partnerships.",
+    vantagePointCta: "About Vantage Point",
+    approachTitle: "How we approach partnership",
+    approachItems: [
+      {
+        title: "Safeguarding first",
+        body: "Vantage works with children and young people. Any partnership touching programmes operates within our safeguarding commitments.",
+      },
+      {
+        title: "Responsible evidence & data",
+        body: "Research and evidence partnerships work within our privacy and consent practices — community data is not a free resource.",
+      },
+      {
+        title: "Clarity of roles",
+        body: "We distinguish partners from the wider ecosystem honestly — and we will not describe a relationship as more than it is.",
+      },
+      {
+        title: "Transparency about evidence",
+        body: "Partners see the same evidence statuses the public does — programme-team figures are not presented as independently verified results.",
+      },
+      {
+        title: "Community relevance",
+        body: "Partnership offers are assessed for fit — relevance, appropriateness and sustainability — not accepted automatically.",
+      },
+      {
+        title: "Learning over appearance",
+        body: "We would rather report what is actually happening — including uncertainty — than what looks good in a report.",
+      },
+    ],
+    formTitle: "Start a conversation",
+    formDescription:
+      "Tell us who you are and what you have in mind — a short note is enough to begin. This is an enquiry, not a grant application.",
+    form: {
+      fullName: "Full name",
+      email: "Email",
+      organisation: "Organisation",
+      partnershipType: "What kind of partnership?",
+      selectType: "Select a partnership type",
+      programme: "Relevant programme (optional)",
+      selectProgramme: "Select a programme — or leave for organisation-wide",
+      role: "Your role or title (optional)",
+      country: "Country (optional)",
+      orgWebsite: "Organisation website (optional)",
+      timeline: "Approximate timeline (optional)",
+      message: "What would you like to explore?",
+      sending: "Sending…",
+      sendEnquiry: "Send enquiry",
+      enquiryReceived: "Enquiry received",
+      replyTime: "We aim to reply within five working days.",
+      contactPrivacy:
+        "We will only use your details to respond to your enquiry. See our",
+    },
+    alternativeNote: "Looking to support differently?",
+    donateCta: "Donate",
+    volunteerCta: "Get involved",
   },
   stories: {
     title: "Stories & Insights",
@@ -1176,6 +1387,157 @@ const germanPageContent: DeepPartial<PageContent> = {
     viewImpact: "Ergebnisse & Evidenz ansehen",
     viewVantagePoint: "Wie Vantage Point es verbindet",
   },
+  partner: {
+    title: "Partner werden",
+    eyebrow: "Partner werden",
+    description:
+      "Vantage arbeitet an verbundenen Ergebnissen für Jugendliche und Gemeinschaften in Uganda — und sucht Partnerschaften, deren Finanzierung, Fachwissen, Systeme, Evidenzfähigkeit oder Reichweite die gemeinschaftsverwurzelte Umsetzung ergänzen können.",
+    exploreCta: "Partnerschaftsoptionen ansehen",
+    conversationCta: "Gespräch beginnen",
+    whyTitle: "Warum mit Vantage zusammenarbeiten",
+    whyItems: [
+      {
+        title: "Gemeinschaftsverwurzelt, jugendgeführt",
+        body: "Vantage ist eine jugendgeführte Organisation, die in den Gemeinschaften arbeitet, denen sie dient — die Umsetzung wird von den Menschen geprägt, für die sie gedacht ist.",
+      },
+      {
+        title: "Ein integriertes Programmmodell",
+        body: "Sechs verbundene Portfolios — keine isolierten Projekte — weil Ergebnisse junger Menschen in Gesundheit, Bildung, Existenzsicherung und Sicherheit zusammenhängen.",
+      },
+      {
+        title: "Evidenzbewusst von Grund auf",
+        body: "Jede veröffentlichte Zahl trägt ein Statuslabel — verifiziert, Programmteam-Zahl, geschätztes Einzugsgebiet, Pilot, geplant oder extern — damit Partner genau sehen, was jede Aussage ist.",
+      },
+      {
+        title: "Eine öffentliche Theory of Change",
+        body: "Unsere Logik ist veröffentlicht — einschließlich der Annahmen und externen Akteure, von denen sie abhängt — nicht nur unsere Absichten.",
+      },
+      {
+        title: "Rechenschaft sichtbar, nicht versteckt",
+        body: "Schutz, Datenschutz, Barrierefreiheit und Berichtsarchitektur sind öffentlich und verlinkt — nicht abgelegt.",
+      },
+      {
+        title: "Lernen gehört zur Arbeit",
+        body: "Programmlernen wird dokumentiert und zugeordnet — Partner können nicht nur die Umsetzung unterstützen, sondern auch das Wissen, was funktioniert und was sich ändern muss.",
+      },
+    ],
+    mechanismsTitle: "Wege der Zusammenarbeit",
+    mechanismsDescription:
+      "Sechs Wege, wie Institutionen, Förderer, Forschende und Fachkräfte typischerweise mit Vantage zusammenarbeiten. Ausgangspunkte für ein Gespräch — keine festen Pakete, und nicht jedes Portfolio sucht aktiv Finanzierung.",
+    mechanisms: {
+      "programme-funding": {
+        title: "Ein Programm finanzieren",
+        summary:
+          "Institutionelle Finanzierung für Programm- oder Projektimplementierung in den sechs Portfolios — von Gesundheit und Bildung bis Existenzsicherung, Grundbedarf und Jugendbeteiligung.",
+        prompt:
+          "Welches Programm oder Arbeitsfeld möchten Sie für eine Finanzierung erkunden?",
+      },
+      "evidence-learning": {
+        title: "Evidenz & Lernen finanzieren",
+        summary:
+          "Unterstützen Sie die Mess- und Lernseite der Arbeit — Monitoring, Evidenzgenerierung, Lerndokumentation, Datensysteme oder Evaluationskapazität — damit Vantage nicht nur liefert, sondern weiß, was funktioniert.",
+        prompt:
+          "Welchen Bereich von Evidenz, Monitoring oder Lernen möchten Sie unterstützen?",
+      },
+      "technology-equipment": {
+        title: "Technologie & Ausstattung",
+        summary:
+          "Geeignete Technologie oder Ausstattung, die Programmumsetzung oder organisatorische Fähigkeit stärkt — wo ein definierter Bedarf besteht und Vantage Relevanz, Wartung und Programmpassung prüfen kann.",
+        prompt:
+          "Welche Technologie oder Ausstattung möchten Sie besprechen?",
+      },
+      research: {
+        title: "Forschungszusammenarbeit",
+        summary:
+          "Zusammenarbeit mit Universitäten, Forschenden und Evidenzorganisationen an Fragen aus den Programmen — Evaluation, Implementierungslernen, Evidenzsynthese oder jugendinformierte Forschung — im Rahmen der Schutz- und Datenverantwortung von Vantage.",
+        prompt:
+          "Beschreiben Sie kurz die Forschungs- oder Lernfrage.",
+      },
+      "pro-bono": {
+        title: "Pro-bono-Fachwissen",
+        summary:
+          "Gezieltes professionelles oder technisches Fachwissen — Recht, Finanzen, MEAL, Technologie, Kommunikation, Forschung oder Programmsysteme — abgestimmt auf einen definierten organisatorischen Bedarf statt allgemeinem Ehrenamt.",
+        prompt: "Welches Fachwissen möchten Sie anbieten?",
+      },
+      "referral-ecosystem": {
+        title: "Verweisungs- & Ökosystem-Partnerschaft",
+        summary:
+          "Manche Ergebnisse hängen von Systemen außerhalb Vantage ab. Verweisungswege, Dienstkoordination und Ökosystem-Beziehungen mit Schulen, Gesundheitseinrichtungen, Kommunalverwaltung, Schutzakteuren und Zivilgesellschaft machen das integrierte Modell möglich.",
+        prompt:
+          "Welche Art von Verweisungs- oder Koordinierungsbeziehung möchten Sie erkunden?",
+      },
+    },
+    discussCta: "Besprechen →",
+    linkLabels: {
+      ourWork: "Unsere Arbeit",
+      impact: "Wirkung & Lernen",
+      theoryOfChange: "Theory of Change",
+      reports: "Berichte & Rechenschaft",
+      safeguarding: "Schutz",
+      privacy: "Datenschutz",
+      vantagePoint: "Vantage Point",
+    },
+    portfoliosTitle: "Womit sich eine Partnerschaft verbinden könnte",
+    portfoliosDescription:
+      "Die Arbeit von Vantage ist in sechs verbundene Portfolios gegliedert. Eine Partnerschaft kann sich auf eines konzentrieren — oder auf die organisatorische Fähigkeit dahinter.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "Die geplante programmübergreifende Plattform, auf der Lernen, Dialog, Evidenz und Community-Stimmen über alle sechs Portfolios verbunden werden — eine natürliche Passung für Evidenz-, Forschungs- und Wissensaustausch-Partnerschaften.",
+    vantagePointCta: "Über Vantage Point",
+    approachTitle: "Wie wir Partnerschaften angehen",
+    approachItems: [
+      {
+        title: "Schutz zuerst",
+        body: "Vantage arbeitet mit Kindern und Jugendlichen. Jede Partnerschaft, die Programme berührt, geschieht im Rahmen unserer Schutzverpflichtungen.",
+      },
+      {
+        title: "Verantwortungsvolle Evidenz & Daten",
+        body: "Forschungs- und Evidenzpartnerschaften arbeiten im Rahmen unserer Datenschutz- und Einwilligungspraxis — Community-Daten sind keine freie Ressource.",
+      },
+      {
+        title: "Klarheit der Rollen",
+        body: "Wir unterscheiden Partner vom weiteren Ökosystem ehrlich — und beschreiben eine Beziehung nicht als mehr, als sie ist.",
+      },
+      {
+        title: "Transparenz über Evidenz",
+        body: "Partner sehen dieselben Evidenzstatus wie die Öffentlichkeit — Programmteam-Zahlen werden nicht als unabhängig verifizierte Ergebnisse dargestellt.",
+      },
+      {
+        title: "Gemeinschaftsrelevanz",
+        body: "Partnerschaftsangebote werden auf Passung geprüft — Relevanz, Angemessenheit und Nachhaltigkeit — nicht automatisch angenommen.",
+      },
+      {
+        title: "Lernen vor Schein",
+        body: "Wir berichten lieber, was tatsächlich geschieht — einschließlich Unsicherheit — als was in einem Bericht gut aussieht.",
+      },
+    ],
+    formTitle: "Ein Gespräch beginnen",
+    formDescription:
+      "Sagen Sie uns, wer Sie sind und was Sie im Sinn haben — eine kurze Nachricht genügt für den Anfang. Das ist eine Anfrage, kein Förderantrag.",
+    form: {
+      fullName: "Vollständiger Name",
+      email: "E-Mail",
+      organisation: "Organisation",
+      partnershipType: "Welche Art von Partnerschaft?",
+      selectType: "Partnerschaftsart wählen",
+      programme: "Relevantes Programm (optional)",
+      selectProgramme: "Programm wählen — oder leer lassen für organisationsweit",
+      role: "Ihre Rolle oder Position (optional)",
+      country: "Land (optional)",
+      orgWebsite: "Website der Organisation (optional)",
+      timeline: "Ungefährer Zeitrahmen (optional)",
+      message: "Was möchten Sie erkunden?",
+      sending: "Wird gesendet…",
+      sendEnquiry: "Anfrage senden",
+      enquiryReceived: "Anfrage erhalten",
+      replyTime: "Wir bemühen uns um eine Antwort innerhalb von fünf Arbeitstagen.",
+      contactPrivacy:
+        "Wir verwenden Ihre Angaben nur zur Beantwortung Ihrer Anfrage. Siehe unsere",
+    },
+    alternativeNote: "Möchten Sie anders unterstützen?",
+    donateCta: "Spenden",
+    volunteerCta: "Mitmachen",
+  },
   stories: {
     title: "Geschichten & Einblicke",
     description:
@@ -1652,6 +2014,157 @@ const frenchPageContent: DeepPartial<PageContent> = {
     viewImpact: "Voir résultats & preuves",
     viewVantagePoint: "Comment Vantage Point relie le tout",
   },
+  partner: {
+    title: "Devenir partenaire",
+    eyebrow: "Devenir partenaire",
+    description:
+      "Vantage travaille sur des résultats interconnectés pour les jeunes et les communautés en Ouganda — et recherche des partenariats dont le financement, l'expertise, les systèmes, la capacité de preuve ou la portée peuvent compléter une mise en œuvre enracinée dans la communauté.",
+    exploreCta: "Explorer les options de partenariat",
+    conversationCta: "Démarrer une conversation",
+    whyTitle: "Pourquoi s'associer à Vantage",
+    whyItems: [
+      {
+        title: "Enraciné dans la communauté, dirigé par des jeunes",
+        body: "Vantage est une organisation dirigée par des jeunes, travaillant au sein des communautés qu'elle sert — la mise en œuvre est façonnée par les personnes pour qui elle est pensée.",
+      },
+      {
+        title: "Un modèle de programme intégré",
+        body: "Six portefeuilles connectés — pas des projets isolés — parce que les résultats des jeunes en santé, éducation, moyens de subsistance et sécurité sont interconnectés.",
+      },
+      {
+        title: "Soucieux des preuves par conception",
+        body: "Chaque chiffre publié porte un statut — vérifié, chiffre d'équipe, zone estimée, pilote, planifié ou externe — pour que les partenaires voient exactement ce que chaque affirmation vaut.",
+      },
+      {
+        title: "Une théorie du changement publique",
+        body: "Notre logique est publiée — y compris les hypothèses et les acteurs externes dont elle dépend — pas seulement nos intentions.",
+      },
+      {
+        title: "La redevabilité mise en avant",
+        body: "Sauvegarde, confidentialité, accessibilité et architecture de reporting sont publiques et liées — pas rangées.",
+      },
+      {
+        title: "L'apprentissage fait partie du travail",
+        body: "L'apprentissage des programmes est documenté et attribué — les partenaires peuvent soutenir non seulement l'exécution, mais le fait de savoir ce qui fonctionne.",
+      },
+    ],
+    mechanismsTitle: "Façons de s'associer",
+    mechanismsDescription:
+      "Six façons dont institutions, bailleurs, chercheurs et professionnels travaillent typiquement avec Vantage. Des points de départ pour une conversation — pas des forfaits fixes, et tous les portefeuilles ne recherchent pas activement de financement.",
+    mechanisms: {
+      "programme-funding": {
+        title: "Financer un programme",
+        summary:
+          "Financement institutionnel pour la mise en œuvre de programmes ou projets dans les six portefeuilles — de la santé et l'éducation aux moyens de subsistance, besoins de base et participation des jeunes.",
+        prompt:
+          "Quel programme ou domaine souhaitez-vous explorer pour un financement ?",
+      },
+      "evidence-learning": {
+        title: "Financer preuves & apprentissage",
+        summary:
+          "Soutenir le versant mesure et apprentissage — suivi, génération de preuves, documentation des apprentissages, systèmes de données ou capacité d'évaluation — pour que Vantage sache ce qui fonctionne, pas seulement livre.",
+        prompt:
+          "Quel aspect des preuves, du suivi ou de l'apprentissage souhaitez-vous soutenir ?",
+      },
+      "technology-equipment": {
+        title: "Technologie & équipement",
+        summary:
+          "Technologie ou équipement appropriés renforçant l'exécution des programmes ou la capacité organisationnelle — là où un besoin défini existe et où Vantage peut évaluer pertinence, maintenance et adéquation.",
+        prompt:
+          "Quelle technologie ou quel équipement souhaitez-vous discuter ?",
+      },
+      research: {
+        title: "Collaboration de recherche",
+        summary:
+          "Travailler avec universités, chercheurs et organisations de preuves sur des questions issues des programmes — évaluation, apprentissage de mise en œuvre, synthèse de preuves ou recherche informée par les jeunes — dans le cadre des engagements de sauvegarde et de données de Vantage.",
+        prompt:
+          "Décrivez brièvement la question de recherche ou d'apprentissage.",
+      },
+      "pro-bono": {
+        title: "Expertise pro bono",
+        summary:
+          "Expertise professionnelle ou technique ciblée — juridique, finance, MEAL, technologie, communication, recherche ou systèmes de programme — correspondant à un besoin organisationnel défini plutôt qu'au bénévolat général.",
+        prompt: "Quelle expertise souhaitez-vous offrir ?",
+      },
+      "referral-ecosystem": {
+        title: "Partenariat d'orientation & d'écosystème",
+        summary:
+          "Certains résultats dépendent de systèmes au-delà de Vantage. Parcours d'orientation, coordination des services et relations d'écosystème avec écoles, établissements de santé, gouvernement local, acteurs de protection et société civile font fonctionner le modèle intégré.",
+        prompt:
+          "Quel type de relation d'orientation ou de coordination souhaitez-vous explorer ?",
+      },
+    },
+    discussCta: "En discuter →",
+    linkLabels: {
+      ourWork: "Notre travail",
+      impact: "Impact & apprentissage",
+      theoryOfChange: "Théorie du changement",
+      reports: "Rapports & redevabilité",
+      safeguarding: "Sauvegarde",
+      privacy: "Confidentialité",
+      vantagePoint: "Vantage Point",
+    },
+    portfoliosTitle: "À quoi un partenariat pourrait se rattacher",
+    portfoliosDescription:
+      "Le travail de Vantage est organisé en six portefeuilles connectés. Un partenariat peut se concentrer sur l'un d'eux — ou sur la capacité organisationnelle qui les sous-tend tous.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "La plateforme transversale planifiée où apprentissage, dialogue, preuves et voix communautaires relient les six portefeuilles — un terrain naturel pour les partenariats de preuves, recherche et échange de connaissances.",
+    vantagePointCta: "À propos de Vantage Point",
+    approachTitle: "Notre approche du partenariat",
+    approachItems: [
+      {
+        title: "La sauvegarde d'abord",
+        body: "Vantage travaille avec des enfants et des jeunes. Tout partenariat touchant les programmes s'inscrit dans nos engagements de sauvegarde.",
+      },
+      {
+        title: "Preuves & données responsables",
+        body: "Les partenariats de recherche et de preuves respectent nos pratiques de confidentialité et de consentement — les données communautaires ne sont pas une ressource gratuite.",
+      },
+      {
+        title: "Clarté des rôles",
+        body: "Nous distinguons honnêtement les partenaires de l'écosystème élargi — et ne décrirons pas une relation comme plus qu'elle n'est.",
+      },
+      {
+        title: "Transparence sur les preuves",
+        body: "Les partenaires voient les mêmes statuts de preuves que le public — les chiffres d'équipe ne sont pas présentés comme des résultats vérifiés indépendamment.",
+      },
+      {
+        title: "Pertinence communautaire",
+        body: "Les offres de partenariat sont évaluées pour leur adéquation — pertinence, convenance et durabilité — pas acceptées automatiquement.",
+      },
+      {
+        title: "L'apprentissage avant l'apparence",
+        body: "Nous préférons rapporter ce qui se passe réellement — incertitude comprise — plutôt que ce qui fait bien dans un rapport.",
+      },
+    ],
+    formTitle: "Démarrer une conversation",
+    formDescription:
+      "Dites-nous qui vous êtes et ce que vous avez en tête — une courte note suffit pour commencer. C'est une demande, pas une demande de subvention.",
+    form: {
+      fullName: "Nom complet",
+      email: "E-mail",
+      organisation: "Organisation",
+      partnershipType: "Quel type de partenariat ?",
+      selectType: "Choisir un type de partenariat",
+      programme: "Programme concerné (facultatif)",
+      selectProgramme: "Choisir un programme — ou laisser pour toute l'organisation",
+      role: "Votre rôle ou fonction (facultatif)",
+      country: "Pays (facultatif)",
+      orgWebsite: "Site web de l'organisation (facultatif)",
+      timeline: "Échéancier approximatif (facultatif)",
+      message: "Que souhaitez-vous explorer ?",
+      sending: "Envoi…",
+      sendEnquiry: "Envoyer la demande",
+      enquiryReceived: "Demande reçue",
+      replyTime: "Nous visons une réponse sous cinq jours ouvrés.",
+      contactPrivacy:
+        "Nous n'utiliserons vos coordonnées que pour répondre à votre demande. Consultez notre",
+    },
+    alternativeNote: "Vous souhaitez soutenir autrement ?",
+    donateCta: "Faire un don",
+    volunteerCta: "S'engager",
+  },
   stories: {
     title: "Récits et analyses",
     description:
@@ -2127,6 +2640,157 @@ const spanishPageContent: DeepPartial<PageContent> = {
     viewImpact: "Ver resultados y evidencia",
     viewVantagePoint: "Cómo Vantage Point lo conecta",
   },
+  partner: {
+    title: "Asóciese con Vantage",
+    eyebrow: "Asóciese con Vantage",
+    description:
+      "Vantage trabaja en resultados interconectados para jóvenes y comunidades en Uganda — y busca alianzas cuya financiación, experiencia, sistemas, capacidad de evidencia o alcance puedan complementar una implementación arraigada en la comunidad.",
+    exploreCta: "Explorar opciones de alianza",
+    conversationCta: "Iniciar una conversación",
+    whyTitle: "Por qué aliarse con Vantage",
+    whyItems: [
+      {
+        title: "Arraigado en la comunidad, liderado por jóvenes",
+        body: "Vantage es una organización liderada por jóvenes que trabaja dentro de las comunidades a las que sirve — la implementación la moldean las personas para quienes está pensada.",
+      },
+      {
+        title: "Un modelo de programas integrado",
+        body: "Seis portafolios conectados — no proyectos aislados — porque los resultados de los jóvenes en salud, educación, medios de vida y seguridad están interconectados.",
+      },
+      {
+        title: "Consciente de la evidencia por diseño",
+        body: "Cada cifra publicada lleva una etiqueta de estado — verificada, cifra de equipo, área estimada, piloto, planificada o externa — para que los aliados vean exactamente qué es cada afirmación.",
+      },
+      {
+        title: "Una teoría del cambio pública",
+        body: "Nuestra lógica está publicada — incluidos los supuestos y actores externos de los que depende — no solo nuestras intenciones.",
+      },
+      {
+        title: "Rendición de cuentas visible",
+        body: "Salvaguarda, privacidad, accesibilidad y arquitectura de informes son públicas y enlazadas — no archivadas.",
+      },
+      {
+        title: "El aprendizaje es parte del trabajo",
+        body: "El aprendizaje de programas se documenta y atribuye — los aliados pueden apoyar no solo la ejecución, sino saber qué funciona y qué debe cambiar.",
+      },
+    ],
+    mechanismsTitle: "Formas de colaborar",
+    mechanismsDescription:
+      "Seis formas en que instituciones, financiadores, investigadores y profesionales suelen trabajar con Vantage. Puntos de partida para una conversación — no paquetes fijos, y no todos los portafolios buscan financiación activamente.",
+    mechanisms: {
+      "programme-funding": {
+        title: "Financiar un programa",
+        summary:
+          "Financiación institucional para la implementación de programas o proyectos en los seis portafolios — de salud y educación a medios de vida, necesidades básicas y participación juvenil.",
+        prompt:
+          "¿Qué programa o área de trabajo le gustaría explorar para financiar?",
+      },
+      "evidence-learning": {
+        title: "Financiar evidencia y aprendizaje",
+        summary:
+          "Apoye el lado de medición y aprendizaje — monitoreo, generación de evidencia, documentación de aprendizajes, sistemas de datos o capacidad de evaluación — para que Vantage sepa qué funciona, no solo ejecute.",
+        prompt:
+          "¿Qué aspecto de evidencia, monitoreo o aprendizaje le gustaría apoyar?",
+      },
+      "technology-equipment": {
+        title: "Tecnología y equipamiento",
+        summary:
+          "Tecnología o equipamiento apropiados que fortalezcan la ejecución de programas o la capacidad operativa — donde existe una necesidad definida y Vantage puede evaluar relevancia, mantenimiento y adecuación.",
+        prompt:
+          "¿Qué tecnología o equipamiento le gustaría conversar?",
+      },
+      research: {
+        title: "Colaboración de investigación",
+        summary:
+          "Trabajar con universidades, investigadores y organizaciones de evidencia en preguntas surgidas de los programas — evaluación, aprendizaje de implementación, síntesis de evidencia o investigación informada por jóvenes — dentro de los compromisos de salvaguarda y datos de Vantage.",
+        prompt:
+          "Cuéntenos brevemente la pregunta de investigación o aprendizaje.",
+      },
+      "pro-bono": {
+        title: "Experiencia pro bono",
+        summary:
+          "Experiencia profesional o técnica específica — legal, finanzas, MEAL, tecnología, comunicaciones, investigación o sistemas de programa — ajustada a una necesidad organizacional definida en lugar de voluntariado general.",
+        prompt: "¿Qué experiencia le gustaría ofrecer?",
+      },
+      "referral-ecosystem": {
+        title: "Alianza de referencia y ecosistema",
+        summary:
+          "Algunos resultados dependen de sistemas más allá de Vantage. Rutas de referencia, coordinación de servicios y relaciones de ecosistema con escuelas, centros de salud, gobierno local, actores de protección y sociedad civil hacen funcionar el modelo integrado.",
+        prompt:
+          "¿Qué tipo de relación de referencia o coordinación le gustaría explorar?",
+      },
+    },
+    discussCta: "Conversar →",
+    linkLabels: {
+      ourWork: "Nuestro trabajo",
+      impact: "Impacto y aprendizaje",
+      theoryOfChange: "Teoría del cambio",
+      reports: "Informes y rendición de cuentas",
+      safeguarding: "Salvaguarda",
+      privacy: "Privacidad",
+      vantagePoint: "Vantage Point",
+    },
+    portfoliosTitle: "A qué podría conectarse una alianza",
+    portfoliosDescription:
+      "El trabajo de Vantage se organiza en seis portafolios conectados. Una alianza puede centrarse en uno — o en la capacidad organizacional que los sustenta a todos.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "La plataforma transversal planificada donde aprendizaje, diálogo, evidencia y voces de la comunidad conectan los seis portafolios — un encaje natural para alianzas de evidencia, investigación e intercambio de conocimiento.",
+    vantagePointCta: "Sobre Vantage Point",
+    approachTitle: "Cómo abordamos las alianzas",
+    approachItems: [
+      {
+        title: "La salvaguarda primero",
+        body: "Vantage trabaja con niños y jóvenes. Toda alianza que toque los programas opera dentro de nuestros compromisos de salvaguarda.",
+      },
+      {
+        title: "Evidencia y datos responsables",
+        body: "Las alianzas de investigación y evidencia trabajan dentro de nuestras prácticas de privacidad y consentimiento — los datos comunitarios no son un recurso libre.",
+      },
+      {
+        title: "Claridad de roles",
+        body: "Distinguimos honestamente a los aliados del ecosistema más amplio — y no describiremos una relación como más de lo que es.",
+      },
+      {
+        title: "Transparencia sobre la evidencia",
+        body: "Los aliados ven los mismos estados de evidencia que el público — las cifras de equipo no se presentan como resultados verificados independientemente.",
+      },
+      {
+        title: "Relevancia comunitaria",
+        body: "Las ofertas de alianza se evalúan por su adecuación — relevancia, conveniencia y sostenibilidad — no se aceptan automáticamente.",
+      },
+      {
+        title: "Aprendizaje antes que apariencia",
+        body: "Preferimos informar lo que realmente ocurre — incluida la incertidumbre — antes que lo que luce bien en un informe.",
+      },
+    ],
+    formTitle: "Iniciar una conversación",
+    formDescription:
+      "Cuéntenos quién es y qué tiene en mente — una nota breve basta para empezar. Es una consulta, no una solicitud de subvención.",
+    form: {
+      fullName: "Nombre completo",
+      email: "Correo electrónico",
+      organisation: "Organización",
+      partnershipType: "¿Qué tipo de alianza?",
+      selectType: "Seleccionar tipo de alianza",
+      programme: "Programa relevante (opcional)",
+      selectProgramme: "Seleccionar un programa — o dejar para toda la organización",
+      role: "Su rol o cargo (opcional)",
+      country: "País (opcional)",
+      orgWebsite: "Sitio web de la organización (opcional)",
+      timeline: "Plazo aproximado (opcional)",
+      message: "¿Qué le gustaría explorar?",
+      sending: "Enviando…",
+      sendEnquiry: "Enviar consulta",
+      enquiryReceived: "Consulta recibida",
+      replyTime: "Procuramos responder en cinco días hábiles.",
+      contactPrivacy:
+        "Solo usaremos sus datos para responder a su consulta. Vea nuestra",
+    },
+    alternativeNote: "¿Desea apoyar de otra forma?",
+    donateCta: "Donar",
+    volunteerCta: "Participar",
+  },
   stories: {
     title: "Historias y reflexiones",
     description:
@@ -2601,6 +3265,152 @@ const arabicPageContent: DeepPartial<PageContent> = {
     viewProgrammes: "استكشف المحافظ الست",
     viewImpact: "عرض النتائج والأدلة",
     viewVantagePoint: "كيف يربطها Vantage Point",
+  },
+  partner: {
+    title: "شاركوا Vantage",
+    eyebrow: "شاركوا Vantage",
+    description:
+      "تعمل Vantage على نتائج مترابطة للشباب والمجتمعات في أوغندا — وتسعى إلى شراكات يمكن أن يكمل تمويلها أو خبرتها أو أنظمتها أو قدرتها على الأدلة أو وصولها التنفيذَ المتجذر في المجتمع.",
+    exploreCta: "استكشف خيارات الشراكة",
+    conversationCta: "ابدأ محادثة",
+    whyTitle: "لماذا الشراكة مع Vantage",
+    whyItems: [
+      {
+        title: "متجذرة في المجتمع، بقيادة الشباب",
+        body: "Vantage منظمة يقودها الشباب وتعمل داخل المجتمعات التي تخدمها — التنفيذ يشكّله الأشخاص الموجه إليهم.",
+      },
+      {
+        title: "نموذج برامج متكامل",
+        body: "ست محافظ مترابطة — لا مشاريع معزولة — لأن نتائج الشباب في الصحة والتعليم وسبل العيش والسلامة مترابطة.",
+      },
+      {
+        title: "واعية بالأدلة بالتصميم",
+        body: "كل رقم منشور يحمل تصنيف حالة — موثّق، رقم فريق البرنامج، نطاق تقديري، تجريبي، مخطط أو خارجي — لكي يرى الشركاء بالضبط ماذا يمثل كل ادعاء.",
+      },
+      {
+        title: "نظرية تغيير علنية",
+        body: "منطقنا منشور — بما فيه الافتراضات والجهات الخارجية التي يعتمد عليها — لا مجرد نوايانا.",
+      },
+      {
+        title: "المساءلة ظاهرة لا مدفونة",
+        body: "الحماية والخصوصية وإمكانية الوصول وبنية التقارير علنية ومترابطة — لا محفوظة في الأدراج.",
+      },
+      {
+        title: "التعلم جزء من العمل",
+        body: "تعلم البرامج يوثَّق ويُنسب — يمكن للشركاء دعم ليس فقط التنفيذ بل معرفة ما ينجح وما يجب أن يتغير.",
+      },
+    ],
+    mechanismsTitle: "طرق الشراكة",
+    mechanismsDescription:
+      "ست طرق تعمل بها عادةً المؤسسات والممولون والباحثون والمهنيون مع Vantage. نقاط انطلاق لمحادثة — لا حزم ثابتة، وليست كل المحافظ تبحث بنشاط عن تمويل.",
+    mechanisms: {
+      "programme-funding": {
+        title: "تمويل برنامج",
+        summary:
+          "تمويل مؤسسي يدعم تنفيذ برنامج أو مشروع عبر المحافظ الست — من الصحة والتعليم إلى سبل العيش والاحتياجات الأساسية ومشاركة الشباب.",
+        prompt: "أي برنامج أو مجال عمل ترغبون في استكشاف تمويله؟",
+      },
+      "evidence-learning": {
+        title: "تمويل الأدلة والتعلم",
+        summary:
+          "ادعموا جانب القياس والتعلم — الرصد، توليد الأدلة، توثيق التعلم، أنظمة البيانات أو قدرة التقييم — لتعرف Vantage ما ينجح، لا أن تسلّم فقط.",
+        prompt: "أي جانب من الأدلة أو الرصد أو التعلم ترغبون في دعمه؟",
+      },
+      "technology-equipment": {
+        title: "التكنولوجيا والمعدات",
+        summary:
+          "تكنولوجيا أو معدات مناسبة تعزز تنفيذ البرامج أو القدرة التشغيلية — حيث توجد حاجة محددة وتستطيع Vantage تقييم الملاءمة والصيانة والتوافق مع البرنامج.",
+        prompt: "ما التكنولوجيا أو المعدات التي ترغبون في مناقشتها؟",
+      },
+      research: {
+        title: "التعاون البحثي",
+        summary:
+          "العمل مع الجامعات والباحثين ومنظمات الأدلة على أسئلة ناشئة من برامج Vantage — التقييم، تعلم التنفيذ، تركيب الأدلة أو البحث المستنير بالشباب — ضمن التزامات Vantage بالحماية ومسؤولية البيانات.",
+        prompt: "أخبرونا بإيجاز عن سؤال البحث أو التعلم.",
+      },
+      "pro-bono": {
+        title: "خبرة تطوعية متخصصة",
+        summary:
+          "خبرة مهنية أو تقنية محددة — قانونية، مالية، MEAL، تقنية، اتصالات، بحث أو أنظمة برامج — تُطابَق مع حاجة تنظيمية محددة بدلاً من التطوع العام.",
+        prompt: "ما الخبرة التي ترغبون في تقديمها؟",
+      },
+      "referral-ecosystem": {
+        title: "شراكة الإحالة والمنظومة",
+        summary:
+          "بعض النتائج تعتمد على أنظمة خارج Vantage. مسارات الإحالة وتنسيق الخدمات وعلاقات المنظومة مع المدارس والمرافق الصحية والحكومة المحلية وجهات الحماية والمجتمع المدني تجعل النموذج المتكامل يعمل.",
+        prompt: "أي نوع من علاقة الإحالة أو التنسيق ترغبون في استكشافه؟",
+      },
+    },
+    discussCta: "ناقشوا هذا ←",
+    linkLabels: {
+      ourWork: "عملنا",
+      impact: "الأثر والتعلم",
+      theoryOfChange: "نظرية التغيير",
+      reports: "التقارير والمساءلة",
+      safeguarding: "الحماية",
+      privacy: "الخصوصية",
+      vantagePoint: "Vantage Point",
+    },
+    portfoliosTitle: "بماذا يمكن أن تتصل الشراكة",
+    portfoliosDescription:
+      "عمل Vantage منظم في ست محافظ مترابطة. يمكن أن تركز الشراكة على واحدة — أو على القدرة التنظيمية التي تدعمها جميعاً.",
+    vantagePointTitle: "Vantage Point",
+    vantagePointDescription:
+      "المنصة المخططة المشتركة بين البرامج التي تربط التعلم والحوار والأدلة وأصوات المجتمع عبر المحافظ الست — ملاءمة طبيعية لشراكات الأدلة والبحث وتبادل المعرفة.",
+    vantagePointCta: "عن Vantage Point",
+    approachTitle: "كيف نتعامل مع الشراكات",
+    approachItems: [
+      {
+        title: "الحماية أولاً",
+        body: "تعمل Vantage مع الأطفال والشباب. أي شراكة تمس البرامج تعمل ضمن التزامات الحماية لدينا.",
+      },
+      {
+        title: "أدلة وبيانات مسؤولة",
+        body: "شراكات البحث والأدلة تعمل ضمن ممارسات الخصوصية والموافقة لدينا — بيانات المجتمع ليست مورداً مجانياً.",
+      },
+      {
+        title: "وضوح الأدوار",
+        body: "نميز بصدق الشركاء عن المنظومة الأوسع — ولن نصف علاقة بأكثر مما هي عليه.",
+      },
+      {
+        title: "الشفافية حول الأدلة",
+        body: "يرى الشركاء نفس تصنيفات الأدلة التي يراها الجمهور — أرقام فرق البرامج لا تُقدَّم كنتائج موثقة مستقلة.",
+      },
+      {
+        title: "الملاءمة المجتمعية",
+        body: "عروض الشراكة تُقيَّم للملاءمة — الصلة والمناسبة والاستدامة — لا تُقبل تلقائياً.",
+      },
+      {
+        title: "التعلم قبل المظهر",
+        body: "نفضل أن نبلغ عما يحدث فعلاً — بما فيه عدم اليقين — لا عما يبدو جيداً في التقرير.",
+      },
+    ],
+    formTitle: "ابدأوا محادثة",
+    formDescription:
+      "أخبرونا من أنتم وما لديكم في الذهن — ملاحظة قصيرة تكفي للبدء. هذا استفسار، وليس طلب منحة.",
+    form: {
+      fullName: "الاسم الكامل",
+      email: "البريد الإلكتروني",
+      organisation: "المنظمة",
+      partnershipType: "أي نوع من الشراكة؟",
+      selectType: "اختر نوع الشراكة",
+      programme: "البرنامج المعني (اختياري)",
+      selectProgramme: "اختر برنامجاً — أو اتركه لعموم المنظمة",
+      role: "دوركم أو منصبكم (اختياري)",
+      country: "البلد (اختياري)",
+      orgWebsite: "موقع المنظمة (اختياري)",
+      timeline: "الإطار الزمني التقريبي (اختياري)",
+      message: "ماذا ترغبون في استكشافه؟",
+      sending: "جارٍ الإرسال…",
+      sendEnquiry: "أرسلوا الاستفسار",
+      enquiryReceived: "تم استلام الاستفسار",
+      replyTime: "نسعى للرد خلال خمسة أيام عمل.",
+      contactPrivacy:
+        "سنستخدم بياناتكم فقط للرد على استفساركم. راجعوا",
+    },
+    alternativeNote: "ترغبون في الدعم بطريقة أخرى؟",
+    donateCta: "تبرعوا",
+    volunteerCta: "شاركوا",
   },
   stories: {
     title: "قصص ورؤى",

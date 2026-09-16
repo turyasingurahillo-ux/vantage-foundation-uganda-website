@@ -356,6 +356,36 @@ export interface EvidenceItem {
 }
 
 /**
+ * The six partnership mechanisms the blueprint defines for `/partner`.
+ * These are ways an institution or professional can work with Vantage —
+ * not programmes, not funding tiers, not sponsorship packages.
+ */
+export type PartnershipType =
+  | "programme-funding"
+  | "evidence-learning"
+  | "technology-equipment"
+  | "research"
+  | "pro-bono"
+  | "referral-ecosystem";
+
+/**
+ * One partnership mechanism. Localized display copy lives in
+ * `getPageContent().partner.mechanisms[id]`; this structure holds the
+ * canonical, non-translated relationships.
+ */
+export interface PartnershipOption {
+  id: PartnershipType;
+  /** Portfolios this mechanism most naturally connects to. */
+  relevantProgrammeIds?: ProgrammeId[];
+  /** Whether this mechanism connects to Vantage Point (cross-programme platform). */
+  vantagePointRelevant?: boolean;
+  /** Whether this mechanism connects to Impact & Learning architecture. */
+  impactLearningRelevant?: boolean;
+  /** Canonical links offered inside the mechanism card. */
+  links?: { labelKey: "ourWork" | "impact" | "theoryOfChange" | "reports" | "safeguarding" | "privacy" | "vantagePoint"; href: string }[];
+}
+
+/**
  * Cross-cutting themes a project can address. A project selects one or more
  * themes so it can surface on every relevant programme/theme page without
  * duplicating its source data. Themes are intentionally distinct from

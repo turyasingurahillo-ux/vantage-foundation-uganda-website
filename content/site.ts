@@ -100,7 +100,7 @@ export const site: SiteConfig = {
       children: [
         { label: "Donate", href: "/donate" },
         { label: "Volunteer", href: "/get-involved#volunteer" },
-        { label: "Partner", href: "/get-involved#partner" },
+        { label: "Partner", href: "/partner" },
         { label: "Sponsor", href: "/get-involved#sponsor" },
         { label: "Corporate Social Responsibility", href: "/get-involved#csr" },
       ],

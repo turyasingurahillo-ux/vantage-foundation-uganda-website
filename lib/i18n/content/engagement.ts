@@ -309,7 +309,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Collaborate on programmes, funding, technical expertise or joint community initiatives.",
           ctaLabel: "Partner with us",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
         {
           id: "sponsor",
@@ -333,7 +333,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Align your organisation's CSR with youth empowerment, health, education and WASH impact.",
           ctaLabel: "Discuss CSR",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
       ],
       reachOutTitle: "Reach out",
@@ -603,7 +603,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Arbeiten Sie mit uns an Programmen, Finanzierung, Fachwissen oder gemeinsamen Initiativen vor Ort.",
           ctaLabel: "Partnerschaft beginnen",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
         {
           id: "sponsor",
@@ -627,7 +627,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Verbinden Sie die CSR-Strategie Ihrer Organisation mit Wirkung in den Bereichen Jugend, Gesundheit, Bildung und WASH.",
           ctaLabel: "CSR besprechen",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
       ],
       reachOutTitle: "Kontakt aufnehmen",
@@ -900,7 +900,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Collaborez sur les programmes, le financement, l’expertise technique ou des initiatives communautaires conjointes.",
           ctaLabel: "Devenir partenaire",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
         {
           id: "sponsor",
@@ -924,7 +924,7 @@ export const engagementContent: Record<Locale, EngagementContent> = {
           description:
             "Alignez la démarche RSE de votre organisation sur l’autonomisation des jeunes, la santé, l’éducation et l’impact WASH.",
           ctaLabel: "Échanger sur la RSE",
-          ctaHref: "/contact?subject=partner",
+          ctaHref: "/partner",
         },
       ],
       reachOutTitle: "Écrivez-nous",

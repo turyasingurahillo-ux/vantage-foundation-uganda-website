@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { CONTACT_CATEGORY_VALUES } from "@/lib/contact-categories";
+import { PARTNERSHIP_TYPE_VALUES } from "@/content/partnership";
+import { PROGRAMME_ID_VALUES } from "@/content/programmes";
 import {
   createDonationReference,
   DONATION_TRANSFER_METHODS,
@@ -58,6 +60,29 @@ export const contactSchema = z.object({
     .trim()
     .max(200, "Origin page value is too long")
     .optional(),
+  // Structured partnership context — sent only by the /partner enquiry
+  // form. All enum-validated server-side; arbitrary client-supplied
+  // mechanism or programme values are rejected, never trusted.
+  partnership_type: z
+    .enum(PARTNERSHIP_TYPE_VALUES, {
+      message: "Please choose the kind of partnership you have in mind",
+    })
+    .optional(),
+  programme: z
+    .enum(PROGRAMME_ID_VALUES, {
+      message: "Please choose a valid programme",
+    })
+    .optional(),
+  role: z.string().trim().max(150, "Role is too long").optional(),
+  country: z.string().trim().max(100, "Country is too long").optional(),
+  // org_website — deliberately NOT named "website", which is a honeypot
+  // field that must stay empty.
+  org_website: z
+    .string()
+    .trim()
+    .max(200, "Website is too long")
+    .optional(),
+  timeline: z.string().trim().max(100, "Timeline is too long").optional(),
 });
 
 export const newsletterSchema = z.object({
