@@ -195,6 +195,29 @@ export async function submitContact(
 
   const category = parsed.data.subject;
 
+  // Structured partnership context from the /partner form. Values are
+  // already enum/bounds-validated by the schema, so they are safe to
+  // append as labelled metadata — the same pattern donorSchema uses for
+  // transfer details. Stored with the message so the case pipeline and
+  // the notification email both see it without a schema migration.
+  const partnershipMeta = [
+    parsed.data.partnership_type
+      ? `Partnership type: ${parsed.data.partnership_type}`
+      : null,
+    parsed.data.programme
+      ? `Programme interest: ${parsed.data.programme}`
+      : null,
+    parsed.data.role ? `Role: ${parsed.data.role}` : null,
+    parsed.data.country ? `Country: ${parsed.data.country}` : null,
+    parsed.data.org_website
+      ? `Organisation website: ${parsed.data.org_website}`
+      : null,
+    parsed.data.timeline ? `Timeline: ${parsed.data.timeline}` : null,
+  ].filter(Boolean);
+  const storedMessage = partnershipMeta.length
+    ? `${parsed.data.message}\n\n${partnershipMeta.join("\n")}`
+    : parsed.data.message;
+
   // Persist first, so a transient SMTP outage cannot lose the message.
   let messageId: number | null = null;
   if (isContactStoreConfigured()) {
@@ -205,7 +228,7 @@ export async function submitContact(
         phone: parsed.data.phone,
         organisation: parsed.data.organisation,
         category,
-        message: parsed.data.message,
+        message: storedMessage,
         originPage: parsed.data.origin_page,
       });
     } catch (err) {
@@ -243,7 +266,7 @@ export async function submitContact(
     phone: parsed.data.phone,
     organisation: parsed.data.organisation,
     category,
-    message: parsed.data.message,
+    message: storedMessage,
   });
 
   if (messageId !== null) {

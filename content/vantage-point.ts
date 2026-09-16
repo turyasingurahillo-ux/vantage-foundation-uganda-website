@@ -34,6 +34,6 @@ export const vantagePoint: VantagePoint = {
     "As the platform develops, learning and reflection generated through it will be published through Vantage's Stories & Insights and the reports and accountability pages — labelled so that observations, programme-team findings and verified evidence remain distinguishable.",
   cta: {
     label: "Partner with us",
-    href: "/get-involved#partner",
+    href: "/partner",
   },
 };

@@ -58,7 +58,7 @@ export function ArticleCtaBar({ slug, locale = "en" }: ArticleCtaBarProps) {
       <div className="mt-4 flex flex-wrap gap-3">
         <CtaLink href={localePath("/donate", locale)} ctaType="donate" label={c.donate} position="cta-bar" />
         <CtaLink href={localePath("/get-involved#volunteer", locale)} ctaType="volunteer" label={c.volunteer} position="cta-bar" />
-        <CtaLink href={localePath("/get-involved#partner", locale)} ctaType="partner" label={c.partnerWithUs} position="cta-bar" />
+        <CtaLink href={localePath("/partner", locale)} ctaType="partner" label={c.partnerWithUs} position="cta-bar" />
         <CtaLink href={localePath("/contact", locale)} ctaType="contact" label={c.contactVantage} position="cta-bar" />
         <CtaLink href={localePath("/our-work", locale)} ctaType="programmes" label={c.visitProgrammes} position="cta-bar" />
         <CtaLink href={localePath("/about-us", locale)} ctaType="about" label={c.aboutUs} position="cta-bar" />

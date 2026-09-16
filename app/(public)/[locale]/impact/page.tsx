@@ -459,7 +459,7 @@ export default async function ImpactPage({
                 {p.reports.contactUs}
               </Button>
               <Button
-                href={localePath("/get-involved#partner", locale)}
+                href={localePath("/partner", locale)}
                 variant="outline"
                 className="border-white text-white hover:bg-white/10"
               >

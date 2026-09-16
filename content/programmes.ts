@@ -104,7 +104,7 @@ export const programmes: Programme[] = [
       "Strengthen referral pathways with local health facilities",
       "Continue menstrual-health work through mentorship rather than one-off distribution",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     icon: "heart-pulse",
     image: "/images/photos/community-health-camp-checkup.webp",
     imageAlt: "A community health camp checkup in Uganda.",
@@ -156,7 +156,7 @@ export const programmes: Programme[] = [
       "Broaden access to reading circles and mentorship",
       "Connect learning activities more deliberately to livelihood skills",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     icon: "graduation-cap",
     image: "/images/projects/advantage-book-club-mentorship-01.webp",
     imageAlt:
@@ -200,7 +200,7 @@ export const programmes: Programme[] = [
       "Deepen mentorship through the KikumiKyo digital platform",
       "Connect financial literacy more closely to young people's livelihood pathways",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     externalPlatformLink: {
       label: "Explore the KikumiKyo Academy online",
       href: "https://kikumikyo.com/learn",
@@ -273,7 +273,7 @@ export const programmes: Programme[] = [
       "Maintain and follow up completed water infrastructure",
       "Continue hygiene education alongside infrastructure work",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     icon: "droplets",
     image: "/images/photos/photo-012.webp",
     imageAlt:
@@ -344,7 +344,7 @@ export const programmes: Programme[] = [
       "Complete and publish the safeguarding framework that governs this work",
       "Strengthen needs assessment and follow-up across relief interventions",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     icon: "hand-heart",
     image: "/images/photos/photo-003.webp",
     imageAlt:
@@ -390,7 +390,7 @@ export const programmes: Programme[] = [
       "Formalise the portfolio's activities and partnerships",
       "Connect youth voice into programme design through Vantage Point",
     ],
-    cta: { label: "Partner with us", href: "/get-involved#partner" },
+    cta: { label: "Partner with us", href: "/partner" },
     icon: "users",
     // No consent-cleared photo yet — deliberately no image until one passes
     // safeguarding review (docs/safeguarding-and-consent.md).
@@ -400,6 +400,12 @@ export const programmes: Programme[] = [
 
 /** The six portfolio ids in display order — single source for "exactly six". */
 export const PROGRAMME_IDS = programmes.map((p) => p.slug) as ProgrammeId[];
+
+/** Same list as a typed tuple — for Zod enum validation server-side. */
+export const PROGRAMME_ID_VALUES = PROGRAMME_IDS as [
+  ProgrammeId,
+  ...ProgrammeId[],
+];
 
 /** Published portfolios — in production, `published: false` entries are hidden. */
 export function getPublishedProgrammes(): Programme[] {

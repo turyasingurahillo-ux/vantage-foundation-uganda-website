@@ -496,7 +496,7 @@ export default async function ProgrammePage({
             </div>
             <div className="flex flex-wrap gap-3">
               <Button
-                href={localePath(programme.cta?.href ?? "/get-involved#partner", locale)}
+                href={localePath(programme.cta?.href ?? "/partner", locale)}
                 variant="outline"
                 className="border-white text-white hover:bg-white/10"
               >

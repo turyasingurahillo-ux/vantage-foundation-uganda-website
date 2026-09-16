@@ -358,7 +358,7 @@ export function Header({ locale, dictionary }: { locale: Locale; dictionary: I18
     { label: n.getInvolved, href: localize("/get-involved"), children: [
       { label: n.donate, href: localize("/donate") },
       { label: n.volunteer, href: localize("/get-involved#volunteer") },
-      { label: n.partner, href: localize("/get-involved#partner") },
+      { label: n.partner, href: localize("/partner") },
       { label: n.sponsor, href: localize("/get-involved#sponsor") },
       { label: n.csr, href: localize("/get-involved#csr") },
     ] },

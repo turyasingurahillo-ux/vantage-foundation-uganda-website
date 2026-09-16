@@ -45,7 +45,7 @@ export function Footer({ locale, dictionary }: { locale: Locale; dictionary: I18
   const getInvolvedLinks = [
     { label: n.donate, href: href("/donate") },
     { label: n.volunteer, href: href("/get-involved#volunteer") },
-    { label: n.partner, href: href("/get-involved#partner") },
+    { label: n.partner, href: href("/partner") },
     { label: n.sponsor, href: href("/get-involved#sponsor") },
     { label: n.csr, href: href("/get-involved#csr") },
   ];
